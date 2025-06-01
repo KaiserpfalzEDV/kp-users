@@ -21,19 +21,12 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>de.kaiserpfalz-edv.commons</groupId>
-        <artifactId>kp-commons-parent</artifactId>
-        <version>4.1.0</version>
-        <relativePath/><!-- load from repository -->
-    </parent>
-
     <groupId>de.kaiserpfalz-edv.commons.services</groupId>
     <artifactId>kp-users-parent</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>${project.groupId}:${project.artifactId}</name>
+    <name>${project.groupId}-${project.artifactId}</name>
     <description>kp-users is the IAM as SCS on steroids.</description>
     <url>https://kaiserpfalzedv.github.io/kp-users</url>
 
@@ -43,108 +36,25 @@
         <skip.javadoc>false</skip.javadoc>
         <skip.source>false</skip.source>
         <skip.site>false</skip.site>
+        <skip.owasp>false</skip.owasp>
+        <skip.checkstyle>true</skip.checkstyle>
+        <skip.code-coverage>false</skip.code-coverage>
 
-        <war.output.directory>undefined</war.output.directory>
         <delombok.output>target/delombok</delombok.output>
 
-        <uml-classes>de.kaiserpfalzedv</uml-classes>
-        <main.basedir>${project.basedir}/..</main.basedir>
-
         <maven.compiler.parameters>true</maven.compiler.parameters>
-        <maven.compiler.release>21</maven.compiler.release>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.release>17</maven.compiler.release>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <kp-commons.version>4.1.0</kp-commons.version>
+        <byte.buddy.version>1.17.5</byte.buddy.version>
     </properties>
 
     <build>
-        <pluginManagement>
-            <plugins>
-
-                <plugin>
-                    <groupId>com.iluwatar.urm</groupId>
-                    <artifactId>urm-maven-plugin</artifactId>
-                    <version>2.1.1</version>
-                    <configuration>
-                        <includeMainDirectory>true</includeMainDirectory>
-                        <includeTestDirectory>false</includeTestDirectory>
-                        <presenter>plantuml</presenter>
-                    </configuration>
-                    <executions>
-                        <execution>
-                            <?m2e execute onConfiguration,onIncremental?>
-                            <phase>process-classes</phase>
-                            <goals>
-                                <goal>map</goal>
-                            </goals>
-                            <configuration>
-                                <outputDirectory>${project.basedir}/target</outputDirectory>
-                                <packages>
-                                    <param>${uml-classes}</param>
-                                </packages>
-                            </configuration>
-                        </execution>
-                    </executions>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>properties-maven-plugin</artifactId>
-                    <version>1.2.1</version>
-                    <executions>
-                        <execution>
-                            <phase>pre-site</phase>
-                            <goals>
-                                <goal>set-system-properties</goal>
-                            </goals>
-                            <configuration>
-                                <properties>
-                                    <property>
-                                        <name>PLANTUML_LIMIT_SIZE</name>
-                                        <value>10240</value>
-                                    </property>
-                                </properties>
-                            </configuration>
-                        </execution>
-                    </executions>
-                </plugin>
-
-                <plugin>
-                    <groupId>com.github.jeluard</groupId>
-                    <artifactId>plantuml-maven-plugin</artifactId>
-                    <version>1.2</version>
-                    <configuration>
-                        <sourceFiles>
-                            <directory>${basedir}</directory>
-                            <includes>
-                                <include>**/*.puml</include>
-                            </includes>
-                        </sourceFiles>
-                        <verbose>false</verbose>
-                        <outputDirectory>${basedir}/src/site/resources/images</outputDirectory>
-                    </configuration>
-                    <executions>
-                        <execution>
-                            <id>uml</id>
-                            <phase>pre-site</phase>
-                            <goals>
-                                <goal>generate</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                    <dependencies>
-                        <dependency>
-                            <groupId>net.sourceforge.plantuml</groupId>
-                            <artifactId>plantuml</artifactId>
-                            <version>1.2025.2</version>
-                        </dependency>
-                    </dependencies>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-
         <resources>
             <resource>
                 <filtering>true</filtering>
@@ -184,6 +94,13 @@
                         <type>pom</type>
                         <scope>import</scope>
                     </dependency>
+                    <dependency>
+                        <groupId>jakarta.platform</groupId>
+                        <artifactId>jakarta.jakartaee-bom</artifactId>
+                        <version>11.0.0</version>
+                        <type>pom</type>
+                        <scope>import</scope>
+                    </dependency>
                 </dependencies>
             </dependencyManagement>
 
@@ -193,6 +110,21 @@
                 <dependency>
                     <groupId>org.projectlombok</groupId>
                     <artifactId>lombok</artifactId>
+                    <version>1.18.38</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>org.mapstruct</groupId>
+                    <artifactId>mapstruct</artifactId>
+                    <version>1.6.3</version>
+                </dependency>
+                <dependency>
+                    <groupId>jakarta.validation</groupId>
+                    <artifactId>jakarta.validation-api</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>jakarta.annotation</groupId>
+                    <artifactId>jakarta.annotation-api</artifactId>
                 </dependency>
 
 
@@ -200,6 +132,10 @@
                 <dependency>
                     <groupId>org.slf4j</groupId>
                     <artifactId>slf4j-api</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-ext</artifactId>
                 </dependency>
 
                 <!-- https://mvnrepository.com/artifact/com.github.spotbugs/spotbugs-annotations -->
@@ -320,6 +256,7 @@
                         <artifactId>maven-checkstyle-plugin</artifactId>
                         <version>3.6.0</version>
                         <configuration>
+                            <skip>${skip.checkstyle}</skip>
                             <configLocation>kaiserpfalz/checkstyle.xml</configLocation>
                         </configuration>
                         <executions>
@@ -346,13 +283,9 @@
                         <version>12.1.1</version>
                         <configuration>
                             <skip>${skip.owasp}</skip>
-                            <suppressionFiles>
-                                <suppressionFile>${main.basedir}/owasp-suppressions.xml</suppressionFile>
-                            </suppressionFiles>
                             <failBuildOnCVSS>8</failBuildOnCVSS>
                             <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
                             <failOnError>true</failOnError>
-                            <serverId>nvdApi</serverId>
                             <nvdApiServerId>nvdApi</nvdApiServerId>
                             <msbuildAnalyzerEnabled>false</msbuildAnalyzerEnabled>
                             <nodeAnalyzerEnabled>false</nodeAnalyzerEnabled>
@@ -383,18 +316,30 @@
                             <dependency>
                                 <groupId>org.projectlombok</groupId>
                                 <artifactId>lombok</artifactId>
-                                <version>1.18.36</version>
+                                <version>1.18.38</version>
                             </dependency>
                         </dependencies>
                     </plugin>
 
                     <plugin>
-                        <groupId>org.owasp</groupId>
-                        <artifactId>dependency-check-maven</artifactId>
+                        <groupId>com.iluwatar.urm</groupId>
+                        <artifactId>urm-maven-plugin</artifactId>
+                        <version>2.1.1</version>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/uml</outputDirectory>
+                            <includeMainDirectory>true</includeMainDirectory>
+                            <includeTestDirectory>false</includeTestDirectory>
+                            <presenter>plantuml</presenter>
+                            <packages>
+                                <param>de.kaiserpfalzedv.commons.users</param>
+                            </packages>
+                        </configuration>
                         <executions>
                             <execution>
+                                <?m2e execute onConfiguration,onIncremental?>
+                                <phase>process-classes</phase>
                                 <goals>
-                                    <goal>check</goal>
+                                    <goal>map</goal>
                                 </goals>
                             </execution>
                         </executions>
@@ -422,6 +367,7 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-dependency-plugin</artifactId>
                     </plugin>
+
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-report-plugin</artifactId>
@@ -433,34 +379,12 @@
                     </plugin>
 
                     <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>properties-maven-plugin</artifactId>
-                    </plugin>
-
-                    <plugin>
-                        <groupId>com.github.jeluard</groupId>
-                        <artifactId>plantuml-maven-plugin</artifactId>
-                    </plugin>
-
-                    <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-checkstyle-plugin</artifactId>
                         <version>3.6.0</version>
                         <configuration>
                             <configLocation>kaiserpfalz/checkstyle.xml</configLocation>
                         </configuration>
-                    </plugin>
-
-                    <plugin>
-                        <groupId>org.owasp</groupId>
-                        <artifactId>dependency-check-maven</artifactId>
-                        <reportSets>
-                            <reportSet>
-                                <reports>
-                                    <report>check</report>
-                                </reports>
-                            </reportSet>
-                        </reportSets>
                     </plugin>
 
                     <plugin>
@@ -485,10 +409,34 @@
                 </file>
             </activation>
 
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.mockito</groupId>
+                        <artifactId>mockito-bom</artifactId>
+                        <version>5.17.0</version>
+                        <type>pom</type>
+                        <scope>import</scope>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+
             <dependencies>
                 <dependency>
                     <groupId>de.kaiserpfalz-edv.commons</groupId>
                     <artifactId>kp-commons-test</artifactId>
+                    <scope>test</scope>
+                </dependency>
+
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-test</artifactId>
+                    <scope>test</scope>
+                </dependency>
+
+                <dependency>
+                    <groupId>org.mockito</groupId>
+                    <artifactId>mockito-junit-jupiter</artifactId>
                     <scope>test</scope>
                 </dependency>
 
@@ -514,26 +462,6 @@
 
             <build>
                 <plugins>
-                    <plugin>
-                        <!-- copy agent jar either from local or remote repository -->
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-dependency-plugin</artifactId>
-                        <version>3.6.0</version>
-                        <executions>
-                            <execution>
-                                <!-- the correct phase is important so it is available before the test starts -->
-                                <phase>test-compile</phase>
-                                <goals>
-                                    <goal>copy</goal>
-                                </goals>
-                                <configuration>
-                                    <artifact>net.bytebuddy:byte-buddy-agent:${byte.buddy.version}</artifact>
-                                    <!-- store within separate "test-agent" directory beneath "target" -->
-                                    <outputDirectory>${project.build.directory}/test-agent</outputDirectory>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
                     <plugin>
                         <!-- copy agent jar either from local or remote repository -->
                         <groupId>org.apache.maven.plugins</groupId>
@@ -588,6 +516,13 @@
                         <groupId>org.jacoco</groupId>
                         <artifactId>jacoco-maven-plugin</artifactId>
                         <version>0.8.12</version>
+                        <configuration>
+                            <skip>${skip.code-coverage}</skip>
+                            <excludes>
+                                <exclude>**/generated/**</exclude>
+                                <exclude>**/**Builder</exclude>
+                            </excludes>
+                        </configuration>
                         <executions>
                             <execution>
                                 <id>default-prepare-agent</id>

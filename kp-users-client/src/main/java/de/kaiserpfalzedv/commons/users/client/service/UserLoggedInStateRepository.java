@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
  * @since 2024-11-05
  */
 @Service
-@RequiredArgsConstructor(onConstructor = @__(@Inject))
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @XSlf4j
 public class UserLoggedInStateRepository {
   public static final int INACTIVITY_LIMIT_IN_SECONDS = 3600;

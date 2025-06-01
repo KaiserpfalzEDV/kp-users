@@ -21,12 +21,12 @@ package de.kaiserpfalzedv.commons.users.store.model.role;
 import de.kaiserpfalzedv.commons.users.domain.services.RoleReadService;
 import io.micrometer.core.annotation.Counted;
 import io.micrometer.core.annotation.Timed;
-import jakarta.inject.Inject;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.XSlf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -41,7 +41,7 @@ import java.util.UUID;
  * @since 2025-05-11
  */
 @Service
-@RequiredArgsConstructor(onConstructor = @__(@Inject))
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @ToString(onlyExplicitlyIncluded = true)
 @XSlf4j
 public class JpaRoleReadService implements RoleReadService {

@@ -10,6 +10,7 @@ import de.kaiserpfalzedv.commons.users.domain.services.UserAuthenticationExcepti
 import jakarta.inject.Inject;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.XSlf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -27,7 +28,7 @@ import org.springframework.stereotype.Service;
  * @since 03.05.2025
  */
 @Service
-@RequiredArgsConstructor(onConstructor = @__(@Inject))
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @XSlf4j
 public class UserAuthenticationManager implements AuthenticationManager {
   private final AuthenticationService authenticationService;

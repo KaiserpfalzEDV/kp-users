@@ -29,12 +29,15 @@ import de.kaiserpfalzedv.commons.users.domain.model.user.events.activity.UserLog
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.arbitration.UserPetitionedEvent;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.modification.*;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.state.*;
-import de.kaiserpfalzedv.commons.users.store.model.user.*;
+import de.kaiserpfalzedv.commons.users.store.model.user.JpaUserDataManagementService;
+import de.kaiserpfalzedv.commons.users.store.model.user.JpaUserManagementService;
+import de.kaiserpfalzedv.commons.users.store.model.user.JpaUserRoleManagementService;
+import de.kaiserpfalzedv.commons.users.store.model.user.JpaUserStateManagementService;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-import jakarta.inject.Inject;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.XSlf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.event.EventListener;
@@ -50,7 +53,7 @@ import org.springframework.stereotype.Service;
 @SuppressWarnings("LoggingSimilarMessage")
 @Service
 @Scope("singleton")
-@RequiredArgsConstructor(onConstructor = @__(@Inject))
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @XSlf4j
 public class JpaUserEventsHandler implements UserEventsHandler, AutoCloseable {
   private final JpaUserManagementService service;

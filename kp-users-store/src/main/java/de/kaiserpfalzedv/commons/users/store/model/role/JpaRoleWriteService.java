@@ -20,8 +20,8 @@ package de.kaiserpfalzedv.commons.users.store.model.role;
 
 import de.kaiserpfalzedv.commons.api.events.EventBus;
 import de.kaiserpfalzedv.commons.users.domain.model.role.Role;
-import de.kaiserpfalzedv.commons.users.domain.model.role.RoleNotFoundException;
 import de.kaiserpfalzedv.commons.users.domain.model.role.RoleCantBeCreatedException;
+import de.kaiserpfalzedv.commons.users.domain.model.role.RoleNotFoundException;
 import de.kaiserpfalzedv.commons.users.domain.model.role.events.RoleCreatedEvent;
 import de.kaiserpfalzedv.commons.users.domain.model.role.events.RoleRemovedEvent;
 import de.kaiserpfalzedv.commons.users.domain.model.role.events.RoleUpdateNameSpaceEvent;
@@ -30,10 +30,11 @@ import io.micrometer.core.annotation.Counted;
 import io.micrometer.core.annotation.Timed;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-import jakarta.inject.Inject;
 import jakarta.validation.constraints.NotNull;
-import lombok.*;
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 import lombok.extern.slf4j.XSlf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
@@ -47,13 +48,13 @@ import java.util.UUID;
  * @since 2025-05-17
  */
 @Service
-@RequiredArgsConstructor(onConstructor = @__(@Inject))
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @ToString(onlyExplicitlyIncluded = true)
 @XSlf4j
 public class JpaRoleWriteService implements RoleWriteService {
   private final RoleRepository repository;
   private final EventBus bus;
-  private final RoleToJpaImpl toJpa;
+  private final RoleToJpa toJpa;
   
   
   @Value("${spring.application.system:kp-commons}")

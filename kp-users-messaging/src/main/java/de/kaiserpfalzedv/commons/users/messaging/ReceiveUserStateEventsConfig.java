@@ -20,11 +20,11 @@ package de.kaiserpfalzedv.commons.users.messaging;
 
 import de.kaiserpfalzedv.commons.api.events.EventBus;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.state.*;
-import jakarta.inject.Inject;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.XSlf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -37,7 +37,7 @@ import java.util.function.Consumer;
  * @since 2025-05-18
  */
 @Configuration
-@RequiredArgsConstructor(onConstructor_ = @__(@Inject))
+@RequiredArgsConstructor(onConstructor_ = @__(@Autowired))
 @ToString(onlyExplicitlyIncluded = true)
 @XSlf4j
 public class ReceiveUserStateEventsConfig {

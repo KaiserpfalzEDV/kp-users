@@ -28,7 +28,7 @@
     </parent>
 
     <artifactId>kp-users-bom</artifactId>
-    <name>${project.groupId}:${project.artifactId}</name>
+    <name>${project.groupId}-${project.artifactId}</name>
     <description>The BOM for all kp-users</description>
     
     <properties>
@@ -139,7 +139,7 @@
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
-                <version>1.18.36</version>
+                <version>1.18.38</version>
             </dependency>
 
             <dependency>

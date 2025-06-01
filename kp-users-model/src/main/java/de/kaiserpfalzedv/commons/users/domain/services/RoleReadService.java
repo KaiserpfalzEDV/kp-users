@@ -20,8 +20,6 @@ package de.kaiserpfalzedv.commons.users.domain.services;
 
 import de.kaiserpfalzedv.commons.users.domain.model.role.Role;
 import jakarta.validation.constraints.NotNull;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -36,11 +34,6 @@ public interface RoleReadService {
   Optional<? extends Role> retrieve(@NotNull UUID id);
   
   List<? extends Role> retrieveByName(@NotNull String name);
-  Page<? extends Role> retrieveByName(@NotNull String name, @NotNull Pageable pageable);
-  
   List<? extends Role> retrieveAll();
-  Page<? extends Role> retrieveAll(@NotNull Pageable pageable);
-  
   List<? extends Role> retrieveAllFromNamespace(@NotNull String namespace);
-  Page<? extends Role> retrieveAllFromNamespace(@NotNull String namespace, @NotNull Pageable pageable);
 }

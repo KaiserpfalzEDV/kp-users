@@ -25,10 +25,10 @@ import de.kaiserpfalzedv.commons.users.domain.model.apikey.events.ApiKeyBaseEven
 import de.kaiserpfalzedv.commons.users.domain.model.role.events.RoleBaseEvent;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.UserBaseEvent;
 import jakarta.annotation.PostConstruct;
-import jakarta.inject.Inject;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.XSlf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -50,7 +50,7 @@ import java.util.UUID;
  * @since 2025-05-23
  */
 @Service
-@RequiredArgsConstructor(onConstructor = @__(@Inject))
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @ToString
 @XSlf4j
 public class UserEventMessagingConverter extends AbstractMessageConverter {

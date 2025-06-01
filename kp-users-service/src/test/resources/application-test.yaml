@@ -1,0 +1,16 @@
+---
+spring:
+  application:
+    name: kp-users
+    system: kp-commons
+    admin:
+      enabled: false
+  main:
+    banner-mode: off
+    
+logging:
+  level:
+    root: WARN
+    org.springframework: WARN
+    de.kaiserpfalzedv.commons: INFO
+    de.kaiserpfalzedv.commons.users.service: TRACE

@@ -8,7 +8,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="kp-checkstyle" />
       </profile>
-      <profile name="Annotation profile for kp-commons-root" enabled="true">
+      <profile name="Annotation profile for de.kaiserpfalz-edv.commons.services-kp-users-root" enabled="true">
         <sourceOutputDir name="../generated-sources/annotations" />
         <sourceTestOutputDir name="../generated-test-sources/test-annotations" />
         <option name="mapstruct.defaultComponentModel" value="spring" />
@@ -21,46 +21,29 @@
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok-mapstruct-binding/0.2.0/lombok-mapstruct-binding-0.2.0.jar" />
         </processorPath>
         <module name="kp-commons-api.test" />
+        <module name="kp-users-service.test" />
         <module name="kp-commons-jpa.test" />
         <module name="kp-commons-guava.test" />
+        <module name="kp-users-model.test" />
         <module name="kp-commons-core.main" />
         <module name="kp-commons-rest.test" />
+        <module name="kp-users-messaging.main" />
+        <module name="kp-users-service.main" />
         <module name="kp-commons-jpa.main" />
+        <module name="kp-users-store.main" />
         <module name="kp-commons-guava.main" />
+        <module name="kp-users-store.test" />
+        <module name="kp-users-client.test" />
         <module name="kp-commons-test.main" />
+        <module name="kp-users-messaging.test" />
         <module name="kp-commons-api.main" />
         <module name="kp-commons-core.test" />
         <module name="kp-commons-rest.main" />
         <module name="kp-commons-spring.main" />
-        <module name="kp-commons-spring.test" />
-        <module name="kp-commons-test.test" />
-      </profile>
-      <profile name="Annotation profile for de.kaiserpfalz-edv.commons.services:kp-users-root" enabled="true">
-        <sourceOutputDir name="../generated-sources/annotations" />
-        <sourceTestOutputDir name="../generated-test-sources/test-annotations" />
-        <option name="mapstruct.defaultComponentModel" value="spring" />
-        <option name="mapstruct.suppressGeneratorTimestamp" value="true" />
-        <option name="mapstruct.verbose" value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$MAVEN_REPOSITORY$/org/mapstruct/mapstruct-processor/1.6.3/mapstruct-processor-1.6.3.jar" />
-          <entry name="$MAVEN_REPOSITORY$/org/mapstruct/mapstruct/1.6.3/mapstruct-1.6.3.jar" />
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok-mapstruct-binding/0.2.0/lombok-mapstruct-binding-0.2.0.jar" />
-          <entry name="$MAVEN_REPOSITORY$/org/mapstruct/mapstruct-processor/1.6.3/mapstruct-processor-1.6.3.jar" />
-          <entry name="$MAVEN_REPOSITORY$/org/mapstruct/mapstruct/1.6.3/mapstruct-1.6.3.jar" />
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok-mapstruct-binding/0.2.0/lombok-mapstruct-binding-0.2.0.jar" />
-        </processorPath>
-        <module name="kp-users-store.test" />
-        <module name="kp-users-service.test" />
-        <module name="kp-users-client.test" />
-        <module name="kp-users-messaging.test" />
-        <module name="kp-users-model.test" />
         <module name="kp-users-model.main" />
+        <module name="kp-commons-spring.test" />
         <module name="kp-users-client.main" />
-        <module name="kp-users-messaging.main" />
-        <module name="kp-users-service.main" />
-        <module name="kp-users-store.main" />
+        <module name="kp-commons-test.test" />
       </profile>
     </annotationProcessing>
   </component>

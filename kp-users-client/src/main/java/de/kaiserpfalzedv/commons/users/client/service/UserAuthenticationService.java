@@ -22,9 +22,9 @@ import de.kaiserpfalzedv.commons.users.domain.model.user.*;
 import de.kaiserpfalzedv.commons.users.domain.services.AuthenticationService;
 import de.kaiserpfalzedv.commons.users.domain.services.UserManagementService;
 import de.kaiserpfalzedv.commons.users.domain.services.UserReadService;
-import jakarta.inject.Inject;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.XSlf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
@@ -39,7 +39,7 @@ import java.util.UUID;
  * @since 04.05.2025
  */
 @Service
-@RequiredArgsConstructor(onConstructor = @__(@Inject))
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @XSlf4j
 public class UserAuthenticationService implements AuthenticationService {
   private final UserReadService<User> readService;

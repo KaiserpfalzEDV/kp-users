@@ -27,7 +27,7 @@
     </parent>
 
     <artifactId>kp-users-client</artifactId>
-    <name>${project.groupId}:${project.artifactId}</name>
+    <name>${project.groupId}-${project.artifactId}</name>
     <description>The model for the user management</description>
 
     <properties>
@@ -93,23 +93,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>com.iluwatar.urm</groupId>
-                <artifactId>urm-maven-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>properties-maven-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>com.github.jeluard</groupId>
-                <artifactId>plantuml-maven-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
 </project>

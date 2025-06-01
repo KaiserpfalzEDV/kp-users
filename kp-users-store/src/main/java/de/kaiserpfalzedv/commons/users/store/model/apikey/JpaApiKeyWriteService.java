@@ -20,12 +20,12 @@ package de.kaiserpfalzedv.commons.users.store.model.apikey;
 
 import de.kaiserpfalzedv.commons.users.domain.model.apikey.ApiKey;
 import de.kaiserpfalzedv.commons.users.domain.model.apikey.ApiKeyNotFoundException;
-import de.kaiserpfalzedv.commons.users.domain.services.ApiKeyWriteService;
 import de.kaiserpfalzedv.commons.users.domain.model.apikey.InvalidApiKeyException;
-import jakarta.inject.Inject;
+import de.kaiserpfalzedv.commons.users.domain.services.ApiKeyWriteService;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.XSlf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 
@@ -39,12 +39,12 @@ import java.util.UUID;
  * @since 2025-05-11
  */
 @Service
-@RequiredArgsConstructor(onConstructor = @__(@Inject))
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @ToString(onlyExplicitlyIncluded = true)
 @XSlf4j
 public class JpaApiKeyWriteService implements ApiKeyWriteService {
   private final ApiKeyRepository repository;
-  private final ApiKeyToJPAImpl toJpa;
+  private final ApiKeyToJPA toJpa;
   
   @Override
   public void create(final ApiKey apiKey) throws InvalidApiKeyException {

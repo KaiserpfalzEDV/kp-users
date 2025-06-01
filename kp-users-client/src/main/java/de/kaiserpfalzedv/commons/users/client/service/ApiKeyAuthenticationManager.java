@@ -3,9 +3,9 @@ package de.kaiserpfalzedv.commons.users.client.service;
 
 import de.kaiserpfalzedv.commons.api.events.EventBus;
 import de.kaiserpfalzedv.commons.users.domain.services.AuthenticationService;
-import jakarta.inject.Inject;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.XSlf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -22,7 +22,7 @@ import org.springframework.stereotype.Service;
  * @since 04.05.2025
  */
 @Service
-@RequiredArgsConstructor(onConstructor = @__(@Inject))
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @XSlf4j
 public class ApiKeyAuthenticationManager implements AuthenticationManager {
   private final EventBus bus;

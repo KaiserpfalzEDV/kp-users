@@ -25,6 +25,7 @@ import jakarta.inject.Inject;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.XSlf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
@@ -39,7 +40,7 @@ import java.util.function.Consumer;
  * @since 2025-05-18
  */
 @Configuration
-@RequiredArgsConstructor(onConstructor = @__(@Inject))
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @ToString(onlyExplicitlyIncluded = true)
 @XSlf4j
 public class ReceiveUserActivityConfig {

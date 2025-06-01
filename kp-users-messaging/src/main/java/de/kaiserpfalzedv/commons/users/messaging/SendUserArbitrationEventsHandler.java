@@ -19,11 +19,11 @@ package de.kaiserpfalzedv.commons.users.messaging;
 
 
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.arbitration.UserPetitionedEvent;
-import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.ToString;
 import lombok.extern.slf4j.XSlf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.event.EventListener;
@@ -40,7 +40,7 @@ import org.springframework.stereotype.Service;
 public class SendUserArbitrationEventsHandler extends AbstractSendUserEventsHandler {
   private static final String DESTINATION = "petitionedUser-in-0";
   
-  @Inject
+  @Autowired
   public SendUserArbitrationEventsHandler(@NotNull StreamBridge sender, @NotNull final UserEventMessagingConverter converter) {
     super(sender, converter);
   }

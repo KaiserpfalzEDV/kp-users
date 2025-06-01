@@ -26,10 +26,10 @@ import de.kaiserpfalzedv.commons.users.store.model.role.JpaRoleWriteService;
 import de.kaiserpfalzedv.commons.users.store.model.user.JpaUserRoleManagementService;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-import jakarta.inject.Inject;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.XSlf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.event.EventListener;
@@ -42,7 +42,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @Scope("singleton")
-@RequiredArgsConstructor(onConstructor = @__(@Inject))
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @XSlf4j
 public class JpaRoleEventsHandler implements RoleEventsHandler, AutoCloseable {
   private final JpaRoleWriteService writeService;

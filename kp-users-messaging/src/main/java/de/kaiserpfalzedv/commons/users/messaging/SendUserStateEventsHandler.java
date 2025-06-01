@@ -19,11 +19,11 @@ package de.kaiserpfalzedv.commons.users.messaging;
 
 
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.state.*;
-import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.ToString;
 import lombok.extern.slf4j.XSlf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.event.EventListener;
@@ -39,7 +39,7 @@ import org.springframework.stereotype.Service;
 @XSlf4j
 public class SendUserStateEventsHandler extends AbstractSendUserEventsHandler {
   
-  @Inject
+  @Autowired
   public SendUserStateEventsHandler(@NotNull StreamBridge sender, @NotNull final UserEventMessagingConverter converter) {
     super(sender, converter);
   }

@@ -23,6 +23,7 @@ import jakarta.inject.Inject;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.XSlf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -34,7 +35,7 @@ import reactor.core.publisher.Mono;
  * @since 2025-05-25
  */
 @Component
-@RequiredArgsConstructor(onConstructor_ = @__(@Inject))
+@RequiredArgsConstructor(onConstructor_ = @__(@Autowired))
 @ToString(onlyExplicitlyIncluded = true)
 @XSlf4j
 public class ReactUserAuthenticationManager implements ReactiveAuthenticationManager {

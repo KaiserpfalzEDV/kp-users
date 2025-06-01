@@ -27,13 +27,8 @@
     </parent>
 
     <artifactId>kp-users-store</artifactId>
-    <name>${project.groupId}:${project.artifactId}</name>
+    <name>${project.groupId}-${project.artifactId}</name>
     <description>The database to store users in (or hold a local cache of the data store).</description>
-
-    <properties>
-        <uml-classes>de.kaiserpfalzedv.commons.users.store</uml-classes>
-        <main.basedir>${project.basedir}/..</main.basedir>
-    </properties>
 
     <dependencies>
         <dependency>
@@ -58,6 +53,11 @@
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-envers</artifactId>
+            <version>3.5.0</version>
+        </dependency>
+        <dependency>
             <groupId>jakarta.persistence</groupId>
             <artifactId>jakarta.persistence-api</artifactId>
         </dependency>
@@ -77,8 +77,14 @@
         </dependency>
 
         <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.38</version>
+        </dependency>
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-ext</artifactId>
+            <version>2.0.17</version>
         </dependency>
 
         <dependency>
@@ -87,23 +93,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>com.iluwatar.urm</groupId>
-                <artifactId>urm-maven-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>properties-maven-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>com.github.jeluard</groupId>
-                <artifactId>plantuml-maven-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
 </project>

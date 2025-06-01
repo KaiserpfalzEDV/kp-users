@@ -20,10 +20,10 @@ package de.kaiserpfalzedv.commons.users.store.model.user;
 import de.kaiserpfalzedv.commons.users.domain.services.UserReadService;
 import io.micrometer.core.annotation.Counted;
 import io.micrometer.core.annotation.Timed;
-import jakarta.inject.Inject;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.XSlf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -35,7 +35,7 @@ import java.util.UUID;
 
 @Service
 @Order(1010)
-@RequiredArgsConstructor(onConstructor = @__(@Inject))
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @ToString(onlyExplicitlyIncluded = true)
 @XSlf4j
 public class JpaUserReadService implements UserReadService<UserJPA> {

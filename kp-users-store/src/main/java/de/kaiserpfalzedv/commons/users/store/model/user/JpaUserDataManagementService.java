@@ -24,10 +24,10 @@ import de.kaiserpfalzedv.commons.users.domain.model.user.events.modification.*;
 import de.kaiserpfalzedv.commons.users.domain.services.UserDataManagementService;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-import jakarta.inject.Inject;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.XSlf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -42,7 +42,7 @@ import java.util.UUID;
  * @since 2025-05-16
  */
 @Service
-@RequiredArgsConstructor(onConstructor_ = @__(@Inject))
+@RequiredArgsConstructor(onConstructor_ = @__(@Autowired))
 @ToString(onlyExplicitlyIncluded = true)
 @XSlf4j
 public class JpaUserDataManagementService implements UserDataManagementService {

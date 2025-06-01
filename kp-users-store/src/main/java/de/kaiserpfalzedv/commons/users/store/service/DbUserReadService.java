@@ -22,11 +22,11 @@ import de.kaiserpfalzedv.commons.users.domain.model.user.User;
 import de.kaiserpfalzedv.commons.users.domain.services.UserReadService;
 import de.kaiserpfalzedv.commons.users.store.model.user.JpaUserReadService;
 import de.kaiserpfalzedv.commons.users.store.model.user.UserJPA;
-import jakarta.inject.Inject;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.XSlf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.data.domain.Page;
@@ -47,7 +47,7 @@ import java.util.UUID;
 @Primary
 @Service
 @Order(1000)
-@RequiredArgsConstructor(onConstructor = @__(@Inject))
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @ToString(onlyExplicitlyIncluded = true)
 @XSlf4j
 public class DbUserReadService implements UserReadService<User> {

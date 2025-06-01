@@ -19,10 +19,10 @@ package de.kaiserpfalzedv.commons.users.store.model.apikey;
 
 
 import de.kaiserpfalzedv.commons.users.domain.services.ApiKeyReadService;
-import jakarta.inject.Inject;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.XSlf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -34,7 +34,7 @@ import java.util.UUID;
  * @since 2025-05-11
  */
 @Service
-@RequiredArgsConstructor(onConstructor = @__(@Inject))
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @ToString(onlyExplicitlyIncluded = true)
 @XSlf4j
 public class JpaApiKeyReadService implements ApiKeyReadService {
