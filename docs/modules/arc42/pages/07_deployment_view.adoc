@@ -1,0 +1,5 @@
+= Deployment View
+
+include::partial$config.adoc[]
+
+include::partial$07_deployment_view/overview-picture.adoc[]

@@ -1,0 +1,2 @@
+include::kp-commons:manual:partial$includes/bibliography.adoc[]
+

@@ -1,0 +1,6 @@
+= Distributed User Management
+Roland T. Lichti <rlichti@kaiserpfalz-edv.de>
+
+NOTE: This documentation is also available in link:../_export/index.pdf[PDF format].
+
+include::kes:ROOT:partial$kes.adoc[]

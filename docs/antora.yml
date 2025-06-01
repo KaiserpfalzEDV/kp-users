@@ -1,0 +1,8 @@
+---
+name: kp-users
+version: current
+title: Identity and Access Management as SCS on Steroids
+nav:
+  - modules/manual/pages/nav.adoc
+  - modules/arc42/pages/nav.adoc
+  - modules/manual/partials/nav.appendix.adoc

@@ -1,0 +1,13 @@
+[[bibliography]]
+= Bibliography
+
+include::partial$config.adoc[]
+
+The bibliography is shared between all components of the whole kp-users project.
+We also reference the xref:kp-commons:manual:bibliography.adoc[Bibliography of kp-commons].
+
+[cols="<.<5a,<.<15a",frame="topbot",grid="rows"]
+|===
+|===
+
+<<<
