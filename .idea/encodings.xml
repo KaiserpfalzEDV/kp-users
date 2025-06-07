@@ -38,6 +38,18 @@
     <file url="file://$PROJECT_DIR$/../kp-commons/modules/src/main/helm" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/../kp-commons/modules/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/../kp-commons/modules/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../kp-commons/services/kp-commons-dnb-lookup/src/main/helm" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../kp-commons/services/kp-commons-dnb-lookup/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../kp-commons/services/kp-commons-dnb-lookup/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../kp-commons/services/kp-commons-ean-search/src/main/helm" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../kp-commons/services/kp-commons-ean-search/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../kp-commons/services/kp-commons-ean-search/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../kp-commons/services/kp-commons-sms77/src/main/helm" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../kp-commons/services/kp-commons-sms77/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../kp-commons/services/kp-commons-sms77/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../kp-commons/services/src/main/helm" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../kp-commons/services/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../kp-commons/services/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/../kp-commons/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/../kp-commons/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/kp-users-client/src/main/helm" charset="UTF-8" />
