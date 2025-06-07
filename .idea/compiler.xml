@@ -41,8 +41,8 @@
         <module name="kp-commons-rest.main" />
         <module name="kp-commons-spring.main" />
         <module name="kp-users-model.main" />
-        <module name="kp-users-client.main" />
         <module name="kp-commons-spring.test" />
+        <module name="kp-users-client.main" />
         <module name="kp-commons-test.test" />
       </profile>
     </annotationProcessing>
