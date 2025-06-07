@@ -18,15 +18,16 @@
 package de.kaiserpfalzedv.commons.users.messaging;
 
 
-import de.kaiserpfalzedv.commons.api.events.EventBus;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.modification.*;
 import lombok.extern.slf4j.XSlf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import static org.mockito.Mockito.*;
 
@@ -38,15 +39,13 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 @XSlf4j
 public class ReceiveUserModificationEventsConfigTest {
-  private ReceiveUserModificationEventsConfig sut;
+  @InjectMocks private ReceiveUserModificationEventsConfig sut;
   
-  @Mock private EventBus bus;
+  @Mock private ApplicationEventPublisher bus;
   
   
   @BeforeEach
   public void setUp() {
-    sut = new ReceiveUserModificationEventsConfig();
-    
     reset(bus);
   }
   
@@ -65,10 +64,10 @@ public class ReceiveUserModificationEventsConfigTest {
     final var event = mock(RoleAddedToUserEvent.class);
     
     // When
-    sut.addingRole(bus).accept(event);
+    sut.addingRole().accept(event);
     
     // Then
-    verify(bus).post(event);
+    verify(bus).publishEvent(event);
 
     log.exit();
   }
@@ -83,10 +82,10 @@ public class ReceiveUserModificationEventsConfigTest {
     final var event = mock(RoleRemovedFromUserEvent.class);
     
     // When
-    sut.removeRole(bus).accept(event);
+    sut.removeRole().accept(event);
     
     // Then
-    verify(bus).post(event);
+    verify(bus).publishEvent(event);
 
     log.exit();
   }
@@ -101,10 +100,10 @@ public class ReceiveUserModificationEventsConfigTest {
     final var event = mock(UserDiscordModificationEvent.class);
     
     // When
-    sut.modifyDiscord(bus).accept(event);
+    sut.modifyDiscord().accept(event);
     
     // Then
-    verify(bus).post(event);
+    verify(bus).publishEvent(event);
 
     log.exit();
   }
@@ -118,10 +117,10 @@ public class ReceiveUserModificationEventsConfigTest {
     final var event = mock(UserEmailModificationEvent.class);
     
     // When
-    sut.modifyEmail(bus).accept(event);
+    sut.modifyEmail().accept(event);
     
     // Then
-    verify(bus).post(event);
+    verify(bus).publishEvent(event);
 
     log.exit();
   }
@@ -135,10 +134,10 @@ public class ReceiveUserModificationEventsConfigTest {
     final var event = mock(UserNameModificationEvent.class);
     
     // When
-    sut.modifyName(bus).accept(event);
+    sut.modifyName().accept(event);
     
     // Then
-    verify(bus).post(event);
+    verify(bus).publishEvent(event);
 
     log.exit();
   }
@@ -152,10 +151,10 @@ public class ReceiveUserModificationEventsConfigTest {
     final var event = mock(UserNamespaceModificationEvent.class);
     
     // When
-    sut.modifyNamespace(bus).accept(event);
+    sut.modifyNamespace().accept(event);
     
     // Then
-    verify(bus).post(event);
+    verify(bus).publishEvent(event);
 
     log.exit();
   }
@@ -169,10 +168,10 @@ public class ReceiveUserModificationEventsConfigTest {
     final var event = mock(UserNamespaceAndNameModificationEvent.class);
     
     // When
-    sut.modifyNamespaceAndName(bus).accept(event);
+    sut.modifyNamespaceAndName().accept(event);
     
     // Then
-    verify(bus).post(event);
+    verify(bus).publishEvent(event);
 
     log.exit();
   }
@@ -186,10 +185,10 @@ public class ReceiveUserModificationEventsConfigTest {
     final var event = mock(UserSubjectModificationEvent.class);
     
     // When
-    sut.modifySubject(bus).accept(event);
+    sut.modifySubject().accept(event);
     
     // Then
-    verify(bus).post(event);
+    verify(bus).publishEvent(event);
 
     log.exit();
   }

@@ -18,15 +18,16 @@
 package de.kaiserpfalzedv.commons.users.messaging;
 
 
-import de.kaiserpfalzedv.commons.api.events.EventBus;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.state.*;
 import lombok.extern.slf4j.XSlf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import static org.mockito.Mockito.*;
 
@@ -38,15 +39,13 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 @XSlf4j
 public class ReceiveUserStateEventsConfigTest {
-  private ReceiveUserStateEventsConfig sut;
+  @InjectMocks private ReceiveUserStateEventsConfig sut;
   
-  @Mock private EventBus bus;
+  @Mock private ApplicationEventPublisher bus;
   
   
   @BeforeEach
   public void setUp() {
-    sut = new ReceiveUserStateEventsConfig();
-    
     reset(bus);
   }
   
@@ -65,10 +64,10 @@ public class ReceiveUserStateEventsConfigTest {
     final var event = mock(UserActivatedEvent.class);
     
     // When
-    sut.activateUser(bus).accept(event);
+    sut.activateUser().accept(event);
     
     // Then
-    verify(bus).post(event);
+    verify(bus).publishEvent(event);
     
     log.exit();
   }
@@ -81,10 +80,10 @@ public class ReceiveUserStateEventsConfigTest {
     final var event = mock(UserBannedEvent.class);
     
     // When
-    sut.banUser(bus).accept(event);
+    sut.banUser().accept(event);
     
     // Then
-    verify(bus).post(event);
+    verify(bus).publishEvent(event);
     
     log.exit();
   }
@@ -97,10 +96,10 @@ public class ReceiveUserStateEventsConfigTest {
     final var event = mock(UserCreatedEvent.class);
     
     // When
-    sut.createUser(bus).accept(event);
+    sut.createUser().accept(event);
     
     // Then
-    verify(bus).post(event);
+    verify(bus).publishEvent(event);
     
     log.exit();
   }
@@ -113,10 +112,10 @@ public class ReceiveUserStateEventsConfigTest {
     final var event = mock(UserDeletedEvent.class);
     
     // When
-    sut.deleteUser(bus).accept(event);
+    sut.deleteUser().accept(event);
     
     // Then
-    verify(bus).post(event);
+    verify(bus).publishEvent(event);
     
     log.exit();
   }
@@ -129,10 +128,10 @@ public class ReceiveUserStateEventsConfigTest {
     final var event = mock(UserDetainedEvent.class);
     
     // When
-    sut.detainUser(bus).accept(event);
+    sut.detainUser().accept(event);
     
     // Then
-    verify(bus).post(event);
+    verify(bus).publishEvent(event);
     
     log.exit();
   }
@@ -145,10 +144,10 @@ public class ReceiveUserStateEventsConfigTest {
     final var event = mock(UserReleasedEvent.class);
     
     // When
-    sut.releaseUser(bus).accept(event);
+    sut.releaseUser().accept(event);
     
     // Then
-    verify(bus).post(event);
+    verify(bus).publishEvent(event);
     
     log.exit();
   }
@@ -161,10 +160,10 @@ public class ReceiveUserStateEventsConfigTest {
     final var event = mock(UserRemovedEvent.class);
     
     // When
-    sut.removeUser(bus).accept(event);
+    sut.removeUser().accept(event);
     
     // Then
-    verify(bus).post(event);
+    verify(bus).publishEvent(event);
     
     log.exit();
   }

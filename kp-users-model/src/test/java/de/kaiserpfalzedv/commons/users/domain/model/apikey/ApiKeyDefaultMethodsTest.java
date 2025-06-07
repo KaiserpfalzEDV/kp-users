@@ -18,19 +18,15 @@
 package de.kaiserpfalzedv.commons.users.domain.model.apikey;
 
 
-import de.kaiserpfalzedv.commons.api.events.EventBus;
-import de.kaiserpfalzedv.commons.users.domain.model.user.UserIsBannedException;
-import de.kaiserpfalzedv.commons.users.domain.model.user.UserIsDeletedException;
-import de.kaiserpfalzedv.commons.users.domain.model.user.UserIsDetainedException;
 import de.kaiserpfalzedv.commons.users.domain.model.apikey.events.ApiKeyRevokedEvent;
-import de.kaiserpfalzedv.commons.users.domain.model.user.TestUser;
-import de.kaiserpfalzedv.commons.users.domain.model.user.User;
+import de.kaiserpfalzedv.commons.users.domain.model.user.*;
 import lombok.extern.slf4j.XSlf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -53,7 +49,7 @@ public class ApiKeyDefaultMethodsTest {
   private ApiKey sut;
   
   @Mock
-  private EventBus bus;
+  private ApplicationEventPublisher bus;
   
   @BeforeEach
   public void setUp() {
@@ -215,7 +211,7 @@ public class ApiKeyDefaultMethodsTest {
     log.entry("shouldGenerateRevokeEventWhenApiKeyGetsRevoked");
     
     sut.revoke(bus);
-    verify(bus).post(any(ApiKeyRevokedEvent.class));
+    verify(bus).publishEvent(any(ApiKeyRevokedEvent.class));
     
     log.exit();
   }

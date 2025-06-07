@@ -18,15 +18,16 @@
 package de.kaiserpfalzedv.commons.users.messaging;
 
 
-import de.kaiserpfalzedv.commons.api.events.EventBus;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.arbitration.UserPetitionedEvent;
 import lombok.extern.slf4j.XSlf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import static org.mockito.Mockito.*;
 
@@ -38,15 +39,14 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 @XSlf4j
 public class ReceiveUserArbitrationEventsConfigTest {
-  private ReceiveUserArbitrationEventsConfig sut;
   
-  @Mock private EventBus bus;
+  @InjectMocks private ReceiveUserArbitrationEventsConfig sut;
+  
+  @Mock private ApplicationEventPublisher bus;
   
   
   @BeforeEach
   public void setUp() {
-    sut = new ReceiveUserArbitrationEventsConfig();
-    
     reset(bus);
   }
   
@@ -65,10 +65,10 @@ public class ReceiveUserArbitrationEventsConfigTest {
     final var event = mock(UserPetitionedEvent.class);
     
     // When
-    sut.petitionedUser(bus).accept(event);
+    sut.petitionedUser().accept(event);
     
     // Then
-    verify(bus).post(event);
+    verify(bus).publishEvent(event);
     
     log.exit();
   }

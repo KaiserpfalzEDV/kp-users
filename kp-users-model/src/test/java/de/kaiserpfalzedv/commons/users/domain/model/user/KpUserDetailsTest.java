@@ -18,7 +18,7 @@
 package de.kaiserpfalzedv.commons.users.domain.model.user;
 
 
-import de.kaiserpfalzedv.commons.api.events.EventBus;
+import de.kaiserpfalzedv.commons.users.domain.model.user.events.state.*;
 import lombok.extern.slf4j.XSlf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,6 +26,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.Duration;
 import java.time.OffsetDateTime;
@@ -43,7 +44,7 @@ import static org.mockito.Mockito.*;
 @XSlf4j
 public class KpUserDetailsTest {
   @Mock
-  private EventBus bus;
+  private ApplicationEventPublisher bus;
   
   private KpUserDetails sut;
   
@@ -64,7 +65,7 @@ public class KpUserDetailsTest {
   void shouldDetainTheUserWhenUserIsActive() {
     sut.detain(bus, 100L);
     
-    verify(bus, times(1)).post(Mockito.any());
+    verify(bus, times(1)).publishEvent(any(UserDetainedEvent.class));
     
     assertTrue(sut.isDetained());
     assertEquals(Duration.ofDays(100L), sut.getDetainmentDuration());
@@ -81,7 +82,7 @@ public class KpUserDetailsTest {
     reset(bus);
     
     sut.detain(bus, 10L);
-    verify(bus, times(1)).post(Mockito.any());
+    verify(bus, times(1)).publishEvent(any(UserDetainedEvent.class));
     
     assertTrue(sut.isDetained());
     assertEquals(Duration.ofDays(10L), sut.getDetainmentDuration());
@@ -94,7 +95,7 @@ public class KpUserDetailsTest {
     reset(bus);
     
     sut.detain(bus, 100L);
-    verify(bus, times(1)).post(Mockito.any());
+    verify(bus, times(1)).publishEvent(any(UserDetainedEvent.class));
     
     assertTrue(sut.isBanned());
     assertTrue(sut.isDetained());
@@ -106,7 +107,7 @@ public class KpUserDetailsTest {
     reset(bus);
     
     sut.detain(bus, 100L);
-    verify(bus, times(1)).post(Mockito.any());
+    verify(bus, times(1)).publishEvent(any(UserDetainedEvent.class));
     
     assertTrue(sut.isDeleted());
     assertTrue(sut.isDetained());
@@ -116,7 +117,7 @@ public class KpUserDetailsTest {
   @Test
   void shouldDoNothingWhenReleasingAnActiveUser() {
     sut.release(bus);
-    verify(bus, times(1)).post(Mockito.any());
+    verify(bus, times(1)).publishEvent(any(UserReleasedEvent.class));
     
     assertTrue(sut.isActive());
   }
@@ -127,7 +128,7 @@ public class KpUserDetailsTest {
     reset(bus);
     
     sut.release(bus);
-    verify(bus, times(1)).post(Mockito.any());
+    verify(bus, times(1)).publishEvent(any(UserReleasedEvent.class));
     
     assertTrue(sut.isActive());
     assertFalse(sut.isBanned());
@@ -139,7 +140,7 @@ public class KpUserDetailsTest {
     reset(bus);
     
     sut.release(bus);
-    verify(bus, times(1)).post(Mockito.any());
+    verify(bus, times(1)).publishEvent(any(UserReleasedEvent.class));
     
     assertTrue(sut.isActive());
     assertFalse(sut.isDetained());
@@ -152,7 +153,7 @@ public class KpUserDetailsTest {
     reset(bus);
     
     sut.release(bus);
-    verify(bus, times(1)).post(Mockito.any());
+    verify(bus, times(1)).publishEvent(any(UserReleasedEvent.class));
     
     assertTrue(sut.isDeleted());
     assertFalse(sut.isDetained());
@@ -165,7 +166,7 @@ public class KpUserDetailsTest {
     reset(bus);
     
     sut.release(bus);
-    verify(bus, times(1)).post(Mockito.any());
+    verify(bus, times(1)).publishEvent(any(UserReleasedEvent.class));
     
     assertTrue(sut.isDeleted());
     assertFalse(sut.isBanned());
@@ -175,7 +176,7 @@ public class KpUserDetailsTest {
   @Test
   void shouldBanAnActiveUser() {
     sut.ban(bus);
-    verify(bus, times(1)).post(Mockito.any());
+    verify(bus, times(1)).publishEvent(any(UserBannedEvent.class));
     
     assertFalse(sut.isActive());
     assertTrue(sut.isBanned());
@@ -187,7 +188,7 @@ public class KpUserDetailsTest {
     reset(bus);
     
     sut.ban(bus);
-    verify(bus, times(1)).post(Mockito.any());
+    verify(bus, times(1)).publishEvent(any(UserBannedEvent.class));
     
     assertTrue(sut.isBanned());
     assertTrue(sut.isDetained());
@@ -199,7 +200,7 @@ public class KpUserDetailsTest {
     reset(bus);
     
     sut.ban(bus);
-    verify(bus, times(1)).post(Mockito.any());
+    verify(bus, times(1)).publishEvent(any(UserBannedEvent.class));
     
     assertTrue(sut.isBanned());
   }
@@ -210,7 +211,7 @@ public class KpUserDetailsTest {
     reset(bus);
     
     sut.ban(bus);
-    verify(bus, times(1)).post(Mockito.any());
+    verify(bus, times(1)).publishEvent(any(UserBannedEvent.class));
     
     assertTrue(sut.isDeleted());
     assertTrue(sut.isBanned());
@@ -220,7 +221,7 @@ public class KpUserDetailsTest {
   @Test
   void shouldDeleteAnActiveUser() {
     sut.delete(bus);
-    verify(bus, times(1)).post(Mockito.any());
+    verify(bus, times(1)).publishEvent(any(UserDeletedEvent.class));
     
     assertFalse(sut.isActive());
     assertTrue(sut.isDeleted());
@@ -229,7 +230,7 @@ public class KpUserDetailsTest {
   @Test
   void shouldUndeleteAnActiveUser() {
     sut.undelete(bus);
-    verify(bus, times(1)).post(Mockito.any());
+    verify(bus, times(1)).publishEvent(any(UserActivatedEvent.class));
     
     assertTrue(sut.isActive());
     assertFalse(sut.isDeleted());
@@ -241,7 +242,7 @@ public class KpUserDetailsTest {
     reset(bus);
     
     sut.undelete(bus);
-    verify(bus, times(1)).post(Mockito.any());
+    verify(bus, times(1)).publishEvent(any(UserActivatedEvent.class));
     
     assertFalse(sut.isDeleted());
     assertTrue(sut.isActive());
@@ -254,7 +255,7 @@ public class KpUserDetailsTest {
     reset(bus);
     
     sut.undelete(bus);
-    verify(bus, times(1)).post(Mockito.any());
+    verify(bus, times(1)).publishEvent(any(UserActivatedEvent.class));
     
     assertTrue(sut.isDetained(), "The user should be detained!");
     assertFalse(sut.isDeleted(), "The user should not be deleted anymore!");
@@ -269,7 +270,7 @@ public class KpUserDetailsTest {
     User result = sut.undelete(bus);
     log.debug("Undeleted a banned user. user={}", result);
     
-    verify(bus, times(1)).post(Mockito.any());
+    verify(bus, times(1)).publishEvent(any(UserActivatedEvent.class));
     
     assertEquals(result, sut);
     assertTrue(sut.isBanned(), "The user should be banned!");
@@ -279,7 +280,7 @@ public class KpUserDetailsTest {
   @Test
   void shouldEraseCredentialsWhenAsked() {
     sut.eraseCredentials();
-    verify(bus, never()).post(Mockito.any());
+    verify(bus, never()).publishEvent(Mockito.any());
   }
   
   private static final UUID DEFAULT_USER_ID = UUID.randomUUID();

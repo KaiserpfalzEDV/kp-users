@@ -23,6 +23,7 @@ import de.kaiserpfalzedv.commons.users.domain.model.user.events.state.*;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.slf4j.XSlf4j;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 
@@ -53,7 +54,7 @@ public class TestEventListener {
   
   
   private UserReleasedEvent releasedUser = null;
-  @org.springframework.context.event.EventListener
+  @EventListener
   public void onReleasedUser(UserReleasedEvent event) {
     log.entry(event);
     this.releasedUser = event;
@@ -61,7 +62,7 @@ public class TestEventListener {
   }
   
   private UserDetainedEvent detainedUser = null;
-  @org.springframework.context.event.EventListener
+  @EventListener
   public void onDetainedUser(UserDetainedEvent detainedUser) {
     log.entry(detainedUser);
     this.detainedUser = detainedUser;
@@ -69,7 +70,7 @@ public class TestEventListener {
   }
   
   private UserActivatedEvent activeUser = null;
-  @org.springframework.context.event.EventListener
+  @EventListener
   public void onActiveUser(UserActivatedEvent activeUser) {
     log.entry(activeUser);
     this.activeUser = activeUser;
@@ -77,7 +78,7 @@ public class TestEventListener {
   }
   
   private UserBannedEvent bannedUser = null;
-  @org.springframework.context.event.EventListener
+  @EventListener
   public void onBannedUser(UserBannedEvent bannedUser) {
     log.entry(bannedUser);
     this.bannedUser = bannedUser;
@@ -85,7 +86,7 @@ public class TestEventListener {
   }
   
   private UserDeletedEvent deletedUser = null;
-  @org.springframework.context.event.EventListener
+  @EventListener
   public void onDeletedUser(UserDeletedEvent deletedUser) {
     log.entry(deletedUser);
     this.deletedUser = deletedUser;
@@ -93,7 +94,7 @@ public class TestEventListener {
   }
   
   private UserRemovedEvent removedUser = null;
-  @org.springframework.context.event.EventListener
+  @EventListener
   public void onRemovedUser(UserRemovedEvent event) {
     log.entry(event);
     removedUser = event;
@@ -102,7 +103,7 @@ public class TestEventListener {
   
   
   private UserPetitionedEvent petitionUser = null;
-  @org.springframework.context.event.EventListener
+  @EventListener
   public void onPetitionedUser(UserPetitionedEvent event) {
     log.entry(event);
     petitionUser = event;

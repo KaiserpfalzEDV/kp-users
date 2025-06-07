@@ -18,7 +18,9 @@
 
 package de.kaiserpfalzedv.commons.users.domain.model.user;
 
-import de.kaiserpfalzedv.commons.api.events.EventBus;
+import de.kaiserpfalzedv.commons.users.domain.model.role.KpRole;
+import de.kaiserpfalzedv.commons.users.domain.model.user.events.modification.RoleAddedToUserEvent;
+import de.kaiserpfalzedv.commons.users.domain.model.user.events.modification.RoleRemovedFromUserEvent;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.state.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Max;
@@ -27,7 +29,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.extern.jackson.Jacksonized;
 import lombok.extern.slf4j.XSlf4j;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.annotation.Id;
 
 import java.time.*;
 import java.util.HashSet;
@@ -43,6 +46,7 @@ import java.util.UUID;
 @EqualsAndHashCode(of = {"id"})
 @XSlf4j
 public class KpUserDetails implements User {
+    @Id
     @Builder.Default
     private UUID id = UUID.randomUUID();
     
@@ -69,11 +73,11 @@ public class KpUserDetails implements User {
     private String discord;
     
     @Builder.Default
-    private final Set<SimpleGrantedAuthority> authorities = new HashSet<>();
+    private final Set<KpRole> authorities = new HashSet<>();
     
     
     @Override
-    public KpUserDetails detain(@NotNull EventBus bus, @Min(1) @Max(1095) long days) {
+    public KpUserDetails detain(@NotNull ApplicationEventPublisher bus, @Min(1) @Max(1095) long days) {
         log.entry(bus, days);
         
         detainmentDuration = Duration.ofDays(days);
@@ -83,54 +87,54 @@ public class KpUserDetails implements User {
             .plusDays(1 + days) // today end of day (1) + days
             .toOffsetDateTime();
         
-        bus.post(UserDetainedEvent.builder().user(this).days(days).build());
+        bus.publishEvent(UserDetainedEvent.builder().user(this).days(days).build());
         
         return log.exit(this);
     }
     
     @Override
-    public KpUserDetails release(@NotNull EventBus bus) {
+    public KpUserDetails release(@NotNull ApplicationEventPublisher bus) {
         log.entry(bus);
         
         detainmentDuration = null;
         detainedTill = null;
         bannedOn = null;
         
-        bus.post(UserReleasedEvent.builder().user(this).build());
+        bus.publishEvent(UserReleasedEvent.builder().user(this).build());
         
         return log.exit(this);
     }
     
     @Override
-    public KpUserDetails ban(@NotNull EventBus bus) {
+    public KpUserDetails ban(@NotNull ApplicationEventPublisher bus) {
         log.entry(bus);
 
         bannedOn = OffsetDateTime.now(Clock.systemUTC());
         
-        bus.post(UserBannedEvent.builder().user(this).timestamp(bannedOn).build());
+        bus.publishEvent(UserBannedEvent.builder().user(this).timestamp(bannedOn).build());
         
         return log.exit(this);
     }
     
     @Override
-    public KpUserDetails delete(@NotNull EventBus bus) {
+    public KpUserDetails delete(@NotNull ApplicationEventPublisher bus) {
         log.entry(bus);
         
         this.deleted = OffsetDateTime.now(Clock.systemUTC());
         
-        bus.post(UserDeletedEvent.builder().user(this).timestamp(deleted).build());
+        bus.publishEvent(UserDeletedEvent.builder().user(this).timestamp(deleted).build());
         log.info("Deleted user. banned={}, detained={}, deleted={}", isBanned(), isDetained(), isDeleted());
         
         return log.exit(this);
     }
     
     @Override
-    public KpUserDetails undelete(@NotNull EventBus bus) {
+    public KpUserDetails undelete(@NotNull ApplicationEventPublisher bus) {
         log.entry(bus);
         
         this.deleted = null;
         
-        bus.post(UserActivatedEvent.builder().user(this).build());
+        bus.publishEvent(UserActivatedEvent.builder().user(this).build());
         log.info("Undeleted user. banned={}, detained={}", isBanned(), isDetained());
         
         return log.exit(this);
@@ -139,5 +143,25 @@ public class KpUserDetails implements User {
     @Override
     public void eraseCredentials() {
         // nothing to do, there are no credentials anywhere ...
+    }
+    
+    public void addRole(@NotNull final KpRole role, @NotNull ApplicationEventPublisher bus) {
+        log.entry(role, bus);
+        
+        if (authorities.add(role)) {
+            bus.publishEvent(RoleAddedToUserEvent.builder().user(this).role(role).build());
+        }
+        
+        log.exit();
+    }
+    
+    public void removeRole(@NotNull final KpRole role, @NotNull ApplicationEventPublisher bus) {
+        log.entry(role, bus);
+        
+        if (authorities.remove(role)) {
+            bus.publishEvent(RoleRemovedFromUserEvent.builder().user(this).role(role).build());
+        }
+        
+        log.exit();
     }
 }

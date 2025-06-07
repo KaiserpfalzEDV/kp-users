@@ -24,8 +24,7 @@ import de.kaiserpfalzedv.commons.users.domain.model.role.RoleNotFoundException;
 import de.kaiserpfalzedv.commons.users.domain.model.user.UserNotFoundException;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.modification.RoleAddedToUserEvent;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.modification.RoleRemovedFromUserEvent;
-import de.kaiserpfalzedv.commons.users.store.model.role.JpaRoleReadService;
-import de.kaiserpfalzedv.commons.users.store.model.role.RoleJPA;
+import de.kaiserpfalzedv.commons.users.store.model.role.R2dbcRoleReadService;
 import de.kaiserpfalzedv.commons.users.store.model.role.RoleToJpaImpl;
 import lombok.extern.slf4j.XSlf4j;
 import org.junit.jupiter.api.AfterEach;
@@ -46,16 +45,16 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @XSlf4j
-public class JpaUserRoleManagementServiceTest {
+public class R2dbcUserRoleManagementServiceTest {
   
   @InjectMocks
-  private JpaUserRoleManagementService sut;
+  private R2dbcUserRoleManagementService sut;
   
   @Mock
-  private JpaRoleReadService jpaRoleReadService;
+  private R2dbcRoleReadService jpaRoleReadService;
   
   @Mock
-  private UserRepository repository;
+  private R2dbcUserRepository repository;
   
   @Mock
   private EventBus bus;

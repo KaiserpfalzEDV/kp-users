@@ -320,30 +320,6 @@
                             </dependency>
                         </dependencies>
                     </plugin>
-
-                    <plugin>
-                        <groupId>com.iluwatar.urm</groupId>
-                        <artifactId>urm-maven-plugin</artifactId>
-                        <version>2.1.1</version>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}/uml</outputDirectory>
-                            <includeMainDirectory>true</includeMainDirectory>
-                            <includeTestDirectory>false</includeTestDirectory>
-                            <presenter>plantuml</presenter>
-                            <packages>
-                                <param>de.kaiserpfalzedv.commons.users</param>
-                            </packages>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <?m2e execute onConfiguration,onIncremental?>
-                                <phase>process-classes</phase>
-                                <goals>
-                                    <goal>map</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
                 </plugins>
             </build>
 

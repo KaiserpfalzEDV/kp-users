@@ -19,9 +19,9 @@
 package de.kaiserpfalzedv.commons.users.domain.model.user.state;
 
 
-import de.kaiserpfalzedv.commons.api.events.EventBus;
 import de.kaiserpfalzedv.commons.users.domain.model.user.User;
 import jakarta.validation.constraints.NotNull;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.UUID;
 
@@ -35,7 +35,7 @@ import java.util.UUID;
 
 public interface UserState {
   class Factory {
-    static public UserState fromUser(@NotNull final User user, @NotNull final EventBus bus) {
+    static public UserState fromUser(@NotNull final User user, @NotNull final ApplicationEventPublisher bus) {
       if  (user.isActive()) {
         return ActiveUser.builder()
             .user(user)

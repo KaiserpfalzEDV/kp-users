@@ -49,12 +49,12 @@ import static org.mockito.Mockito.*;
 @SuppressWarnings("LoggingSimilarMessage")
 @ExtendWith(MockitoExtension.class)
 @XSlf4j
-public class JpaRoleWriteServiceTest {
+public class R2dbcRoleWriteServiceTest {
   @InjectMocks
-  private JpaRoleWriteService sut;
+  private R2dbcRoleWriteService sut;
   
   @Mock
-  private RoleRepository repository;
+  private R2dbcRoleRepository repository;
   
   @Mock
   private EventBus bus;

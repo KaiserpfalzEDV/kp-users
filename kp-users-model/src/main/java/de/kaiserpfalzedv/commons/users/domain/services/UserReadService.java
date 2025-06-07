@@ -20,9 +20,9 @@ package de.kaiserpfalzedv.commons.users.domain.services;
 
 import de.kaiserpfalzedv.commons.users.domain.model.user.User;
 import jakarta.validation.constraints.NotBlank;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
-import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -30,10 +30,10 @@ import java.util.UUID;
  * @since 2025-05-03
  */
 public interface UserReadService<T extends User> {
-  Optional<T> findById(@NotBlank UUID id);
-  Optional<T> findByUsername(@NotBlank final String nameSpace, @NotBlank final String name);
-  Optional<T> findByOauth(@NotBlank final String issuer, @NotBlank final String sub);
+  Mono<T> findById(@NotBlank UUID id);
+  Mono<T> findByUsername(@NotBlank final String nameSpace, @NotBlank final String name);
+  Mono<T> findByOauth(@NotBlank final String issuer, @NotBlank final String sub);
   
-  List<T> findAll();
-  List<T> findByNamespace(@NotBlank final String nameSpace);
+  Flux<T> findAll();
+  Flux<T> findByNamespace(@NotBlank final String nameSpace);
 }

@@ -26,7 +26,7 @@ import de.kaiserpfalzedv.commons.users.domain.model.apikey.events.ApiKeyCreatedE
 import de.kaiserpfalzedv.commons.users.domain.model.apikey.events.ApiKeyRevokedEvent;
 import de.kaiserpfalzedv.commons.users.domain.model.user.KpUserDetails;
 import de.kaiserpfalzedv.commons.users.domain.model.user.User;
-import de.kaiserpfalzedv.commons.users.store.model.apikey.JpaApiKeyWriteService;
+import de.kaiserpfalzedv.commons.users.store.model.apikey.R2dbcApiKeyWriteService;
 import lombok.extern.slf4j.XSlf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,13 +52,13 @@ public class JpaApiKeyEventsHandlerTest {
   private JpaApiKeyEventsHandler sut;
   
   @Mock
-  private JpaApiKeyWriteService writeService;
+  private R2dbcApiKeyWriteService writeService;
   
   @Mock
   private EventBus bus;
   
   
-  private static final String LOCAL_SYSTEM = "kp-commons";
+  private static final String LOCAL_system = "kp-users";
   private static final String EXTERNAL_SYSTEM = "other-application";
   
   

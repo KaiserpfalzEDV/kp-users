@@ -22,6 +22,7 @@ import de.kaiserpfalzedv.commons.users.domain.model.apikey.ApiKey;
 import de.kaiserpfalzedv.commons.users.domain.model.apikey.ApiKeyNotFoundException;
 import de.kaiserpfalzedv.commons.users.domain.model.apikey.InvalidApiKeyException;
 import jakarta.validation.constraints.NotNull;
+import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
@@ -30,12 +31,12 @@ import java.util.UUID;
  * @since 2025-05-11
  */
 public interface ApiKeyWriteService {
-  void create(@NotNull ApiKey apiKey) throws InvalidApiKeyException;
+  Mono<? extends ApiKey> create(@NotNull ApiKey apiKey) throws InvalidApiKeyException;
   
-  ApiKey refresh(@NotNull UUID apiKeyId, long days) throws ApiKeyNotFoundException;
+  Mono<? extends ApiKey> refresh(@NotNull UUID apiKeyId, long days) throws ApiKeyNotFoundException;
   
-  void delete(@NotNull UUID apiKeyId);
-  default void remove(@NotNull UUID apiKeyId) {
-    delete(apiKeyId);
+  Mono<Void> delete(@NotNull UUID apiKeyId);
+  default Mono<Void> remove(@NotNull UUID apiKeyId) {
+    return delete(apiKeyId);
   }
 }

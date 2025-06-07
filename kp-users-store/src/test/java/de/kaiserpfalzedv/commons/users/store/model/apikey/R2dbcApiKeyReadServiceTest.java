@@ -18,18 +18,21 @@
 package de.kaiserpfalzedv.commons.users.store.model.apikey;
 
 
-import de.kaiserpfalzedv.commons.users.store.model.user.UserJPA;
+import de.kaiserpfalzedv.commons.users.domain.model.apikey.ApiKey;
+import de.kaiserpfalzedv.commons.users.domain.model.apikey.ApiKeyImpl;
+import de.kaiserpfalzedv.commons.users.domain.model.user.KpUserDetails;
 import lombok.extern.slf4j.XSlf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.time.OffsetDateTime;
-import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -42,23 +45,22 @@ import static org.mockito.Mockito.*;
 @SuppressWarnings("LoggingSimilarMessage")
 @ExtendWith(MockitoExtension.class)
 @XSlf4j
-public class JpaApiKeyReadServiceTest {
-  private JpaApiKeyReadService sut;
+public class R2dbcApiKeyReadServiceTest {
+  @InjectMocks private R2dbcApiKeyReadService sut;
   
   @Mock
-  private ApiKeyRepository repository;
+  private R2dbcApiKeyRepository repository;
   
   
   @BeforeEach
   public void setUp() {
     reset(repository);
-    
-    sut = new JpaApiKeyReadService(repository);
   }
   
   @AfterEach
   public void tearDown() {
     validateMockitoUsage();
+    verifyNoMoreInteractions(repository);
   }
   
   
@@ -66,12 +68,12 @@ public class JpaApiKeyReadServiceTest {
   void shouldReturnApiKeyWhenApiKeyWithIdExists() {
     log.entry();
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(Optional.of(DEFAULT_APIKEY));
+    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.justOrEmpty(DEFAULT_APIKEY));
     
-    Optional<ApiKeyJPA> result = sut.retrieve(DEFAULT_ID);
+    Mono<ApiKey> result = sut.retrieve(DEFAULT_ID);
     log.debug("Result. apikey={}", result);
     
-    assertTrue(result.isPresent());
+    assertNotNull(result.block());
     
     log.exit();
   }
@@ -81,12 +83,12 @@ public class JpaApiKeyReadServiceTest {
   void shouldReturnApiKeyWhenApiKeyWithIdAsStringExists() {
     log.entry();
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(Optional.of(DEFAULT_APIKEY));
+    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.justOrEmpty(DEFAULT_APIKEY));
     
-    Optional<ApiKeyJPA> result = sut.retrieve(DEFAULT_ID.toString());
+    Mono<ApiKey> result = sut.retrieve(DEFAULT_ID.toString());
     log.debug("Result. apikey={}", result);
     
-    assertTrue(result.isPresent());
+    assertNotNull(result.block());
     
     log.exit();
   }
@@ -106,12 +108,12 @@ public class JpaApiKeyReadServiceTest {
   void shouldReturnListOfApiKeysWhenUserExistsAndHasApiKeys() {
     log.entry();
     
-    when(repository.findByUserId(DEFAULT_USER.getId())).thenReturn(List.of(DEFAULT_APIKEY));
+    when(repository.findByUserId(DEFAULT_USER.getId())).thenReturn(Flux.just(DEFAULT_APIKEY));
     
-    List<ApiKeyJPA> result = sut.retrieveForUser(DEFAULT_USER.getId());
+    Flux<ApiKey> result = sut.retrieveForUser(DEFAULT_USER.getId());
     log.debug("Result. apikeys={}", result);
     
-    assertEquals(1, result.size());
+    assertEquals(1, result.collectList().block().size());
     
     log.exit();
   }
@@ -119,7 +121,7 @@ public class JpaApiKeyReadServiceTest {
   
   private static final UUID DEFAULT_ID = UUID.randomUUID();
   private static final OffsetDateTime NOW = OffsetDateTime.now();
-  private static final UserJPA DEFAULT_USER = UserJPA.builder()
+  private static final KpUserDetails DEFAULT_USER = KpUserDetails.builder()
       .id(DEFAULT_ID)
       
       .nameSpace("namespace")
@@ -128,18 +130,13 @@ public class JpaApiKeyReadServiceTest {
       .issuer("issuer")
       .subject(DEFAULT_ID.toString())
       
-      .version(0)
-      .revId(0)
-      .revisioned(NOW)
-      
       .created(NOW)
       .modified(NOW)
       
       .build();
   
-  private static final ApiKeyJPA DEFAULT_APIKEY = ApiKeyJPA.builder()
+  private static final ApiKey DEFAULT_APIKEY = ApiKeyImpl.builder()
       .id(DEFAULT_ID)
-      .version(0)
       .expiration(NOW.plusDays(10L))
       
       .nameSpace("namespace")

@@ -27,8 +27,8 @@ import de.kaiserpfalzedv.commons.users.domain.model.role.events.RoleCreatedEvent
 import de.kaiserpfalzedv.commons.users.domain.model.role.events.RoleRemovedEvent;
 import de.kaiserpfalzedv.commons.users.domain.model.role.events.RoleUpdateNameEvent;
 import de.kaiserpfalzedv.commons.users.domain.model.role.events.RoleUpdateNameSpaceEvent;
-import de.kaiserpfalzedv.commons.users.store.model.role.JpaRoleWriteService;
-import de.kaiserpfalzedv.commons.users.store.model.user.JpaUserRoleManagementService;
+import de.kaiserpfalzedv.commons.users.store.model.role.R2dbcRoleWriteService;
+import de.kaiserpfalzedv.commons.users.store.model.user.R2dbcUserRoleManagementService;
 import lombok.extern.slf4j.XSlf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,15 +54,15 @@ public class JpaRoleEventsHandlerTest {
   private JpaRoleEventsHandler sut;
 
   @Mock
-  private JpaRoleWriteService writeService;
+  private R2dbcRoleWriteService writeService;
 
   @Mock
-  private JpaUserRoleManagementService userRoleManagement;
+  private R2dbcUserRoleManagementService userRoleManagement;
 
   @Mock
   private EventBus bus;
   
-  private static final String LOCAL_SYSTEM = "kp-commons";
+  private static final String LOCAL_system = "kp-users";
   private static final String EXTERNAL_SYSTEM = "other-application";
   
   

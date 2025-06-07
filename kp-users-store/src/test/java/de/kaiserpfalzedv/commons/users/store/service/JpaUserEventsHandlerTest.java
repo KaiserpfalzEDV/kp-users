@@ -29,10 +29,10 @@ import de.kaiserpfalzedv.commons.users.domain.model.user.UserNotFoundException;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.arbitration.UserPetitionedEvent;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.modification.*;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.state.*;
-import de.kaiserpfalzedv.commons.users.store.model.user.JpaUserDataManagementService;
-import de.kaiserpfalzedv.commons.users.store.model.user.JpaUserManagementService;
-import de.kaiserpfalzedv.commons.users.store.model.user.JpaUserRoleManagementService;
-import de.kaiserpfalzedv.commons.users.store.model.user.JpaUserStateManagementService;
+import de.kaiserpfalzedv.commons.users.store.model.user.R2dbcUserDataManagementService;
+import de.kaiserpfalzedv.commons.users.store.model.user.R2dbcUserManagementService;
+import de.kaiserpfalzedv.commons.users.store.model.user.R2dbcUserRoleManagementService;
+import de.kaiserpfalzedv.commons.users.store.model.user.R2dbcUserStateManagementService;
 import lombok.extern.slf4j.XSlf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -55,14 +55,14 @@ import static org.mockito.Mockito.*;
 @XSlf4j
 public class JpaUserEventsHandlerTest {
   @InjectMocks private JpaUserEventsHandler sut;
-  @Mock private JpaUserManagementService userManagement;
-  @Mock private JpaUserDataManagementService userDataManagement;
-  @Mock private JpaUserStateManagementService userStateManagement;
-  @Mock private JpaUserRoleManagementService userRoleManagement;
+  @Mock private R2dbcUserManagementService userManagement;
+  @Mock private R2dbcUserDataManagementService userDataManagement;
+  @Mock private R2dbcUserStateManagementService userStateManagement;
+  @Mock private R2dbcUserRoleManagementService userRoleManagement;
   @Mock private EventBus bus;
   
   
-  private static final String LOCAL_SYSTEM = "kp-commons";
+  private static final String LOCAL_system = "kp-users";
   private static final String EXTERNAL_SYSTEM = "other-application";
   
   private static final UUID USER_ID = UUID.randomUUID();

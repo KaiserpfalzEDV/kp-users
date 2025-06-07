@@ -31,7 +31,7 @@
     <description>The model for the user management</description>
 
     <properties>
-        <uml-classes>de.kaiserpfalzedv.commons.users.server</uml-classes>
+        <uml-classes>de.kaiserpfalzedv.commons.users.messaging</uml-classes>
         <main.basedir>${project.basedir}/..</main.basedir>
     </properties>
 

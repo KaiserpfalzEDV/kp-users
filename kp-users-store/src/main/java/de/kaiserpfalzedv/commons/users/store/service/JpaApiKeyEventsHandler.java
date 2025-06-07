@@ -21,7 +21,7 @@ package de.kaiserpfalzedv.commons.users.store.service;
 import de.kaiserpfalzedv.commons.api.events.EventBus;
 import de.kaiserpfalzedv.commons.users.domain.model.apikey.InvalidApiKeyException;
 import de.kaiserpfalzedv.commons.users.domain.model.apikey.events.*;
-import de.kaiserpfalzedv.commons.users.store.model.apikey.JpaApiKeyWriteService;
+import de.kaiserpfalzedv.commons.users.store.model.apikey.R2dbcApiKeyWriteService;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.validation.constraints.NotNull;
@@ -43,11 +43,11 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @XSlf4j
 public class JpaApiKeyEventsHandler implements ApiKeyEventsHandler, AutoCloseable {
-  private final JpaApiKeyWriteService writeService;
+  private final R2dbcApiKeyWriteService writeService;
   private final EventBus bus;
   
-  @Value("${spring.application.system:kp-commons}")
-  private String system = "kp-commons";
+  @Value("${spring.application.system:kp-users}")
+  private String system = "kp-users";
 
   
   @PostConstruct

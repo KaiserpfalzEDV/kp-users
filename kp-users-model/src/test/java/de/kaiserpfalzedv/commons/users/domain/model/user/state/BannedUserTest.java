@@ -18,7 +18,6 @@
 package de.kaiserpfalzedv.commons.users.domain.model.user.state;
 
 
-import de.kaiserpfalzedv.commons.spring.events.SpringEventBus;
 import de.kaiserpfalzedv.commons.users.domain.model.user.KpUserDetails;
 import de.kaiserpfalzedv.commons.users.domain.model.user.TestEventListener;
 import lombok.extern.slf4j.XSlf4j;
@@ -27,6 +26,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -39,11 +39,11 @@ import static org.junit.jupiter.api.Assertions.*;
  * @since 04.05.2025
  */
 @SpringBootTest(
-    classes = {SpringEventBus.class, TestEventListener.class}
+    classes = {TestEventListener.class}
 )
 @XSlf4j
 public class BannedUserTest {
-  @Autowired private SpringEventBus bus;
+  @Autowired private ApplicationEventPublisher bus;
   @Autowired private TestEventListener listener;
   
   private UserState sut;
@@ -55,14 +55,10 @@ public class BannedUserTest {
         .bannedOn(OffsetDateTime.now().minusDays(1L))
         .build()
         .getState(bus);
-    
-    bus.register(this);
   }
   
   @AfterEach
   public void tearDown() {
-    bus.unregister(this);
-    
     listener.clear();
   }
   

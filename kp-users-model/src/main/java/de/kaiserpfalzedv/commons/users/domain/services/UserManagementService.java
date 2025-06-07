@@ -22,6 +22,7 @@ import de.kaiserpfalzedv.commons.users.domain.model.user.User;
 import de.kaiserpfalzedv.commons.users.domain.model.user.UserCantBeCreatedException;
 import de.kaiserpfalzedv.commons.users.domain.model.user.UserNotFoundException;
 import jakarta.validation.constraints.NotNull;
+import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
@@ -30,8 +31,8 @@ import java.util.UUID;
  * @since 03.05.2025
  */
 public interface UserManagementService {
-  void create(@NotNull User user) throws UserCantBeCreatedException;
-  void delete(@NotNull UUID id);
-  void undelete(@NotNull UUID id) throws UserNotFoundException;
-  void remove(@NotNull UUID id);
+  Mono<? extends User> create(@NotNull User user) throws UserCantBeCreatedException;
+  Mono<? extends User> delete(@NotNull UUID id);
+  Mono<? extends User> undelete(@NotNull UUID id) throws UserNotFoundException;
+  Mono<? extends User> remove(@NotNull UUID id);
 }

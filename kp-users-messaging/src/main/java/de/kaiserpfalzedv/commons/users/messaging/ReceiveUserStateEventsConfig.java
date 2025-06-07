@@ -18,13 +18,12 @@
 package de.kaiserpfalzedv.commons.users.messaging;
 
 
-import de.kaiserpfalzedv.commons.api.events.EventBus;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.state.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.XSlf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -41,85 +40,87 @@ import java.util.function.Consumer;
 @ToString(onlyExplicitlyIncluded = true)
 @XSlf4j
 public class ReceiveUserStateEventsConfig {
+  private final ApplicationEventPublisher bus;
+  
   @Bean
-  public Consumer<UserActivatedEvent> activateUser(@NotNull final EventBus bus) {
+  public Consumer<UserActivatedEvent> activateUser() {
     return event -> {
       log.entry(event);
       
       log.info("Received external event. event = {}", event);
-      bus.post(event);
+      bus.publishEvent(event);
       
       log.exit();
     };
   }
   
   @Bean
-  public Consumer<UserBannedEvent> banUser(@NotNull final EventBus bus) {
+  public Consumer<UserBannedEvent> banUser() {
     return event -> {
       log.entry(event);
       
       log.info("Received external event. event = {}", event);
-      bus.post(event);
+      bus.publishEvent(event);
       
       log.exit();
     };
   }
   
   @Bean
-  public Consumer<UserCreatedEvent> createUser(@NotNull final EventBus bus) {
+  public Consumer<UserCreatedEvent> createUser() {
     return event -> {
       log.entry(event);
       
       log.info("Received external event. event = {}", event);
-      bus.post(event);
+      bus.publishEvent(event);
       
       log.exit();
     };
   }
   
   @Bean
-  public Consumer<UserDeletedEvent> deleteUser(@NotNull final EventBus bus) {
+  public Consumer<UserDeletedEvent> deleteUser() {
     return event -> {
       log.entry(event);
       
       log.info("Received external event. event = {}", event);
-      bus.post(event);
+      bus.publishEvent(event);
       
       log.exit();
     };
   }
   
   @Bean
-  public Consumer<UserDetainedEvent> detainUser(@NotNull final EventBus bus) {
+  public Consumer<UserDetainedEvent> detainUser() {
     return event -> {
       log.entry(event);
       
       log.info("Received external event. event = {}", event);
-      bus.post(event);
+      bus.publishEvent(event);
       
       log.exit();
     };
   }
   
   @Bean
-  public Consumer<UserReleasedEvent> releaseUser(@NotNull final EventBus bus) {
+  public Consumer<UserReleasedEvent> releaseUser() {
     return event -> {
       log.entry(event);
       
       log.info("Received external event. event = {}", event);
-      bus.post(event);
+      bus.publishEvent(event);
       
       log.exit();
     };
   }
   
   @Bean
-  public Consumer<UserRemovedEvent> removeUser(@NotNull final EventBus bus) {
+  public Consumer<UserRemovedEvent> removeUser() {
     return event -> {
       log.entry(event);
       
       log.info("Received external event. event = {}", event);
-      bus.post(event);
+      bus.publishEvent(event);
       
       log.exit();
     };

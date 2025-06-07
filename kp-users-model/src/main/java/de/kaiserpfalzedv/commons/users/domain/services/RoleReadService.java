@@ -20,9 +20,9 @@ package de.kaiserpfalzedv.commons.users.domain.services;
 
 import de.kaiserpfalzedv.commons.users.domain.model.role.Role;
 import jakarta.validation.constraints.NotNull;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
-import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 
@@ -31,9 +31,9 @@ import java.util.UUID;
  * @since 2025-05-11
  */
 public interface RoleReadService {
-  Optional<? extends Role> retrieve(@NotNull UUID id);
+  Mono<? extends Role> retrieve(@NotNull UUID id);
   
-  List<? extends Role> retrieveByName(@NotNull String name);
-  List<? extends Role> retrieveAll();
-  List<? extends Role> retrieveAllFromNamespace(@NotNull String namespace);
+  Flux<? extends Role> retrieveByName(@NotNull String name);
+  Flux<? extends Role> retrieveAll();
+  Flux<? extends Role> retrieveAllFromNamespace(@NotNull String namespace);
 }

@@ -46,18 +46,18 @@ import static org.mockito.Mockito.*;
 @SuppressWarnings("LoggingSimilarMessage")
 @ExtendWith(MockitoExtension.class)
 @XSlf4j
-public class JpaUserReadServiceTest {
-  private JpaUserReadService sut;
+public class R2dbcUserReadServiceTest {
+  private R2dbcUserReadService sut;
   
   @Mock
-  private UserRepository repository;
+  private R2dbcUserRepository repository;
   
   
   @BeforeEach
   public void setUp() {
     reset(repository);
     
-    sut = new JpaUserReadService(repository);
+    sut = new R2dbcUserReadService(repository);
   }
   
   @AfterEach

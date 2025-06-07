@@ -29,10 +29,10 @@ import de.kaiserpfalzedv.commons.users.domain.model.user.events.activity.UserLog
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.arbitration.UserPetitionedEvent;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.modification.*;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.state.*;
-import de.kaiserpfalzedv.commons.users.store.model.user.JpaUserDataManagementService;
-import de.kaiserpfalzedv.commons.users.store.model.user.JpaUserManagementService;
-import de.kaiserpfalzedv.commons.users.store.model.user.JpaUserRoleManagementService;
-import de.kaiserpfalzedv.commons.users.store.model.user.JpaUserStateManagementService;
+import de.kaiserpfalzedv.commons.users.store.model.user.R2dbcUserDataManagementService;
+import de.kaiserpfalzedv.commons.users.store.model.user.R2dbcUserManagementService;
+import de.kaiserpfalzedv.commons.users.store.model.user.R2dbcUserRoleManagementService;
+import de.kaiserpfalzedv.commons.users.store.model.user.R2dbcUserStateManagementService;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
@@ -56,15 +56,15 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @XSlf4j
 public class JpaUserEventsHandler implements UserEventsHandler, AutoCloseable {
-  private final JpaUserManagementService service;
-  private final JpaUserDataManagementService dataService;
-  private final JpaUserRoleManagementService roleService;
-  private final JpaUserStateManagementService stateService;
+  private final R2dbcUserManagementService service;
+  private final R2dbcUserDataManagementService dataService;
+  private final R2dbcUserRoleManagementService roleService;
+  private final R2dbcUserStateManagementService stateService;
   private final EventBus bus;
   
   
-  @Value("${spring.application.application:kp-commons}")
-  private String system = "kp-commons";
+  @Value("${spring.application.application:kp-users}")
+  private String system = "kp-users";
   
   
   @PostConstruct

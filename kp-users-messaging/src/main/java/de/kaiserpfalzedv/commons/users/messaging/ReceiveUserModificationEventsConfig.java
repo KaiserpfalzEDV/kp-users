@@ -18,13 +18,12 @@
 package de.kaiserpfalzedv.commons.users.messaging;
 
 
-import de.kaiserpfalzedv.commons.api.events.EventBus;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.modification.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.XSlf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -41,98 +40,100 @@ import java.util.function.Consumer;
 @ToString(onlyExplicitlyIncluded = true)
 @XSlf4j
 public class ReceiveUserModificationEventsConfig {
-
+  private final ApplicationEventPublisher bus;
+  
+  
   @Bean
-  public Consumer<RoleAddedToUserEvent> addingRole(@NotNull final EventBus bus) {
+  public Consumer<RoleAddedToUserEvent> addingRole() {
     return event -> {
       log.entry(event);
       
       log.info("Received external event. event={}", event);
-      bus.post(event);
+      bus.publishEvent(event);
       
       log.exit();
     };
   }
   
   @Bean
-  public Consumer<RoleRemovedFromUserEvent> removeRole(@NotNull final EventBus bus) {
+  public Consumer<RoleRemovedFromUserEvent> removeRole() {
     return event -> {
       log.entry(event);
       
       log.info("Received external event. event={}", event);
-      bus.post(event);
+      bus.publishEvent(event);
       
       log.exit();
     };
   }
   
   @Bean
-  public Consumer<UserDiscordModificationEvent> modifyDiscord(@NotNull final EventBus bus) {
+  public Consumer<UserDiscordModificationEvent> modifyDiscord() {
     return event -> {
       log.entry(event);
       
       log.info("Received external event. event={}", event);
-      bus.post(event);
+      bus.publishEvent(event);
       
       log.exit();
     };
   }
   
   @Bean
-  public Consumer<UserEmailModificationEvent> modifyEmail(@NotNull final EventBus bus) {
+  public Consumer<UserEmailModificationEvent> modifyEmail() {
     return event -> {
       log.entry(event);
       
       log.info("Received external event. event={}", event);
-      bus.post(event);
+      bus.publishEvent(event);
       
       log.exit();
     };
   }
   
   @Bean
-  public Consumer<UserNameModificationEvent> modifyName(@NotNull final EventBus bus) {
+  public Consumer<UserNameModificationEvent> modifyName() {
     return event -> {
       log.entry(event);
       
       log.info("Received external event. event={}", event);
-      bus.post(event);
+      bus.publishEvent(event);
       
       log.exit();
     };
   }
   
   @Bean
-  public Consumer<UserNamespaceModificationEvent> modifyNamespace(@NotNull final EventBus bus) {
+  public Consumer<UserNamespaceModificationEvent> modifyNamespace() {
     return event -> {
       log.entry(event);
       
       log.info("Received external event. event={}", event);
-      bus.post(event);
+      bus.publishEvent(event);
       
       log.exit();
     };
   }
   
   @Bean
-  public Consumer<UserNamespaceAndNameModificationEvent> modifyNamespaceAndName(@NotNull final EventBus bus) {
+  public Consumer<UserNamespaceAndNameModificationEvent> modifyNamespaceAndName() {
     return event -> {
       log.entry(event);
       
       log.info("Received external event. event={}", event);
-      bus.post(event);
+      bus.publishEvent(event);
       
       log.exit();
     };
   }
   
   @Bean
-  public Consumer<UserSubjectModificationEvent> modifySubject(@NotNull final EventBus bus) {
+  public Consumer<UserSubjectModificationEvent> modifySubject() {
     return event -> {
       log.entry(event);
       
       log.info("Received external event. event={}", event);
-      bus.post(event);
+      bus.publishEvent(event);
       
       log.exit();
     };

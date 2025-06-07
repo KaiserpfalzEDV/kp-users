@@ -22,10 +22,10 @@ import de.kaiserpfalzedv.commons.users.domain.model.abac.HasOwner;
 import de.kaiserpfalzedv.commons.users.domain.model.abac.OwnedBy;
 import de.kaiserpfalzedv.commons.users.domain.model.user.User;
 import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.RequiredArgsConstructor;
 import org.casbin.jcasbin.main.Enforcer;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
@@ -38,7 +38,7 @@ import java.util.UUID;
 @Service
 @Singleton
 @Scope("singleton")
-@RequiredArgsConstructor(onConstructor = @__(@Autowired))
+@RequiredArgsConstructor(onConstructor = @__(@Inject))
 public class AbacService {
   private final Enforcer enforcer;
   

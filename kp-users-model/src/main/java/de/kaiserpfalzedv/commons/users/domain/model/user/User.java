@@ -21,7 +21,6 @@ package de.kaiserpfalzedv.commons.users.domain.model.user;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import de.kaiserpfalzedv.commons.api.events.EventBus;
 import de.kaiserpfalzedv.commons.api.resources.HasId;
 import de.kaiserpfalzedv.commons.api.resources.HasName;
 import de.kaiserpfalzedv.commons.api.resources.HasNameSpace;
@@ -29,9 +28,9 @@ import de.kaiserpfalzedv.commons.api.resources.HasTimestamps;
 import de.kaiserpfalzedv.commons.users.domain.model.abac.HasOwner;
 import de.kaiserpfalzedv.commons.users.domain.model.user.state.UserState;
 import jakarta.validation.constraints.*;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.io.Serializable;
@@ -99,7 +98,7 @@ public interface User extends Principal, UserDetails, CredentialsContainer, HasI
    * @param days The number of days the user is detained within the application.
    * @return the user
    */
-  User detain(@NotNull EventBus bus, @Min(1) @Max(1095) long days);
+  User detain(@NotNull ApplicationEventPublisher bus, @Min(1) @Max(1095) long days);
   
   /**
    * Release the user from detainment.
@@ -107,7 +106,7 @@ public interface User extends Principal, UserDetails, CredentialsContainer, HasI
    * @param bus The bus for sending the changing event.
    * @return the user
    */
-  User release(@NotNull EventBus bus);
+  User release(@NotNull ApplicationEventPublisher bus);
   
   /**
    * Ban the user from the application.
@@ -115,7 +114,7 @@ public interface User extends Principal, UserDetails, CredentialsContainer, HasI
    * @param bus The bus for sending the changing event.
    * @return the user
    */
-  User ban(@NotNull EventBus bus);
+  User ban(@NotNull ApplicationEventPublisher bus);
   
   /**
    * delete the user.
@@ -123,7 +122,7 @@ public interface User extends Principal, UserDetails, CredentialsContainer, HasI
    * @param bus The bus for sending the changing event.
    * @return  the user
    */
-  User delete(@NotNull EventBus bus);
+  User delete(@NotNull ApplicationEventPublisher bus);
   
   /**
    * undelete the user
@@ -131,7 +130,7 @@ public interface User extends Principal, UserDetails, CredentialsContainer, HasI
    * @param bus The bus for sending the changing event.
    * @return the user
    */
-  User undelete(@NotNull EventBus bus);
+  User undelete(@NotNull ApplicationEventPublisher bus);
   
   
   /**
@@ -185,7 +184,7 @@ public interface User extends Principal, UserDetails, CredentialsContainer, HasI
   }
   
   default boolean hasRole(@NotBlank final String role) {
-    return getAuthorities().contains(new SimpleGrantedAuthority(role));
+    return getAuthorities().stream().filter(a -> a.getAuthority().equals(role)).count() >= 1;
   }
   
   /**
@@ -194,7 +193,7 @@ public interface User extends Principal, UserDetails, CredentialsContainer, HasI
    * @param bus the event bus to be used during state changes.
    * @return the current user state.
    */
-  default UserState getState(EventBus bus) {
+  default UserState getState(ApplicationEventPublisher bus) {
     return UserState.Factory.fromUser(this, bus);
   }
   

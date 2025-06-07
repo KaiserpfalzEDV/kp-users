@@ -46,18 +46,18 @@ import static org.mockito.Mockito.*;
 @SuppressWarnings("LoggingSimilarMessage")
 @ExtendWith(MockitoExtension.class)
 @XSlf4j
-public class JpaRoleReadServiceTest {
-  private JpaRoleReadService sut;
+public class R2dbcRoleReadServiceTest {
+  private R2dbcRoleReadService sut;
   
   @Mock
-  private RoleRepository roleRepository;
+  private R2dbcRoleRepository r2dbcRoleRepository;
   
   
   @BeforeEach
   public void setUp() {
-    reset(roleRepository);
+    reset(r2dbcRoleRepository);
     
-    sut = new JpaRoleReadService(roleRepository);
+    sut = new R2dbcRoleReadService(r2dbcRoleRepository);
   }
   
   @AfterEach
@@ -70,7 +70,7 @@ public class JpaRoleReadServiceTest {
   void shouldFindRoleByIdWhenRoleExists() {
     log.entry();
     
-    when(roleRepository.findById(DEFAULT_ROLE.getId())).thenReturn(Optional.of(DEFAULT_ROLE));
+    when(r2dbcRoleRepository.findById(DEFAULT_ROLE.getId())).thenReturn(Optional.of(DEFAULT_ROLE));
     
     Optional<RoleJPA> result = sut.retrieve(DEFAULT_ROLE.getId());
     log.debug("result. role={}", result.orElse(null));
@@ -84,7 +84,7 @@ public class JpaRoleReadServiceTest {
   void shouldNotFindRoleByIdWhenRoleWithIdDoesNotExist() {
     log.entry();
     
-    when(roleRepository.findById(DEFAULT_ROLE.getId())).thenReturn(Optional.empty());
+    when(r2dbcRoleRepository.findById(DEFAULT_ROLE.getId())).thenReturn(Optional.empty());
     
     Optional<RoleJPA> result = sut.retrieve(DEFAULT_ROLE.getId());
     log.debug("result. role={}", result.orElse(null));
@@ -98,7 +98,7 @@ public class JpaRoleReadServiceTest {
   void shouldReturnListOfRolesWhenRolesExist() {
     log.entry();
     
-    when(roleRepository.findAll()).thenReturn(List.of(DEFAULT_ROLE));
+    when(r2dbcRoleRepository.findAll()).thenReturn(List.of(DEFAULT_ROLE));
     
     List<RoleJPA> result = sut.retrieveAll();
     log.debug("result. roles={}", result);
@@ -112,7 +112,7 @@ public class JpaRoleReadServiceTest {
   void shouldReturnPageOfRolesWhenRolesExist() {
     log.entry();
     
-    when(roleRepository.findAll(DEFAULT_PAGEABLE)).thenReturn(DEFAULT_PAGE);
+    when(r2dbcRoleRepository.findAll(DEFAULT_PAGEABLE)).thenReturn(DEFAULT_PAGE);
     
     Page<RoleJPA> result = sut.retrieveAll(DEFAULT_PAGEABLE);
     log.debug("result. roles={}", result);
@@ -127,7 +127,7 @@ public class JpaRoleReadServiceTest {
   void shouldReturnListOfRolesInNamespaceWhenRolesInNameSpaceExist() {
     log.entry();
     
-    when(roleRepository.findByNameSpace(DEFAULT_ROLE.getNameSpace())).thenReturn(List.of(DEFAULT_ROLE));
+    when(r2dbcRoleRepository.findByNameSpace(DEFAULT_ROLE.getNameSpace())).thenReturn(List.of(DEFAULT_ROLE));
     
     List<RoleJPA> result = sut.retrieveAllFromNamespace(DEFAULT_ROLE.getNameSpace());
     log.debug("result. roles={}", result);
@@ -141,7 +141,7 @@ public class JpaRoleReadServiceTest {
   void shouldReturnPageOfRolesInNamespaceWhenRolesInNameSpaceExist() {
     log.entry();
     
-    when(roleRepository.findByNameSpace(DEFAULT_ROLE.getNameSpace(), DEFAULT_PAGEABLE)).thenReturn(DEFAULT_PAGE);
+    when(r2dbcRoleRepository.findByNameSpace(DEFAULT_ROLE.getNameSpace(), DEFAULT_PAGEABLE)).thenReturn(DEFAULT_PAGE);
     
     Page<RoleJPA> result = sut.retrieveAllFromNamespace(DEFAULT_ROLE.getNameSpace(), DEFAULT_PAGEABLE);
     log.debug("result. roles={}", result);
@@ -155,7 +155,7 @@ public class JpaRoleReadServiceTest {
   void shouldReturnListOfRolesByNameWhenRolesWithNameExist() {
     log.entry();
     
-    when(roleRepository.findByName(DEFAULT_ROLE.getName())).thenReturn(List.of(DEFAULT_ROLE));
+    when(r2dbcRoleRepository.findByName(DEFAULT_ROLE.getName())).thenReturn(List.of(DEFAULT_ROLE));
     
     List<RoleJPA> result = sut.retrieveByName(DEFAULT_ROLE.getName());
     log.debug("result. roles={}", result);
@@ -169,7 +169,7 @@ public class JpaRoleReadServiceTest {
   void shouldReturnPageOfRolesByNameWhenRolesWithNameExist() {
     log.entry();
     
-    when(roleRepository.findByName(DEFAULT_ROLE.getName(), DEFAULT_PAGEABLE)).thenReturn(DEFAULT_PAGE);
+    when(r2dbcRoleRepository.findByName(DEFAULT_ROLE.getName(), DEFAULT_PAGEABLE)).thenReturn(DEFAULT_PAGE);
     
     Page<RoleJPA> result = sut.retrieveByName(DEFAULT_ROLE.getName(), DEFAULT_PAGEABLE);
     log.debug("result. roles={}", result);

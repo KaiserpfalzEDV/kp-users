@@ -22,6 +22,7 @@ package de.kaiserpfalzedv.commons.users.domain.services;
 import de.kaiserpfalzedv.commons.api.resources.*;
 import de.kaiserpfalzedv.commons.users.domain.model.abac.HasOwner;
 import de.kaiserpfalzedv.commons.users.domain.model.abac.OwnedBy;
+import de.kaiserpfalzedv.commons.users.domain.model.role.KpRole;
 import de.kaiserpfalzedv.commons.users.domain.model.user.KpUserDetails;
 import de.kaiserpfalzedv.commons.users.domain.model.user.User;
 import jakarta.annotation.Nullable;
@@ -37,7 +38,6 @@ import lombok.extern.slf4j.XSlf4j;
 import org.casbin.jcasbin.main.Enforcer;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.io.Serializable;
 import java.time.OffsetDateTime;
@@ -59,28 +59,28 @@ class OwnedByTest {
       .subject(UUID.randomUUID().toString())
       .name("Peter")
       .nameSpace("Torganized Play")
-      .authorities(Set.of(new SimpleGrantedAuthority("ROLE_ADMIN"), new SimpleGrantedAuthority("ROLE_PLAYER")))
+      .authorities(Set.of(KpRole.builder().name("ROLE_ADMIN").build(), KpRole.builder().name("ROLE_PLAYER").build()))
       .build();
   private static final User paul = KpUserDetails.builder()
       .issuer("https://sso.kaiserpfalz-edv.de/realms/Paladins-Inn")
       .subject(UUID.randomUUID().toString())
       .name("Paul")
       .nameSpace("Torganized Play")
-      .authorities(Set.of(new SimpleGrantedAuthority("ROLE_ORGA"), new SimpleGrantedAuthority("ROLE_PLAYER")))
+      .authorities(Set.of(KpRole.builder().name("ROLE_ORGA").build(), KpRole.builder().name("ROLE_PLAYER").build()))
       .build();
   private static final User mary = KpUserDetails.builder()
       .issuer("https://sso.kaiserpfalz-edv.de/realms/Paladins-Inn")
       .subject(UUID.randomUUID().toString())
       .name("Mary")
       .nameSpace("Torganized Play")
-      .authorities(Set.of(new SimpleGrantedAuthority("ROLE_GM"), new SimpleGrantedAuthority("ROLE_PLAYER")))
+      .authorities(Set.of(KpRole.builder().name("ROLE_GM").build(), KpRole.builder().name("ROLE_PLAYER").build()))
       .build();
   private static final User andrew = KpUserDetails.builder()
       .issuer("https://sso.kaiserpfalz-edv.de/realms/Paladins-Inn")
       .subject(UUID.randomUUID().toString())
       .name("Andrew")
       .nameSpace("Torganized Play")
-      .authorities(Set.of(new SimpleGrantedAuthority("ROLE_PLAYER")))
+      .authorities(Set.of(KpRole.builder().name("ROLE_PLAYER").build()))
       .build();
   
   private static final TestObject MarysObject = TestObject.builder()

@@ -2,6 +2,7 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
       <profile name="Maven default annotation processors profile" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
@@ -38,6 +39,7 @@
         <module name="kp-commons-spring.main" />
         <module name="kp-users-model.main" />
         <module name="kp-users-client.main" />
+        <module name="kp-commons-r2dbc.main" />
         <module name="kp-commons-api.test" />
         <module name="kp-users-service.test" />
         <module name="kp-commons-jpa.main" />
@@ -46,6 +48,7 @@
         <module name="kp-commons-sms77.main" />
         <module name="kp-commons-guava.main" />
         <module name="kp-users-store.test" />
+        <module name="kp-commons-r2dbc.test" />
         <module name="kp-users-client.test" />
         <module name="kp-users-messaging.test" />
         <module name="kp-commons-spring.test" />
@@ -78,6 +81,9 @@
       <module name="kp-commons-jpa.test" options="-parameters -parameters -Amapstruct.verbose=true -Amapstruct.suppressGeneratorTimestamp=true -Amapstruct.defaultComponentModel=spring" />
       <module name="kp-commons-modules-root" options="-parameters" />
       <module name="kp-commons-parent" options="-parameters" />
+      <module name="kp-commons-r2dbc" options="-parameters -parameters -Amapstruct.verbose=true -Amapstruct.suppressGeneratorTimestamp=true -Amapstruct.defaultComponentModel=spring" />
+      <module name="kp-commons-r2dbc.main" options="-parameters -parameters -Amapstruct.verbose=true -Amapstruct.suppressGeneratorTimestamp=true -Amapstruct.defaultComponentModel=spring" />
+      <module name="kp-commons-r2dbc.test" options="-parameters -parameters -Amapstruct.verbose=true -Amapstruct.suppressGeneratorTimestamp=true -Amapstruct.defaultComponentModel=spring" />
       <module name="kp-commons-rest" options="-parameters -parameters -Amapstruct.verbose=true -Amapstruct.suppressGeneratorTimestamp=true -Amapstruct.defaultComponentModel=spring" />
       <module name="kp-commons-rest.main" options="-parameters -parameters -Amapstruct.verbose=true -Amapstruct.suppressGeneratorTimestamp=true -Amapstruct.defaultComponentModel=spring" />
       <module name="kp-commons-rest.test" options="-parameters -parameters -Amapstruct.verbose=true -Amapstruct.suppressGeneratorTimestamp=true -Amapstruct.defaultComponentModel=spring" />

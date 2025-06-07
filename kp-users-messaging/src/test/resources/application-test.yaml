@@ -7,9 +7,6 @@ spring:
       enabled: false
   main:
     banner-mode: off
-    
-  liquibase:
-    enabled: false
   
   cloud:
     function:

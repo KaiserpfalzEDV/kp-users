@@ -20,8 +20,7 @@ package de.kaiserpfalzedv.commons.users.store.service;
 
 import de.kaiserpfalzedv.commons.users.domain.model.user.User;
 import de.kaiserpfalzedv.commons.users.domain.services.UserReadService;
-import de.kaiserpfalzedv.commons.users.store.model.user.JpaUserReadService;
-import de.kaiserpfalzedv.commons.users.store.model.user.UserJPA;
+import de.kaiserpfalzedv.commons.users.store.model.user.R2dbcUserReadService;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
@@ -51,7 +50,7 @@ import java.util.UUID;
 @ToString(onlyExplicitlyIncluded = true)
 @XSlf4j
 public class DbUserReadService implements UserReadService<User> {
-  private final JpaUserReadService jpa;
+  private final R2dbcUserReadService jpa;
   
   @Override
   public Optional<User> findById(@NotNull final UUID id) {

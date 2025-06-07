@@ -18,12 +18,12 @@
 package de.kaiserpfalzedv.commons.users.domain.model.user;
 
 
-import de.kaiserpfalzedv.commons.api.events.EventBus;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.slf4j.XSlf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.time.Duration;
@@ -84,17 +84,17 @@ public class TestUser implements User {
   private OffsetDateTime bannedOn;
   
   @Override
-  public User detain(final EventBus bus, final long days) {
+  public User detain(final ApplicationEventPublisher bus, final long days) {
     return null;
   }
   
   @Override
-  public User release(final EventBus bus) {
+  public User release(final ApplicationEventPublisher bus) {
     return null;
   }
   
   @Override
-  public User ban(final EventBus bus) {
+  public User ban(final ApplicationEventPublisher bus) {
     bannedOn = OffsetDateTime.now();
     log.trace("User got banned. bannedOn={}", bannedOn);
     
@@ -102,7 +102,7 @@ public class TestUser implements User {
   }
   
   @Override
-  public User delete(final EventBus bus) {
+  public User delete(final ApplicationEventPublisher bus) {
     deleted = OffsetDateTime.now();
     log.trace("User got deleted. deleted={}", deleted);
     
@@ -110,7 +110,7 @@ public class TestUser implements User {
   }
   
   @Override
-  public User undelete(final EventBus bus) {
+  public User undelete(final ApplicationEventPublisher bus) {
     return null;
   }
   

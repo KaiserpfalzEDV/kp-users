@@ -19,15 +19,15 @@
 package de.kaiserpfalzedv.commons.users.domain.model.user.state;
 
 
-import de.kaiserpfalzedv.commons.api.events.EventBus;
+import de.kaiserpfalzedv.commons.users.domain.model.user.User;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.arbitration.UserPetitionedEvent;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.state.UserRemovedEvent;
-import de.kaiserpfalzedv.commons.users.domain.model.user.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.jackson.Jacksonized;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.UUID;
 
@@ -43,7 +43,7 @@ import java.util.UUID;
 public class ActiveUser implements UserState {
   @Getter
   final private User user;
-  final private EventBus bus;
+  final private ApplicationEventPublisher bus;
   
   @Override
   public UserState activate() {
@@ -81,14 +81,14 @@ public class ActiveUser implements UserState {
   public UserState remove(final boolean delete) {
     user.delete(bus);
 
-    bus.post(UserRemovedEvent.builder().user(user).delete(delete).build());
+    bus.publishEvent(UserRemovedEvent.builder().user(user).delete(delete).build());
     
     return RemovedUser.builder().user(user).bus(bus).build();
   }
   
   @Override
   public UserState petition(final UUID petition) {
-    bus.post(UserPetitionedEvent.builder().user(user).petition(petition).build());
+    bus.publishEvent(UserPetitionedEvent.builder().user(user).petition(petition).build());
     
     return this;
   }

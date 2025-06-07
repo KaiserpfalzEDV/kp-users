@@ -19,10 +19,9 @@ package de.kaiserpfalzedv.commons.users.domain.services;
 
 
 import de.kaiserpfalzedv.commons.users.domain.model.role.Role;
-import de.kaiserpfalzedv.commons.users.domain.model.role.RoleNotFoundException;
-import de.kaiserpfalzedv.commons.users.domain.model.role.RoleCantBeCreatedException;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
@@ -31,10 +30,10 @@ import java.util.UUID;
  * @since 2025-05-11
  */
 public interface RoleWriteService {
-  void create(@NotNull Role role) throws RoleCantBeCreatedException;
+  Mono<? extends Role> create(@NotNull Role role);
   
-  void updateNameSpace(@NotNull UUID id, @NotBlank String namespace) throws RoleNotFoundException;
-  void updateName(@NotNull UUID id, @NotBlank String name) throws RoleNotFoundException;
+  Mono<? extends Role> updateNameSpace(@NotNull UUID id, @NotBlank String namespace);
+  Mono<? extends Role> updateName(@NotNull UUID id, @NotBlank String name);
   
-  void remove(@NotNull UUID id);
+  Mono<Void> remove(@NotNull UUID id);
 }

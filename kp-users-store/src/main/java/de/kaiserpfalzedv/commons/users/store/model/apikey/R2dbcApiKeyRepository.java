@@ -16,12 +16,13 @@
  */
 package de.kaiserpfalzedv.commons.users.store.model.apikey;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import de.kaiserpfalzedv.commons.users.domain.model.apikey.ApiKeyImpl;
+import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.time.OffsetDateTime;
-import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -29,11 +30,11 @@ import java.util.UUID;
  *
  * @author klenkes74 {@literal <rlichti@kaiserpfalz-edv.de>}
  * @version 1.0.0
- * @since 2024-08-18
+ * @since 2025-06-07
  */
 @Repository
-public interface ApiKeyRepository extends JpaRepository<ApiKeyJPA, UUID> {
-  List<ApiKeyJPA> findByUserId(UUID userId);
-  Optional<ApiKeyJPA> findByIdAndExpirationAfter(UUID id, OffsetDateTime expiration);
-  List<ApiKeyJPA> findByExpirationBefore(OffsetDateTime expiration);
+public interface R2dbcApiKeyRepository extends ReactiveCrudRepository<ApiKeyImpl, UUID> {
+  Flux<ApiKeyImpl> findByUserId(UUID userId);
+  Mono<ApiKeyImpl> findByIdAndExpirationAfter(UUID id, OffsetDateTime expiration);
+  Flux<ApiKeyImpl> findByExpirationBefore(OffsetDateTime expiration);
 }

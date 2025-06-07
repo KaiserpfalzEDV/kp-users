@@ -17,34 +17,34 @@
 
 package de.kaiserpfalzedv.commons.users.store.model.user;
 
+import de.kaiserpfalzedv.commons.users.domain.model.user.KpUserDetails;
 import de.kaiserpfalzedv.commons.users.domain.services.UserReadService;
 import io.micrometer.core.annotation.Counted;
 import io.micrometer.core.annotation.Timed;
+import jakarta.inject.Inject;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.XSlf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
-import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
 @Order(1010)
-@RequiredArgsConstructor(onConstructor = @__(@Autowired))
+@RequiredArgsConstructor(onConstructor = @__(@Inject))
 @ToString(onlyExplicitlyIncluded = true)
 @XSlf4j
-public class JpaUserReadService implements UserReadService<UserJPA> {
-    private final UserRepository users;
+public class R2dbcUserReadService implements UserReadService<KpUserDetails> {
+    private final R2dbcUserRepository users;
     
     @Override
     @Counted
     @Timed
-    public Optional<UserJPA> findById(final UUID id) {
+    public Mono<KpUserDetails> findById(final UUID id) {
         log.entry(id);
         
         return log.exit(users.findById(id));
@@ -53,43 +53,7 @@ public class JpaUserReadService implements UserReadService<UserJPA> {
     @Override
     @Counted
     @Timed
-    public List<UserJPA> findByNamespace(final String nameSpace) {
-        log.entry(nameSpace);
-        
-        return log.exit(users.findByNameSpace(nameSpace));
-    }
-    
-    @Override
-    @Counted
-    @Timed
-    public Page<UserJPA> findByNamespace(final String nameSpace, final Pageable pageable) {
-        log.entry(nameSpace, pageable);
-        
-        return log.exit(users.findByNameSpace(nameSpace, pageable));
-    }
-    
-    @Override
-    @Counted
-    @Timed
-    public List<UserJPA> findAll() {
-        log.entry();
-        
-        return log.exit(users.findAll());
-    }
-    
-    @Override
-    @Counted
-    @Timed
-    public Page<UserJPA> findAll(final Pageable pageable) {
-        log.entry(pageable);
-        
-        return log.exit(users.findAll(pageable));
-    }
-    
-    @Override
-    @Counted
-    @Timed
-    public Optional<UserJPA> findByUsername(final String namespace, final String name) {
+    public Mono<KpUserDetails> findByUsername(final String namespace, final String name) {
         log.entry(namespace, name);
         
         return log.exit(users.findByNameSpaceAndName(namespace, name));
@@ -98,9 +62,28 @@ public class JpaUserReadService implements UserReadService<UserJPA> {
     @Override
     @Counted
     @Timed
-    public Optional<UserJPA> findByOauth(final String issuer, final String sub) {
+    public Mono<KpUserDetails> findByOauth(final String issuer, final String sub) {
         log.entry(issuer, sub);
         
         return log.exit(users.findByIssuerAndSubject(issuer, sub));
+    }
+    
+    @Override
+    @Counted
+    @Timed
+    public Flux<KpUserDetails> findByNamespace(final String nameSpace) {
+        log.entry(nameSpace);
+        
+        return log.exit(users.findByNameSpace(nameSpace));
+    }
+    
+    
+    @Override
+    @Counted
+    @Timed
+    public Flux<KpUserDetails> findAll() {
+        log.entry();
+        
+        return log.exit(users.findAll());
     }
 }

@@ -21,9 +21,9 @@ package de.kaiserpfalzedv.commons.users.domain.services;
 import de.kaiserpfalzedv.commons.users.domain.model.apikey.ApiKey;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
-import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -31,8 +31,8 @@ import java.util.UUID;
  * @since 2025-05-11
  */
 public interface ApiKeyReadService {
-  Optional<? extends ApiKey> retrieve(@NotNull UUID id);
-  Optional<? extends ApiKey> retrieve(@NotBlank String id);
+  Mono<? extends ApiKey> retrieve(@NotNull UUID id);
+  Mono<? extends ApiKey> retrieve(@NotBlank String id);
   
-  List<? extends ApiKey> retrieveForUser(@NotNull UUID userId);
+  Flux<? extends ApiKey> retrieveForUser(@NotNull UUID userId);
 }

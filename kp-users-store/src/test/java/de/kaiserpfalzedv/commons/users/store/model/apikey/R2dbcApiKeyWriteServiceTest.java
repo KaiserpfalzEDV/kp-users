@@ -23,7 +23,6 @@ import de.kaiserpfalzedv.commons.users.domain.model.apikey.ApiKeyNotFoundExcepti
 import de.kaiserpfalzedv.commons.users.domain.model.apikey.ApiKeyToImpl;
 import de.kaiserpfalzedv.commons.users.domain.model.apikey.InvalidApiKeyException;
 import de.kaiserpfalzedv.commons.users.domain.model.user.KpUserDetails;
-import de.kaiserpfalzedv.commons.users.store.model.user.UserJPA;
 import lombok.extern.slf4j.XSlf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,12 +47,12 @@ import static org.mockito.Mockito.*;
 @SuppressWarnings("LoggingSimilarMessage")
 @ExtendWith(MockitoExtension.class)
 @XSlf4j
-public class JpaApiKeyWriteServiceTest {
+public class R2dbcApiKeyWriteServiceTest {
   @InjectMocks
-  private JpaApiKeyWriteService sut;
+  private R2dbcApiKeyWriteService sut;
   
   @Mock
-  private ApiKeyRepository repository;
+  private R2dbcApiKeyRepository repository;
 
   @Mock
   private ApiKeyToImpl toImpl;
@@ -100,7 +99,7 @@ public class JpaApiKeyWriteServiceTest {
   void shouldSaveApiKeyWhenApiKeyIsNotJPAType() throws InvalidApiKeyException {
     log.entry();
     
-    when(repository.save(any(ApiKeyJPA.class))).thenReturn(DEFAULT_APIKEY);
+    when(repository.save(any(ApiKeyR2dbc.class))).thenReturn(DEFAULT_APIKEY);
     when(toJPA.apply(any(ApiKeyImpl.class))).thenReturn(DEFAULT_APIKEY);
     
     sut.create(DEFAULT_APIKEY_IMPL);
@@ -114,9 +113,9 @@ public class JpaApiKeyWriteServiceTest {
     log.entry();
     
     when(repository.findById(DEFAULT_APIKEY.getId())).thenReturn(Optional.of(DEFAULT_APIKEY));
-    when(repository.save(any(ApiKeyJPA.class))).thenReturn(DEFAULT_APIKEY);
+    when(repository.save(any(ApiKeyR2dbc.class))).thenReturn(DEFAULT_APIKEY);
     
-    ApiKeyJPA result = sut.refresh(DEFAULT_ID, 20L);
+    ApiKeyR2dbc result = sut.refresh(DEFAULT_ID, 20L);
     log.debug("Refreshed ApiKey. apikey={}", result);
     
     assertTrue(result.getExpiration().plusSeconds(1).isAfter(DEFAULT_APIKEY.getExpiration().plusDays(10L)));
@@ -214,7 +213,7 @@ public class JpaApiKeyWriteServiceTest {
       
       .build();
   
-  private static final ApiKeyJPA DEFAULT_APIKEY = ApiKeyJPA.builder()
+  private static final ApiKeyR2dbc DEFAULT_APIKEY = ApiKeyR2dbc.builder()
       .id(DEFAULT_ID)
       .version(0)
       .expiration(NOW.plusDays(10L))

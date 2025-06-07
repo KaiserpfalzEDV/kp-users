@@ -16,14 +16,13 @@
  */
 package de.kaiserpfalzedv.commons.users.store.model.user;
 
-import de.kaiserpfalzedv.commons.users.store.model.role.RoleJPA;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
+import de.kaiserpfalzedv.commons.users.domain.model.role.Role;
+import de.kaiserpfalzedv.commons.users.domain.model.user.KpUserDetails;
+import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
-import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -34,17 +33,12 @@ import java.util.UUID;
  * @since 2024-08-18
  */
 @Repository
-public interface UserRepository extends JpaRepository<UserJPA, UUID> {
-    Optional<UserJPA> findByNameSpaceAndName(String nameSpace, String name);
-    Optional<UserJPA> findByIssuerAndSubject(String issuer, String subject);
-    Optional<UserJPA> findByEmail(String email);
-
-    List<UserJPA> findByNameSpace(String nameSpace);
-    Page<UserJPA> findByNameSpace(String nameSpace, Pageable pageable);
-    
-    List<UserJPA> findByIssuer(String issuer);
-    Page<UserJPA> findByIssuer(String issuer, Pageable pageable);
-    
-    List<UserJPA> findByAuthoritiesContains(Set<RoleJPA> authorities);
+public interface R2dbcUserRepository extends ReactiveCrudRepository<KpUserDetails, UUID> {
+    Mono<KpUserDetails> findByNameSpaceAndName(String nameSpace, String name);
+    Mono<KpUserDetails> findByIssuerAndSubject(String issuer, String subject);
+    Mono<KpUserDetails> findByEmail(String email);
+    Flux<KpUserDetails> findByNameSpace(String nameSpace);
+    Flux<KpUserDetails> findByIssuer(String issuer);
+    Flux<KpUserDetails> findByAuthoritiesContains(Set<? extends Role> authorities);
     
 }

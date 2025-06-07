@@ -19,15 +19,15 @@
 package de.kaiserpfalzedv.commons.users.domain.model.user.state;
 
 
-import de.kaiserpfalzedv.commons.api.events.EventBus;
-import de.kaiserpfalzedv.commons.users.domain.model.user.events.arbitration.UserPetitionedEvent;
 import de.kaiserpfalzedv.commons.users.domain.model.user.User;
+import de.kaiserpfalzedv.commons.users.domain.model.user.events.arbitration.UserPetitionedEvent;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.jackson.Jacksonized;
 import lombok.extern.slf4j.XSlf4j;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.UUID;
 
@@ -44,7 +44,7 @@ import java.util.UUID;
 public class DetainedUser implements UserState {
   @Getter
   final private User user;
-  final private EventBus bus;
+  final private ApplicationEventPublisher bus;
   
   @Override
   public UserState activate() {
@@ -95,7 +95,7 @@ public class DetainedUser implements UserState {
   
   @Override
   public UserState petition(final UUID petition) {
-    bus.post(UserPetitionedEvent.builder().user(user).petition(petition).build());
+    bus.publishEvent(UserPetitionedEvent.builder().user(user).petition(petition).build());
     
     return this;
   }

@@ -41,13 +41,13 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @XSlf4j
-public class JpaUserStateManagementServiceTest {
+public class R2dbcUserStateManagementServiceTest {
   
   @InjectMocks
-  private JpaUserStateManagementService sut;
+  private R2dbcUserStateManagementService sut;
   
   @Mock
-  private UserRepository repository;
+  private R2dbcUserRepository repository;
   
   @Mock
   private EventBus bus;

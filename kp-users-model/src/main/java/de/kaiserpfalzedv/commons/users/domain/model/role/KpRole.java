@@ -18,14 +18,10 @@
 package de.kaiserpfalzedv.commons.users.domain.model.role;
 
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import lombok.extern.jackson.Jacksonized;
+import org.springframework.data.annotation.Id;
+import org.springframework.security.core.GrantedAuthority;
 
 import java.time.Clock;
 import java.time.OffsetDateTime;
@@ -45,12 +41,15 @@ import java.util.UUID;
 @Getter
 @ToString
 @EqualsAndHashCode(of = {"id"})
-public class KpRole implements Role {
+public class KpRole implements Role, GrantedAuthority {
   /** Internal role id */
-  private UUID id;
+  @Id
+  @Builder.Default
+  private UUID id = UUID.randomUUID();
   
   /** namespace where this role is valid */
-  private String nameSpace;
+  @Builder.Default
+  private String nameSpace = "./.";
   
   /** name of the role */
   private String name;

@@ -47,6 +47,15 @@ public class UserCantBeCreatedException extends BaseUserException {
     this.email = user.getEmail();
   }
   
+  public UserCantBeCreatedException(@NotNull final User user) {
+    super(user, createExceptionMessage(user.getIssuer(), user.getSubject(), user.getUsername(), user.getEmail()));
+    
+    this.issuer = user.getIssuer();
+    this.subject = user.getSubject();
+    this.username = user.getUsername();
+    this.email = user.getEmail();
+  }
+  
   public UserCantBeCreatedException(@NotBlank final String issuer, @NotBlank final String subject,
                                     @NotBlank final String username, final String email) {
     super(null, createExceptionMessage(issuer, subject, username, email));

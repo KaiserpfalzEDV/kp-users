@@ -19,8 +19,7 @@ package de.kaiserpfalzedv.commons.users.store.service;
 
 
 import de.kaiserpfalzedv.commons.users.domain.model.user.User;
-import de.kaiserpfalzedv.commons.users.store.model.user.JpaUserReadService;
-import de.kaiserpfalzedv.commons.users.store.model.user.UserJPA;
+import de.kaiserpfalzedv.commons.users.store.model.user.R2dbcUserReadService;
 import lombok.extern.slf4j.XSlf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,7 +49,7 @@ import static org.mockito.Mockito.*;
 public class DbUserReadServiceTest {
   @InjectMocks private DbUserReadService dbUserReadService;
   
-  @Mock private JpaUserReadService jpaUserReadService;
+  @Mock private R2dbcUserReadService jpaUserReadService;
   
   @BeforeEach
   void setUp() {

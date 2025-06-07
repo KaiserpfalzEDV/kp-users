@@ -19,16 +19,16 @@
 package de.kaiserpfalzedv.commons.users.domain.model.apikey;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import de.kaiserpfalzedv.commons.api.events.EventBus;
 import de.kaiserpfalzedv.commons.api.resources.HasId;
 import de.kaiserpfalzedv.commons.api.resources.HasName;
 import de.kaiserpfalzedv.commons.api.resources.HasNameSpace;
 import de.kaiserpfalzedv.commons.api.resources.HasTimestamps;
+import de.kaiserpfalzedv.commons.users.domain.model.apikey.events.ApiKeyRevokedEvent;
+import de.kaiserpfalzedv.commons.users.domain.model.user.User;
 import de.kaiserpfalzedv.commons.users.domain.model.user.UserIsBannedException;
 import de.kaiserpfalzedv.commons.users.domain.model.user.UserIsDeletedException;
 import de.kaiserpfalzedv.commons.users.domain.model.user.UserIsDetainedException;
-import de.kaiserpfalzedv.commons.users.domain.model.apikey.events.ApiKeyRevokedEvent;
-import de.kaiserpfalzedv.commons.users.domain.model.user.User;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -54,8 +54,8 @@ public interface ApiKey extends HasId<UUID>, HasNameSpace, HasName, HasTimestamp
    * Revokes the APIKEY.
    * @param bus the bus to send the revokation event to.
    */
-  default void revoke(EventBus bus) {
-    bus.post(ApiKeyRevokedEvent.builder().user(getUser()).apiKey(this).build());
+  default void revoke(ApplicationEventPublisher bus) {
+    bus.publishEvent(ApiKeyRevokedEvent.builder().user(getUser()).apiKey(this).build());
   }
   
   /**

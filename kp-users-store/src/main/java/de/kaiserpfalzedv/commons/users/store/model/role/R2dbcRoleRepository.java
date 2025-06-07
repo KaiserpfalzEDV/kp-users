@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025. Roland T. Lichti, Kaiserpfalz EDV-Service.
+ * Copyright (c) 2024-2025. Roland T. Lichti, Kaiserpfalz EDV-Service.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,25 +14,24 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 package de.kaiserpfalzedv.commons.users.store.model.role;
 
-import de.kaiserpfalzedv.commons.users.domain.model.role.Role;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import de.kaiserpfalzedv.commons.users.domain.model.role.KpRole;
+import jakarta.validation.constraints.NotBlank;
+import org.springframework.data.repository.reactive.ReactiveCrudRepository;
+import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Flux;
 
-import java.util.function.Function;
+import java.util.UUID;
 
 /**
- * Maps the role to the JPA implementation.
- *
+ * 
  * @author klenkes74 {@literal <rlichti@kaiserpfalz-edv.de>}
+ * @version 1.0.0
  * @since 2025-05-10
  */
-@Mapper
-public interface RoleToJpa extends Function<Role, RoleJPA> {
-    @Mapping(target = "version", ignore = true)
-    @Mapping(target = "modified", ignore = true)
-    @Mapping(target = "deleted", ignore = true)
-    RoleJPA apply(Role orig);
+@Repository
+public interface R2dbcRoleRepository extends ReactiveCrudRepository<KpRole, UUID> {
+  Flux<KpRole> findByNameSpace(@NotBlank final String nameSpace);
+  Flux<KpRole> findByName(@NotBlank final String name);
 }

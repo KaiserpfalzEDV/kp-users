@@ -2,8 +2,7 @@ package de.kaiserpfalzedv.commons.users.client.service;
 
 
 import de.kaiserpfalzedv.commons.users.domain.model.user.User;
-import de.kaiserpfalzedv.commons.users.domain.services.UserReadService;
-import jakarta.inject.Inject;
+import de.kaiserpfalzedv.commons.users.store.model.user.JpaUserReadService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.XSlf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +21,7 @@ import java.util.Optional;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @XSlf4j
 public class KpUserDetailsService implements UserDetailsService {
-  private final UserReadService read;
+  private final JpaUserReadService read;
   
   /**
    *

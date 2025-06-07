@@ -22,8 +22,8 @@ import de.kaiserpfalzedv.commons.api.events.EventBus;
 import de.kaiserpfalzedv.commons.users.domain.model.role.RoleCantBeCreatedException;
 import de.kaiserpfalzedv.commons.users.domain.model.role.RoleNotFoundException;
 import de.kaiserpfalzedv.commons.users.domain.model.role.events.*;
-import de.kaiserpfalzedv.commons.users.store.model.role.JpaRoleWriteService;
-import de.kaiserpfalzedv.commons.users.store.model.user.JpaUserRoleManagementService;
+import de.kaiserpfalzedv.commons.users.store.model.role.R2dbcRoleWriteService;
+import de.kaiserpfalzedv.commons.users.store.model.user.R2dbcUserRoleManagementService;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.validation.constraints.NotNull;
@@ -45,12 +45,12 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @XSlf4j
 public class JpaRoleEventsHandler implements RoleEventsHandler, AutoCloseable {
-  private final JpaRoleWriteService writeService;
-  private final JpaUserRoleManagementService userRoleManagement;
+  private final R2dbcRoleWriteService writeService;
+  private final R2dbcUserRoleManagementService userRoleManagement;
   private final EventBus bus;
   
-  @Value("${spring.application.system:kp-commons}")
-  private String system = "kp-commons";
+  @Value("${spring.application.system:kp-users}")
+  private String system = "kp-users";
   
   
   @PostConstruct

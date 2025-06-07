@@ -18,15 +18,16 @@
 package de.kaiserpfalzedv.commons.users.store.model.apikey;
 
 
+import de.kaiserpfalzedv.commons.users.domain.model.apikey.ApiKeyImpl;
 import de.kaiserpfalzedv.commons.users.domain.services.ApiKeyReadService;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.XSlf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
-import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -37,26 +38,26 @@ import java.util.UUID;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @ToString(onlyExplicitlyIncluded = true)
 @XSlf4j
-public class JpaApiKeyReadService implements ApiKeyReadService {
-  private final ApiKeyRepository repository;
+public class R2dbcApiKeyReadService implements ApiKeyReadService {
+  private final R2dbcApiKeyRepository repository;
   
   
   @Override
-  public Optional<ApiKeyJPA> retrieve(final UUID id) {
+  public Mono<ApiKeyImpl> retrieve(final UUID id) {
     log.entry(id);
     
     return log.exit(repository.findById(id));
   }
   
   @Override
-  public Optional<ApiKeyJPA> retrieve(final String id) {
+  public Mono<ApiKeyImpl> retrieve(final String id) {
     log.entry(id);
     
     return log.exit(repository.findById(UUID.fromString(id)));
   }
   
   @Override
-  public List<ApiKeyJPA> retrieveForUser(final UUID userId) {
+  public Flux<ApiKeyImpl> retrieveForUser(final UUID userId) {
     log.entry(userId);
     
     return log.exit(repository.findByUserId(userId));

@@ -18,6 +18,7 @@
 package de.kaiserpfalzedv.commons.users.store.model.role;
 
 
+import de.kaiserpfalzedv.commons.users.domain.model.role.KpRole;
 import de.kaiserpfalzedv.commons.users.domain.services.RoleReadService;
 import io.micrometer.core.annotation.Counted;
 import io.micrometer.core.annotation.Timed;
@@ -27,12 +28,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.XSlf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
-import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 
@@ -44,65 +43,40 @@ import java.util.UUID;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @ToString(onlyExplicitlyIncluded = true)
 @XSlf4j
-public class JpaRoleReadService implements RoleReadService {
-  private final RoleRepository repository;
+public class R2dbcRoleReadService implements RoleReadService {
+  private final R2dbcRoleRepository repository;
   
   @Override
   @Counted
   @Timed
-  public Optional<RoleJPA> retrieve(@NotNull final UUID id) {
+  public Mono<KpRole> retrieve(@NotNull final UUID id) {
     log.entry(id);
     
-    return repository.findById(id);
+    return log.exit(repository.findById(id));
   }
   
   @Override
-  public List<RoleJPA> retrieveByName(@NotNull String name) {
+  public Flux<KpRole> retrieveByName(@NotNull String name) {
     log.entry(name);
     
-    return repository.findByName(name);
-  }
-  
-  @Override
-  public Page<RoleJPA> retrieveByName(@NotNull String name, @NotNull Pageable pageable) {
-    log.entry(name, pageable);
-    
-    return repository.findByName(name, pageable);
+    return log.exit(repository.findByName(name));
   }
   
   @Override
   @Counted
   @Timed
-  public List<RoleJPA> retrieveAll() {
+  public Flux<KpRole> retrieveAll() {
     log.entry();
     
-    return repository.findAll();
+    return log.exit(repository.findAll());
   }
   
   @Override
   @Counted
   @Timed
-  public Page<RoleJPA> retrieveAll(@NotNull final Pageable pageable) {
-    log.entry(pageable);
-    
-    return repository.findAll(pageable);
-  }
-  
-  @Override
-  @Counted
-  @Timed
-  public List<RoleJPA> retrieveAllFromNamespace(@NotBlank final String namespace) {
+  public Flux<KpRole> retrieveAllFromNamespace(@NotBlank final String namespace) {
     log.entry(namespace);
     
-    return repository.findByNameSpace(namespace);
-  }
-  
-  @Override
-  @Counted
-  @Timed
-  public Page<RoleJPA> retrieveAllFromNamespace(@NotBlank final String namespace, @NotNull final Pageable pageable) {
-    log.entry(namespace, pageable);
-    
-    return repository.findByNameSpace(namespace, pageable);
+    return log.exit(repository.findByNameSpace(namespace));
   }
 }

@@ -18,9 +18,10 @@
 package de.kaiserpfalzedv.commons.users.domain.services;
 
 
-import de.kaiserpfalzedv.commons.users.domain.model.user.UserNotFoundException;
+import de.kaiserpfalzedv.commons.users.domain.model.user.User;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
@@ -29,10 +30,10 @@ import java.util.UUID;
  * @since 03.05.2025
  */
 public interface UserDataManagementService {
-  void updateSubject(@NotNull UUID id, @NotBlank String issuer, @NotBlank String sub) throws UserNotFoundException;
-  void updateNamespace(@NotNull UUID id, @NotBlank String namespace) throws UserNotFoundException;
-  void updateName(@NotNull UUID id, @NotBlank String name) throws UserNotFoundException;
-  void updateNamespaceAndName(@NotNull UUID id, @NotBlank String namespace, @NotBlank String name) throws UserNotFoundException;
-  void updateEmail(@NotNull UUID id, @NotBlank String email) throws UserNotFoundException;
-  void updateDiscord(@NotNull UUID id, @NotBlank String discord) throws UserNotFoundException;
+  Mono<? extends User> updateSubject(@NotNull UUID id, @NotBlank String issuer, @NotBlank String sub);
+  Mono<? extends User> updateNamespace(@NotNull UUID id, @NotBlank String namespace);
+  Mono<? extends User> updateName(@NotNull UUID id, @NotBlank String name);
+  Mono<? extends User> updateNamespaceAndName(@NotNull UUID id, @NotBlank String namespace, @NotBlank String name);
+  Mono<? extends User> updateEmail(@NotNull UUID id, @NotBlank String email);
+  Mono<? extends User> updateDiscord(@NotNull UUID id, @NotBlank String discord);
 }
