@@ -1,0 +1,216 @@
+:adr-title: HTML Templating Engine
+:adr-state: Accepted
+:adr-date: 2025-06-07
+:adr-expires: ./.
+:adr-author: klenkes74
+:adr-body: klenkes74
+:adr-seq: 002
+:adr-short: ADR-{adr-seq}
+= {adr-short} -- {adr-title}
+
+[cols="<.<8h,<.<12a", frame="topbot", grid="rows"]
+|===
+| ADR | {adr-short}
+| Title | {adr-title}
+| State | {adr-state}
+| Author | {adr-author}
+| Decision Body | {adr-body}
+| Valid from | {adr-date}
+| Expires | {adr-expires}
+|===
+
+include::partial$config.adoc[]
+
+== Context
+The {gloss_scs} produces HTML for the web application.
+The HTML is needed for the controlled pages and for the {gloss_transclude}s.
+
+
+== Decision
+While there are very good reasons to use <<thymeleaf>> or <<freemarker>> as templating engines, I decided to use <<jte_java_template_engine>>.
+It is an easy to use, modern templating engine that is specifically designed for Java applications.
+But more importantly: I want to get used to it, since it is used at my place of work.
+
+
+== Consequences
+. Templates have to be written in JTE syntax.
+. The templates are not HTML compliant, so they cannot be used as static HTML files.
+
+
+== Decision Drivers
+
+[cols="<.<4a,<.<16a"]
+|===
+| Driver | Description
+
+| [[adr002-dd001,DD001]]DD001
+| Strong support by spring-boot.
+
+| [[adr002-dd002,DD002]]DD002
+| Strong support for webflux and reactive programming.
+
+| [[adr002-dd003,DD003]]DD003
+| Mature and well-known.
+
+| [[adr002-dd004,DD004]]DD004
+| Easy to use and understand.
+
+| [[adr002-dd005,DD005]]DD005
+| Fulfilling xref:kes:ROOT:concepts/jsr-223.adoc[] is not a requirement.
+
+|===
+
+
+== Alternatives Considered
+
+[[thymeleaf,Thymeleaf]]
+=== Thymeleaf
+
+link:https://www.thymeleaf.org/[Thymeleaf] is a modern server-side Java template engine for web and standalone environments with excellent Spring Boot integration.
+
+*Pro:*
+
+* Fulfills <<adr002-dd001,DD001>> through native Spring Boot integration
+* Fulfills <<adr002-dd002,DD002>> with complete WebFlux support
+* Fulfills <<adr002-dd003,DD003>> as an established project with a large community
+* Natural templates (function as static HTML) (<<adr002-dd004,DD004>> fulfilled)
+* Strong security features against XSS
+
+*Con:*
+
+* Slower than other engines with complex templates
+* Higher memory consumption
+* Steeper learning curve for advanced features (<<adr002-dd004,DD004>> only partially fulfilled)
+
+
+[[freemarker,FreeMarker]]
+=== FreeMarker
+
+link:https://freemarker.apache.org/[FreeMarker] is a powerful template engine with a focus on MVC patterns, distinguished by its speed and flexibility.
+
+*Pro:*
+
+* Fulfills <<adr002-dd001,DD001>> with good Spring Boot support
+* Fulfills <<adr002-dd002,DD002>> through WebFlux compatibility
+* Fulfills <<adr002-dd003,DD003>> as a long-established engine
+* Excellent performance
+* Powerful macro functions
+
+*Con:*
+
+* No natural templates
+* Template syntax not HTML-compliant
+* Less deep Spring integration than Thymeleaf
+
+
+=== Mustache
+
+link:https://mustache.github.io/[Mustache] is a simple, logic-less template language implemented in many programming languages.
+
+*Pro:*
+
+* Fulfills <<adr002-dd004,DD004>> through extremely simple syntax
+* Minimal learning curve
+* Usable across languages
+* Strictly separates logic and presentation
+
+*Con:*
+
+* Only basic Spring Boot integration (<<adr002-dd001,DD001>> partially fulfilled)
+* Limited WebFlux support (<<adr002-dd002,DD002>> only partially fulfilled)
+* Limited functionality due to logic-less approach
+
+
+=== Pebble
+
+link:https://pebbletemplates.io/[Pebble] is a Java template engine inspired by Twig, with a focus on simplicity and performance.
+
+*Pro:*
+
+* Good performance
+* Compact, easily understandable syntax (<<adr002-dd004,DD004>>)
+* Low memory consumption
+* Extensible
+
+*Con:*
+
+* Less widespread (<<adr002-dd003,DD003>> not fully fulfilled)
+* Limited Spring Boot integration (<<adr002-dd001,DD001>> only partially fulfilled)
+* Limited WebFlux documentation (<<adr002-dd002,DD002>> uncertain)
+
+
+=== Handlebars
+
+link:https://handlebarsjs.com/[Handlebars] extends Mustache with more functionality while maintaining its basic simplicity.
+
+*Pro:*
+
+* Simple syntax (<<adr002-dd004,DD004>>)
+* Minimal logic possible in templates
+* Usable across languages
+* Extensible through helper functions
+
+*Con:*
+
+* Limited Spring Boot integration (<<adr002-dd001,DD001>> only partially fulfilled)
+* Limited WebFlux support (<<adr002-dd002,DD002>> uncertain)
+* Smaller community than Thymeleaf or FreeMarker (<<adr002-dd003,DD003>> only partially fulfilled)
+
+
+=== Velocity
+
+link:https://velocity.apache.org/[Apache Velocity] is an established Java-based template engine.
+
+*Pro:*
+
+* Simple syntax (<<adr002-dd004,DD004>>)
+* Well established (<<adr002-dd003,DD003>>)
+* Powerful
+
+*Con:*
+
+* Outdated architecture
+* Limited Spring Boot integration (<<adr002-dd001,DD001>> partially fulfilled)
+* No modern WebFlux support (<<adr002-dd002,DD002>> not fulfilled)
+* Less active ongoing development
+
+
+=== Jade4J/PUG
+
+link:https://github.com/neuland/jade4j[Java implementation] of the Jade/Pug template language known from Node.js.
+
+*Pro:*
+
+* Compact, indentation-based syntax
+* Fulfills <<adr002-dd004,DD004>> through clean code
+* Popular in the JavaScript world
+
+*Con:*
+
+* Limited Spring Boot integration (<<adr002-dd001,DD001>> barely fulfilled)
+* No WebFlux support (<<adr002-dd002,DD002>> not fulfilled)
+* Small Java community (<<adr002-dd003,DD003>> not fulfilled)
+
+
+[[jte_java_template_engine,JTE]]
+=== JTE (Java Template Engine)
+
+link:https://jte.gg/[JTE] is a modern, lightweight template engine specifically for Java, designed for speed and type safety.
+
+*Pro:*
+
+* Very high performance through pre-compilation of templates
+* Complete type safety during development
+* Good Spring Boot integration (<<adr002-dd001,DD001>> fulfilled)
+* Supports WebFlux with reactive rendering (<<adr002-dd002,DD002>> fulfilled)
+* Simple, intuitive syntax (<<adr002-dd004,DD004>> fulfilled)
+* Hot-reloading during development
+* Low dependencies and minimal overhead
+
+*Con:*
+
+* Still relatively new engine (<<adr002-dd003,DD003>> only partially fulfilled)
+* Smaller community than Thymeleaf or FreeMarker
+* Less comprehensive documentation and examples (<<adr002-dd004,DD004>> only partially fulfilled)
+
+<<<

@@ -11,7 +11,7 @@ include::partial$config.adoc[]
 include::partial$technical-context.adoc[]
 
 [[Motivation]]Motivation::
-The system tries to separate the concerns of 
+The system tries to separate the concerns of messaging, data storage and data model.
 
 
 
@@ -39,5 +39,5 @@ The system tries to separate the concerns of
 === Important Interfaces
 
 [[IDs]]IDs::
-IDs throughout the system are ((UUID)), not the simple numbers used by other systems.
+IDs throughout the system are UUID, not the simple numbers used by other systems.
 Reason is, that the ID should be generated on first creation of an object and UUID is a nice way to handle that distribution.

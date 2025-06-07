@@ -1,5 +1,51 @@
 = Level 1: kp-users-scs
 
-_**TBD**_
+include::partial$config.adoc[]
 
+== Pages
+
+[cols="<.<16a,<.<4m",options="header",frame="topbot",grid="rows"]
+|===
+| Description | Permissions
+
+2+m| users/
+| Lists all users in the system.
+| users:list +
+owned
+
+2+m| users/+{userId}+
+| Displays the details of a specific user.
+| users:read +
+owned
+
+|===
+
+== Transcludes
+
+[cols="<.<10a,<.<3a,<.<3a,<.<4m",options="header",frame="topbot",grid="rows"]
+|===
+| Description | Width | Height | Permissions
+
+4+m| /users/+{userId}+/card
+| A card displaying the user information.
+| min: 100px
+max: 150px
+| min: 200px
+max: 300px
+| authenticated
+
+4+m| /users/+{userId}+/avatar
+| Displays the user's avatar.
+| min: 75px
+max: 75px
+| min: 75px
+max: 75px
+| authenticated
+
+4+m| /users/+{userId}+/petition
+| Displays a link to petition the user. It is an icon.
+2+a| HTML link
+| authenticated
+
+|===
 <<<
