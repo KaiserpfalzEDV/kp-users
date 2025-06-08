@@ -32,11 +32,11 @@
     <description>The BOM for all kp-users</description>
     
     <properties>
-        <kp-users.groupId>de.kaiserpfalz-edv.commons</kp-users.groupId>
-        <kp-users.version>4.1.0</kp-users.version>
+        <kp-users.groupId>de.kaiserpfalz-edv.commons.services</kp-users.groupId>
+        <kp-users.version>1.0.0-SNAPSHOT</kp-users.version>
 
         <kp-commons.groupId>de.kaiserpfalz-edv.commons</kp-commons.groupId>
-        <kp-commons.version>4.1.0</kp-commons.version>
+        <kp-commons.version>4.2.0-SNAPSHOT</kp-commons.version>
 
         <main.basedir>${project.basedir}/..</main.basedir>
 

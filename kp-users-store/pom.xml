@@ -32,7 +32,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>de.kaiserpfalz-edv.commons</groupId>
+            <groupId>de.kaiserpfalz-edv.commons.services</groupId>
             <artifactId>kp-users-model</artifactId>
         </dependency>
 
