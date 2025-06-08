@@ -20,8 +20,9 @@ package de.kaiserpfalzedv.commons.users.store.model.role;
 
 import de.kaiserpfalzedv.commons.api.events.EventBus;
 import de.kaiserpfalzedv.commons.users.domain.model.role.KpRole;
-import de.kaiserpfalzedv.commons.users.domain.model.role.RoleNotFoundException;
 import de.kaiserpfalzedv.commons.users.domain.model.role.RoleCantBeCreatedException;
+import de.kaiserpfalzedv.commons.users.domain.model.role.RoleNotFoundException;
+import de.kaiserpfalzedv.commons.users.domain.model.role.RoleToImpl;
 import de.kaiserpfalzedv.commons.users.domain.model.role.events.RoleCreatedEvent;
 import de.kaiserpfalzedv.commons.users.domain.model.role.events.RoleRemovedEvent;
 import de.kaiserpfalzedv.commons.users.domain.model.role.events.RoleUpdateNameSpaceEvent;
@@ -34,12 +35,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.OptimisticLockingFailureException;
+import reactor.core.publisher.Mono;
 
 import java.time.OffsetDateTime;
-import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 /**
@@ -60,7 +61,7 @@ public class R2dbcRoleWriteServiceTest {
   private EventBus bus;
   
   @Mock
-  private RoleToJpaImpl toJpa;
+  private RoleToImpl toJpa;
   
   
   @BeforeEach
@@ -76,13 +77,13 @@ public class R2dbcRoleWriteServiceTest {
   
   
   @Test
-  void shouldCreateRoleWhenItDoesNotExistYet() throws RoleCantBeCreatedException {
+  void shouldCreateRoleWhenItDoesNotExistYet() {
     log.entry();
     
     when(toJpa.apply(DEFAULT_ROLE)).thenReturn(DEFAULT_JPA_ROLE);
-    when(repository.saveAndFlush(DEFAULT_JPA_ROLE)).thenReturn(DEFAULT_JPA_ROLE);
+    when(repository.save(DEFAULT_JPA_ROLE)).thenReturn(Mono.just(DEFAULT_JPA_ROLE));
     
-    sut.create(DEFAULT_ROLE);
+    sut.create(DEFAULT_ROLE).block();
     
     verify(bus).post(any(RoleCreatedEvent.class));
     
@@ -94,22 +95,22 @@ public class R2dbcRoleWriteServiceTest {
     log.entry();
 
     when(toJpa.apply(DEFAULT_ROLE)).thenReturn(DEFAULT_JPA_ROLE);
-    when(repository.saveAndFlush(DEFAULT_JPA_ROLE)).thenThrow(new OptimisticLockingFailureException("Test"));
+    when(repository.save(DEFAULT_JPA_ROLE)).thenReturn(Mono.error(new OptimisticLockingFailureException("Test")));
     
-    assertThrows(RoleCantBeCreatedException.class, () -> sut.create(DEFAULT_ROLE));
+    assertThrows(RoleCantBeCreatedException.class, () -> sut.create(DEFAULT_ROLE).block());
     
     verify(bus, never()).post(any(RoleCreatedEvent.class));
   }
   
   
   @Test
-  void shouldUpdateNameSpaceWhenRoleExists() throws RoleNotFoundException {
+  void shouldUpdateNameSpaceWhenRoleExists() {
     log.entry();
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(Optional.of(DEFAULT_JPA_ROLE));
-    when(repository.saveAndFlush(any(RoleJPA.class))).thenReturn(DEFAULT_JPA_ROLE.toBuilder().nameSpace("new-namespace").build());
+    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.just(DEFAULT_JPA_ROLE));
+    when(repository.save(any(KpRole.class))).thenReturn(Mono.just(DEFAULT_JPA_ROLE.toBuilder().nameSpace("new-namespace").build()));
     
-    sut.updateNameSpace(DEFAULT_ID, "new-namespace");
+    sut.updateNameSpace(DEFAULT_ID, "new-namespace").block();
     
     verify(bus).post(any(RoleUpdateNameSpaceEvent.class));
     
@@ -120,9 +121,9 @@ public class R2dbcRoleWriteServiceTest {
   void shouldThrowRoleNotFoundExceptionWhenUpdatingNameSpaceOfANonExistingRole() {
     log.entry();
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(Optional.empty());
+    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.empty());
     
-    assertThrows(RoleNotFoundException.class, () -> sut.updateNameSpace(DEFAULT_ID, "new-namespace"));
+    assertThrows(RoleNotFoundException.class, () -> sut.updateNameSpace(DEFAULT_ID, "new-namespace").block());
     
     verify(bus, never()).post(any(RoleUpdateNameSpaceEvent.class));
     
@@ -131,13 +132,13 @@ public class R2dbcRoleWriteServiceTest {
   
   
   @Test
-  void shouldUpdateNameWhenRoleExists() throws RoleNotFoundException {
+  void shouldUpdateNameWhenRoleExists() {
     log.entry();
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(Optional.of(DEFAULT_JPA_ROLE));
-    when(repository.saveAndFlush(any(RoleJPA.class))).thenReturn(DEFAULT_JPA_ROLE.toBuilder().name("new-name").build());
+    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.just(DEFAULT_JPA_ROLE));
+    when(repository.save(any(KpRole.class))).thenReturn(Mono.just(DEFAULT_JPA_ROLE.toBuilder().name("new-name").build()));
     
-    sut.updateName(DEFAULT_ID, "new-name");
+    sut.updateName(DEFAULT_ID, "new-name").block();
     
     verify(bus).post(any(RoleUpdateNameSpaceEvent.class));
     
@@ -148,9 +149,9 @@ public class R2dbcRoleWriteServiceTest {
   void shouldThrowRoleNotFoundExceptionWhenUpdatingNameOfANonExistingRole() {
     log.entry();
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(Optional.empty());
+    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.empty());
     
-    assertThrows(RoleNotFoundException.class, () -> sut.updateName(DEFAULT_ID, "new-name"));
+    assertThrows(RoleNotFoundException.class, () -> sut.updateName(DEFAULT_ID, "new-name").block());
     
     verify(bus, never()).post(any(RoleUpdateNameSpaceEvent.class));
     
@@ -162,9 +163,9 @@ public class R2dbcRoleWriteServiceTest {
   void shouldRemoveRoleWhenRoleExists() {
     log.entry();
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(Optional.of(DEFAULT_JPA_ROLE));
+    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.just(DEFAULT_JPA_ROLE));
     
-    sut.remove(DEFAULT_ID);
+    sut.remove(DEFAULT_ID).block();
     
     verify(repository).delete(DEFAULT_JPA_ROLE);
     verify(bus).post(any(RoleRemovedEvent.class));
@@ -176,11 +177,11 @@ public class R2dbcRoleWriteServiceTest {
   void shouldDoNothingWhenRemovingANonExistingRole() {
     log.entry();
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(Optional.empty());
+    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.empty());
     
-    sut.remove(DEFAULT_ID);
+    sut.remove(DEFAULT_ID).block();
     
-    verify(repository, never()).delete(any(RoleJPA.class));
+    verify(repository, never()).delete(any(KpRole.class));
     verify(bus, never()).post(any(RoleRemovedEvent.class));
     
     log.exit();
@@ -197,11 +198,10 @@ public class R2dbcRoleWriteServiceTest {
       .created(CREATED_AT)
       .modified(CREATED_AT)
       .build();
-  private static final RoleJPA DEFAULT_JPA_ROLE = RoleJPA.builder()
+  private static final KpRole DEFAULT_JPA_ROLE = KpRole.builder()
       .id(DEFAULT_ID)
       .nameSpace("namespace")
       .name("name")
-      .version(0)
       .created(CREATED_AT)
       .modified(CREATED_AT)
       .build();

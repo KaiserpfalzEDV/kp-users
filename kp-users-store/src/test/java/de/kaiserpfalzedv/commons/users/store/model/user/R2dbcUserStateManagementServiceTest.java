@@ -18,11 +18,12 @@
 package de.kaiserpfalzedv.commons.users.store.model.user;
 
 import de.kaiserpfalzedv.commons.api.events.EventBus;
+import de.kaiserpfalzedv.commons.users.domain.model.role.RoleToImpl;
+import de.kaiserpfalzedv.commons.users.domain.model.user.KpUserDetails;
 import de.kaiserpfalzedv.commons.users.domain.model.user.UserNotFoundException;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.state.UserBannedEvent;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.state.UserDetainedEvent;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.state.UserReleasedEvent;
-import de.kaiserpfalzedv.commons.users.store.model.role.RoleToJpaImpl;
 import lombok.extern.slf4j.XSlf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,9 +32,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Mono;
 
 import java.time.OffsetDateTime;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -53,7 +54,7 @@ public class R2dbcUserStateManagementServiceTest {
   private EventBus bus;
   
   @Mock
-  private RoleToJpaImpl toJpa;
+  private RoleToImpl toJpa;
   
   
   @BeforeEach
@@ -72,10 +73,10 @@ public class R2dbcUserStateManagementServiceTest {
   void shouldDetainUserWhenActive() throws UserNotFoundException {
     log.entry();
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(Optional.of(DEFAULT_JPA_USER));
-    when(repository.saveAndFlush(any(UserJPA.class))).thenReturn(DEFAULT_JPA_USER.toBuilder().build());
+    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.just(DEFAULT_JPA_USER));
+    when(repository.save(any(KpUserDetails.class))).thenReturn(Mono.just(DEFAULT_JPA_USER.toBuilder().build()));
     
-    sut.detain(DEFAULT_ID, 1);
+    sut.detain(DEFAULT_ID, 1).block();
     
     verify(bus).post(any(UserDetainedEvent.class));
     
@@ -86,9 +87,9 @@ public class R2dbcUserStateManagementServiceTest {
   void shouldThrowUserNotFoundExceptionWhenDetainingANonExistingUser() {
     log.entry();
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(Optional.empty());
+    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.empty());
     
-    assertThrows(UserNotFoundException.class, () -> sut.detain(DEFAULT_ID, 1));
+    assertThrows(UserNotFoundException.class, () -> sut.detain(DEFAULT_ID, 1).block());
     
     verify(bus, never()).post(any(UserDetainedEvent.class));
     
@@ -100,10 +101,10 @@ public class R2dbcUserStateManagementServiceTest {
   void shouldBanUserWhenActive() throws UserNotFoundException {
     log.entry();
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(Optional.of(DEFAULT_JPA_USER));
-    when(repository.saveAndFlush(any(UserJPA.class))).thenReturn(DEFAULT_JPA_USER.toBuilder().build());
+    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.just(DEFAULT_JPA_USER));
+    when(repository.save(any(KpUserDetails.class))).thenReturn(Mono.just(DEFAULT_JPA_USER.toBuilder().build()));
     
-    sut.ban(DEFAULT_ID);
+    sut.ban(DEFAULT_ID).block();
     
     verify(bus).post(any(UserBannedEvent.class));
     
@@ -114,9 +115,9 @@ public class R2dbcUserStateManagementServiceTest {
   void shouldThrowUserNotFoundExceptionWhenBanningANonExistingUser() {
     log.entry();
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(Optional.empty());
+    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.empty());
     
-    assertThrows(UserNotFoundException.class, () -> sut.ban(DEFAULT_ID));
+    assertThrows(UserNotFoundException.class, () -> sut.ban(DEFAULT_ID).block());
     
     verify(bus, never()).post(any(UserBannedEvent.class));
     
@@ -128,10 +129,10 @@ public class R2dbcUserStateManagementServiceTest {
   void shouldReleaseUserWhenBanned() throws UserNotFoundException {
     log.entry();
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(Optional.of(DEFAULT_JPA_USER.toBuilder().bannedOn(CREATED_AT).build()));
-    when(repository.saveAndFlush(any(UserJPA.class))).thenReturn(DEFAULT_JPA_USER);
+    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.just(DEFAULT_JPA_USER.toBuilder().bannedOn(CREATED_AT).build()));
+    when(repository.save(any(KpUserDetails.class))).thenReturn(Mono.just(DEFAULT_JPA_USER));
     
-    sut.release(DEFAULT_ID);
+    sut.release(DEFAULT_ID).block();
     
     verify(bus).post(any(UserReleasedEvent.class));
     
@@ -142,9 +143,9 @@ public class R2dbcUserStateManagementServiceTest {
   void shouldThrowUserNotFoundExceptionWhenReleasingANonExistingUser() {
     log.entry();
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(Optional.empty());
+    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.empty());
     
-    assertThrows(UserNotFoundException.class, () -> sut.release(DEFAULT_ID));
+    assertThrows(UserNotFoundException.class, () -> sut.release(DEFAULT_ID).block());
     
     verify(bus, never()).post(any(UserReleasedEvent.class));
     
@@ -152,32 +153,9 @@ public class R2dbcUserStateManagementServiceTest {
   }
   
   
-  @Test
-  void shouldRegisterFromEventBus() {
-    log.entry();
-    
-    sut.init();
-    
-    verify(bus).register(sut);
-    
-    log.exit();
-  }
-  
-  @Test
-  void shouldUnregisterFromEventBus() {
-    log.entry();
-    
-    sut.close();
-    
-    verify(bus).unregister(sut);
-    
-    log.exit();
-  }
-  
-  
   private static final UUID DEFAULT_ID = UUID.randomUUID();
   private static final OffsetDateTime CREATED_AT = OffsetDateTime.now();
-  private static final UserJPA DEFAULT_JPA_USER = UserJPA.builder()
+  private static final KpUserDetails DEFAULT_JPA_USER = KpUserDetails.builder()
       .id(DEFAULT_ID)
       
       .nameSpace("namespace")
@@ -187,10 +165,6 @@ public class R2dbcUserStateManagementServiceTest {
       .subject(DEFAULT_ID.toString())
       
       .email("email@email.email")
-      
-      .version(0)
-      .revId(0)
-      .revisioned(CREATED_AT)
       
       .created(CREATED_AT)
       .modified(CREATED_AT)

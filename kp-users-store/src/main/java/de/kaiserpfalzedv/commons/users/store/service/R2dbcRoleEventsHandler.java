@@ -18,9 +18,6 @@
 package de.kaiserpfalzedv.commons.users.store.service;
 
 
-import de.kaiserpfalzedv.commons.api.events.EventBus;
-import de.kaiserpfalzedv.commons.users.domain.model.role.RoleCantBeCreatedException;
-import de.kaiserpfalzedv.commons.users.domain.model.role.RoleNotFoundException;
 import de.kaiserpfalzedv.commons.users.domain.model.role.events.*;
 import de.kaiserpfalzedv.commons.users.store.model.role.R2dbcRoleWriteService;
 import de.kaiserpfalzedv.commons.users.store.model.user.R2dbcUserRoleManagementService;
@@ -35,6 +32,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+
 
 /**
  * @author klenkes74 {@literal <rlichti@kaiserpfalz-edv.de>}
@@ -44,10 +43,11 @@ import org.springframework.stereotype.Service;
 @Scope("singleton")
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @XSlf4j
-public class JpaRoleEventsHandler implements RoleEventsHandler, AutoCloseable {
+public class R2dbcRoleEventsHandler implements RoleEventsHandler, AutoCloseable {
+  public static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(1L);
+  
   private final R2dbcRoleWriteService writeService;
   private final R2dbcUserRoleManagementService userRoleManagement;
-  private final EventBus bus;
   
   @Value("${spring.application.system:kp-users}")
   private String system = "kp-users";
@@ -55,35 +55,25 @@ public class JpaRoleEventsHandler implements RoleEventsHandler, AutoCloseable {
   
   @PostConstruct
   public void init() {
-    log.entry();
-    
-    bus.register(this);
-    
+    log.entry(system);
     log.exit();
   }
   
   @Override
   @PreDestroy
   public void close() {
-    log.entry();
-    
-    bus.unregister(this);
-    
+    log.entry(system);
     log.exit();
   }
-
+  
   
   @Override
   @EventListener
   public void event(@NotNull final RoleCreatedEvent event) {
     log.entry(event);
     
-    if(eventIsFromExternalSystem(event)) {
-      try {
-        writeService.create(event.getRole());
-      } catch (RoleCantBeCreatedException e) {
-        log.warn(e.getMessage());
-      }
+    if (eventIsFromExternalSystem(event)) {
+      writeService.create(event.getRole()).block(DEFAULT_TIMEOUT);
     }
     
     log.exit();
@@ -95,11 +85,7 @@ public class JpaRoleEventsHandler implements RoleEventsHandler, AutoCloseable {
     log.entry(event);
     
     if (eventIsFromExternalSystem(event)) {
-      try {
-        writeService.updateNameSpace(event.getRole().getId(), event.getRole().getNameSpace());
-      } catch (RoleNotFoundException e) {
-        log.warn(e.getMessage());
-      }
+      writeService.updateNameSpace(event.getRole().getId(), event.getRole().getNameSpace()).block(DEFAULT_TIMEOUT);
     }
     
     log.exit();
@@ -112,11 +98,7 @@ public class JpaRoleEventsHandler implements RoleEventsHandler, AutoCloseable {
     log.entry(event);
     
     if (eventIsFromExternalSystem(event)) {
-      try {
-        writeService.updateName(event.getRole().getId(), event.getRole().getName());
-      } catch (RoleNotFoundException e) {
-        log.warn(e.getMessage());
-      }
+      writeService.updateName(event.getRole().getId(), event.getRole().getName()).block(DEFAULT_TIMEOUT);
     }
     
     log.exit();
@@ -129,8 +111,8 @@ public class JpaRoleEventsHandler implements RoleEventsHandler, AutoCloseable {
     log.entry(event);
     
     if (eventIsFromExternalSystem(event)) {
-      userRoleManagement.revokeRoleFromAllUsers(event.getRole());
-      writeService.remove(event.getRole().getId());
+      userRoleManagement.revokeRoleFromAllUsers(event.getRole()).block(DEFAULT_TIMEOUT);
+      writeService.remove(event.getRole().getId()).block(DEFAULT_TIMEOUT);
     }
     
     log.exit();
@@ -139,6 +121,7 @@ public class JpaRoleEventsHandler implements RoleEventsHandler, AutoCloseable {
   
   /**
    * Check if the event is from an external application.
+   *
    * @param event The event to check.
    * @return True if the event is from an external application, false otherwise.
    */

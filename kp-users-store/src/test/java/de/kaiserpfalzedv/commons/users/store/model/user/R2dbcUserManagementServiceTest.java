@@ -21,6 +21,7 @@ import de.kaiserpfalzedv.commons.api.events.EventBus;
 import de.kaiserpfalzedv.commons.users.domain.model.user.KpUserDetails;
 import de.kaiserpfalzedv.commons.users.domain.model.user.UserCantBeCreatedException;
 import de.kaiserpfalzedv.commons.users.domain.model.user.UserNotFoundException;
+import de.kaiserpfalzedv.commons.users.domain.model.user.UserToKpUserDetailsImpl;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.state.UserActivatedEvent;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.state.UserCreatedEvent;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.state.UserDeletedEvent;
@@ -34,6 +35,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.OptimisticLockingFailureException;
+import reactor.core.publisher.Mono;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -55,7 +57,7 @@ public class R2dbcUserManagementServiceTest {
   private EventBus bus;
   
   @Mock
-  private UserToJpaImpl toJpa;
+  private UserToKpUserDetailsImpl toJpa;
   
   
   @BeforeEach
@@ -71,13 +73,13 @@ public class R2dbcUserManagementServiceTest {
   
   
   @Test
-  void shouldCreateUserSuccessfullyWhenUserDoesNotExistAlready() throws UserCantBeCreatedException {
+  void shouldCreateUserSuccessfullyWhenUserDoesNotExistAlready() {
     log.entry();
     
     when(toJpa.apply(DEFAULT_USER)).thenReturn(DEFAULT_JPA_USER);
-    when(repository.save(DEFAULT_JPA_USER)).thenReturn(DEFAULT_JPA_USER);
+    when(repository.save(DEFAULT_JPA_USER)).thenReturn(Mono.just(DEFAULT_JPA_USER));
     
-    sut.create(DEFAULT_USER);
+    sut.create(DEFAULT_USER).block();
     
     verify(repository).save(DEFAULT_JPA_USER);
     verify(bus).post(any(UserCreatedEvent.class));
@@ -92,7 +94,7 @@ public class R2dbcUserManagementServiceTest {
     when(toJpa.apply(DEFAULT_USER)).thenReturn(DEFAULT_JPA_USER);
     when(repository.save(DEFAULT_JPA_USER)).thenThrow(new OptimisticLockingFailureException("Test"));
     
-    assertThrows(UserCantBeCreatedException.class, () -> sut.create(DEFAULT_USER));
+    assertThrows(UserCantBeCreatedException.class, () -> sut.create(DEFAULT_USER).block());
 
     verify(bus, never()).post(any(UserCreatedEvent.class));
     
@@ -104,10 +106,10 @@ public class R2dbcUserManagementServiceTest {
   void shouldDeleteUserSuccessfullyWhenUserExists() {
     log.entry();
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(java.util.Optional.of(DEFAULT_JPA_USER));
-    when(repository.saveAndFlush(DEFAULT_JPA_USER)).thenReturn(DEFAULT_JPA_USER);
+    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.just(DEFAULT_JPA_USER));
+    when(repository.save(DEFAULT_JPA_USER)).thenReturn(Mono.just(DEFAULT_JPA_USER));
     
-    sut.delete(DEFAULT_ID);
+    sut.delete(DEFAULT_ID).block();
 
     verify(bus, times(1)).post(any(UserDeletedEvent.class));
     
@@ -119,9 +121,9 @@ public class R2dbcUserManagementServiceTest {
   void shouldDeleteUserSuccessfullyWhenUserDoesNotExist() {
     log.entry();
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(java.util.Optional.empty());
+    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.empty());
     
-    sut.delete(DEFAULT_ID);
+    sut.delete(DEFAULT_ID).block();
     
     verify(bus, never()).post(any(UserDeletedEvent.class));
     
@@ -130,13 +132,13 @@ public class R2dbcUserManagementServiceTest {
   
   
   @Test
-  void shouldUndeleteUserSuccessfullyWhenUserExists() throws UserNotFoundException {
+  void shouldUndeleteUserSuccessfullyWhenUserExists() {
     log.entry();
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(java.util.Optional.of(DEFAULT_JPA_USER));
-    when(repository.saveAndFlush(DEFAULT_JPA_USER)).thenReturn(DEFAULT_JPA_USER);
+    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.just(DEFAULT_JPA_USER));
+    when(repository.save(DEFAULT_JPA_USER)).thenReturn(Mono.just(DEFAULT_JPA_USER));
    
-    sut.undelete(DEFAULT_ID);
+    sut.undelete(DEFAULT_ID).block();
     
     verify(bus, times(1)).post(any(UserActivatedEvent.class));
     
@@ -147,9 +149,9 @@ public class R2dbcUserManagementServiceTest {
   void shouldThrowExceptionWhenUndeletingUserThatDoesNotExist() {
     log.entry();
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(java.util.Optional.empty());
+    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.empty());
     
-    assertThrows(UserNotFoundException.class, () -> sut.undelete(DEFAULT_ID));
+    assertThrows(UserNotFoundException.class, () -> sut.undelete(DEFAULT_ID).block());
     
     verify(bus, never()).post(any(UserActivatedEvent.class));
     
@@ -161,9 +163,9 @@ public class R2dbcUserManagementServiceTest {
   void shouldRemoveUserSuccessfullyWhenUserExists() {
     log.entry();
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(java.util.Optional.of(DEFAULT_JPA_USER));
+    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.just(DEFAULT_JPA_USER));
     
-    sut.remove(DEFAULT_ID);
+    sut.remove(DEFAULT_ID).block();
     
     verify(repository).delete(DEFAULT_JPA_USER);
     verify(bus, times(1)).post(any(UserRemovedEvent.class));
@@ -175,35 +177,12 @@ public class R2dbcUserManagementServiceTest {
   void shouldQuietSilentlyWhenRemovingUserThatDoesNotExist() {
     log.entry();
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(java.util.Optional.empty());
+    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.empty());
     
-    sut.remove(DEFAULT_ID);
+    sut.remove(DEFAULT_ID).block();
     
-    verify(repository, never()).delete(any(UserJPA.class));
+    verify(repository, never()).delete(any(KpUserDetails.class));
     verify(bus, never()).post(any(UserRemovedEvent.class));
-    
-    log.exit();
-  }
-  
-  
-  @Test
-  void shouldRegisterFromEventBus() {
-    log.entry();
-    
-    sut.init();
-    
-    verify(bus).register(sut);
-    
-    log.exit();
-  }
-  
-  @Test
-  void shouldUnregisterFromEventBus() {
-    log.entry();
-    
-    sut.close();
-    
-    verify(bus).unregister(sut);
     
     log.exit();
   }
@@ -226,7 +205,7 @@ public class R2dbcUserManagementServiceTest {
       .modified(CREATED_AT)
       
       .build();
-  private static final UserJPA DEFAULT_JPA_USER = UserJPA.builder()
+  private static final KpUserDetails DEFAULT_JPA_USER = KpUserDetails.builder()
       .id(DEFAULT_ID)
       
       .nameSpace("namespace")
@@ -236,10 +215,6 @@ public class R2dbcUserManagementServiceTest {
       .subject(DEFAULT_ID.toString())
       
       .email("email@email.email")
-      
-      .version(0)
-      .revId(0)
-      .revisioned(CREATED_AT)
       
       .created(CREATED_AT)
       .modified(CREATED_AT)

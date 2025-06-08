@@ -47,9 +47,9 @@ import static org.mockito.Mockito.*;
  */
 @ExtendWith(MockitoExtension.class)
 @XSlf4j
-public class JpaApiKeyEventsHandlerTest {
+public class R2dbcApiKeyEventsHandlerTest {
   @InjectMocks
-  private JpaApiKeyEventsHandler sut;
+  private R2dbcApiKeyEventsHandler sut;
   
   @Mock
   private R2dbcApiKeyWriteService writeService;
@@ -58,7 +58,7 @@ public class JpaApiKeyEventsHandlerTest {
   private EventBus bus;
   
   
-  private static final String LOCAL_system = "kp-users";
+  private static final String LOCAL_SYSTEM = "kp-users";
   private static final String EXTERNAL_SYSTEM = "other-application";
   
   
@@ -75,7 +75,7 @@ public class JpaApiKeyEventsHandlerTest {
 
   
   @Test
-  void shouldHandleApiKeyCreatedEventWhenEventIsFromExternalSystem() throws InvalidApiKeyException {
+  void shouldHandleApiKeyCreatedEventWhenEventIsFromExternalSystem() {
     log.entry();
     
     // given
@@ -93,7 +93,7 @@ public class JpaApiKeyEventsHandlerTest {
   }
   
   @Test
-  void shouldHandleExceptionWhileCreatingApiKeyWhenEventIsFromExternalSystem() throws InvalidApiKeyException {
+  void shouldHandleExceptionWhileCreatingApiKeyWhenEventIsFromExternalSystem() {
     log.entry();
     
     // given
@@ -113,7 +113,7 @@ public class JpaApiKeyEventsHandlerTest {
   }
   
   @Test
-  void shouldIgnoreApiKeyCreatedEventWhenEventIsFromLocalSystem() throws InvalidApiKeyException {
+  void shouldIgnoreApiKeyCreatedEventWhenEventIsFromLocalSystem() {
     log.entry();
     
     // given

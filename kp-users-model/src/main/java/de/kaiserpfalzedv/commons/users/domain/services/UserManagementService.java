@@ -34,5 +34,5 @@ public interface UserManagementService {
   Mono<? extends User> create(@NotNull User user) throws UserCantBeCreatedException;
   Mono<? extends User> delete(@NotNull UUID id);
   Mono<? extends User> undelete(@NotNull UUID id) throws UserNotFoundException;
-  Mono<? extends User> remove(@NotNull UUID id);
+  Mono<Void> remove(@NotNull UUID id);
 }

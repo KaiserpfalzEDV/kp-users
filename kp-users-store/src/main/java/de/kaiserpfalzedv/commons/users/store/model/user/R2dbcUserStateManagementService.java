@@ -21,11 +21,7 @@ package de.kaiserpfalzedv.commons.users.store.model.user;
 import de.kaiserpfalzedv.commons.users.domain.model.user.KpUserDetails;
 import de.kaiserpfalzedv.commons.users.domain.model.user.UserNotFoundException;
 import de.kaiserpfalzedv.commons.users.domain.services.UserStateManagementService;
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
-import jakarta.inject.Inject;
 import jakarta.validation.constraints.NotNull;
-import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.XSlf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -54,20 +50,17 @@ public class R2dbcUserStateManagementService extends R2dbcAbstractManagementServ
   ) {
     super(repository, bus, system);
     log.entry(repository, bus, system);
-    
     log.exit();
   }
   
   
   @SuppressWarnings("removal")
   @Override
-  public Mono<KpUserDetails> activate(final UUID id) throws UserNotFoundException {
+  public Mono<KpUserDetails> activate(final UUID id) {
     log.entry(id);
     
-    Mono<KpUserDetails> result = repository.findById(id);
-    result = result
-        .switchIfEmpty(Mono.error(new UserNotFoundException(id)))
-        .map(u -> u.undelete(bus, days))
+    Mono<KpUserDetails> result = repository.findById(id)
+        .map(u -> u.undelete(bus))
         .flatMap(user -> saveUser(user, "User undeleted", "User undeleting error"));
     
     return log.exit(result);
@@ -78,9 +71,7 @@ public class R2dbcUserStateManagementService extends R2dbcAbstractManagementServ
   public Mono<KpUserDetails> detain(final UUID id, final long days) throws UserNotFoundException {
     log.entry(id, days);
     
-    Mono<KpUserDetails> result = repository.findById(id);
-    result = result
-        .switchIfEmpty(Mono.error(new UserNotFoundException(id)))
+    Mono<KpUserDetails> result = repository.findById(id)
         .map(u -> u.detain(bus, days))
         .flatMap(user -> saveUser(user, "User detained", "User detaining error"));
     
@@ -91,22 +82,18 @@ public class R2dbcUserStateManagementService extends R2dbcAbstractManagementServ
   public Mono<KpUserDetails> ban(final UUID id) throws UserNotFoundException {
     log.entry(id);
     
-    Mono<KpUserDetails> result = repository.findById(id);
-    result = result
-        .switchIfEmpty(Mono.error(new UserNotFoundException(id)))
+    Mono<KpUserDetails> result = repository.findById(id)
         .map(u -> u.ban(bus))
         .flatMap(user -> saveUser(user, "User banned", "User banning error"));
     
-    log.exit(result);
+    return log.exit(result);
   }
   
   @Override
   public Mono<KpUserDetails> release(final UUID id) throws UserNotFoundException {
     log.entry(id);
     
-    Mono<KpUserDetails> result = repository.findById(id);
-    result
-        .switchIfEmpty(Mono.error(new UserNotFoundException(id)))
+    Mono<KpUserDetails> result = repository.findById(id)
         .map(u -> u.release(bus))
         .flatMap(user -> saveUser(user, "User released", "User releasing error"));
     

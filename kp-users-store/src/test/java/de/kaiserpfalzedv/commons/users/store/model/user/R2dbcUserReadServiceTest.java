@@ -18,6 +18,7 @@
 package de.kaiserpfalzedv.commons.users.store.model.user;
 
 
+import de.kaiserpfalzedv.commons.users.domain.model.user.KpUserDetails;
 import lombok.extern.slf4j.XSlf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,12 +26,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.time.OffsetDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -70,9 +69,9 @@ public class R2dbcUserReadServiceTest {
   void shouldReturnUserWhenUserWithIdExists() {
     log.entry();
     
-    when(repository.findById(DEFAULT_USER.getId())).thenReturn(Optional.of(DEFAULT_USER));
+    when(repository.findById(DEFAULT_USER.getId())).thenReturn(Mono.just(DEFAULT_USER));
     
-    Optional<UserJPA> result = sut.findById(DEFAULT_USER.getId());
+    Optional<KpUserDetails> result = sut.findById(DEFAULT_USER.getId()).blockOptional();
     log.debug("Result. user={}", result.orElse(null));
     
     assertTrue(result.isPresent());
@@ -85,9 +84,9 @@ public class R2dbcUserReadServiceTest {
   void shouldReturnUserWhenUserWithUsernameExists() {
     log.entry();
     
-    when(repository.findByNameSpaceAndName(DEFAULT_USER.getNameSpace(), DEFAULT_USER.getName())).thenReturn(Optional.of(DEFAULT_USER));
+    when(repository.findByNameSpaceAndName(DEFAULT_USER.getNameSpace(), DEFAULT_USER.getName())).thenReturn(Mono.just(DEFAULT_USER));
     
-    Optional<UserJPA> result = sut.findByUsername(DEFAULT_USER.getNameSpace(), DEFAULT_USER.getName());
+    Optional<KpUserDetails> result = sut.findByUsername(DEFAULT_USER.getNameSpace(), DEFAULT_USER.getName()).blockOptional();
     log.debug("Result. user={}", result.orElse(null));
     
     assertTrue(result.isPresent());
@@ -100,9 +99,9 @@ public class R2dbcUserReadServiceTest {
   void shouldReturnUserWhenUserWithSubjectExists() {
     log.entry();
     
-    when(repository.findByIssuerAndSubject(DEFAULT_USER.getIssuer(), DEFAULT_USER.getSubject())).thenReturn(Optional.of(DEFAULT_USER));
+    when(repository.findByIssuerAndSubject(DEFAULT_USER.getIssuer(), DEFAULT_USER.getSubject())).thenReturn(Mono.just(DEFAULT_USER));
     
-    Optional<UserJPA> result = sut.findByOauth(DEFAULT_USER.getIssuer(), DEFAULT_USER.getSubject());
+    Optional<KpUserDetails> result = sut.findByOauth(DEFAULT_USER.getIssuer(), DEFAULT_USER.getSubject()).blockOptional();
     log.debug("Result. user={}", result.orElse(null));
     
     assertTrue(result.isPresent());
@@ -115,12 +114,12 @@ public class R2dbcUserReadServiceTest {
   void shouldReturnAllUsersWhenUsersExist() {
     log.entry();
   
-    when(repository.findAll()).thenReturn(List.of(DEFAULT_USER));
+    when(repository.findAll()).thenReturn(Flux.just(DEFAULT_USER, DEFAULT_USER));
   
     var result = sut.findAll();
     log.debug("Result: users={}", result);
-  
-    assertTrue(result.contains(DEFAULT_USER));
+
+    assertTrue(result.collectList().blockOptional().orElse(List.of()).contains(DEFAULT_USER));
   
     log.exit();
   }
@@ -129,46 +128,12 @@ public class R2dbcUserReadServiceTest {
   void shouldReturnEmptyListWhenNoUsersExist() {
     log.entry();
   
-    when(repository.findAll()).thenReturn(List.of());
+    when(repository.findAll()).thenReturn(Flux.empty());
   
     var result = sut.findAll();
     log.debug("Result: users={}", result);
   
-    assertTrue(result.isEmpty());
-  
-    log.exit();
-  }
-  
-  // findAll(Pageable)
-  @Test
-  void shouldReturnPageOfUsersWhenUsersExist() {
-    log.entry();
-  
-    var pageable = mock(Pageable.class);
-    var page = new PageImpl<>(List.of(DEFAULT_USER));
-    when(repository.findAll(pageable)).thenReturn(page);
-  
-    var result = sut.findAll(pageable);
-    log.debug("Result: users={}", result.getContent());
-  
-    assertTrue(result.getContent().contains(DEFAULT_USER));
-  
-    log.exit();
-  }
-  
-  @Test
-  void shouldReturnEmptyPageWhenNoUsersExist() {
-    log.entry();
-    
-    Pageable pageable = mock(Pageable.class);
-    Page<UserJPA> page = new PageImpl<>(Collections.emptyList());
-    when(repository.findAll(pageable)).thenReturn(page);
-    
-    
-    var result = sut.findAll(pageable);
-    log.debug("Result: users={}", result.getContent());
-  
-    assertTrue(result.isEmpty());
+    assertTrue(result.collectList().blockOptional().isEmpty());
   
     log.exit();
   }
@@ -178,12 +143,12 @@ public class R2dbcUserReadServiceTest {
   void shouldReturnUsersByNamespace() {
     log.entry();
   
-    when(repository.findByNameSpace("namespace")).thenReturn(List.of(DEFAULT_USER));
+    when(repository.findByNameSpace("namespace")).thenReturn(Flux.just(DEFAULT_USER, DEFAULT_USER));
   
     var result = sut.findByNamespace("namespace");
     log.debug("Result: users={}", result);
-  
-    assertTrue(result.contains(DEFAULT_USER));
+
+    assertTrue(result.collectList().blockOptional().orElse(List.of()).contains(DEFAULT_USER));
   
     log.exit();
   }
@@ -192,46 +157,12 @@ public class R2dbcUserReadServiceTest {
   void shouldReturnEmptyListWhenNoUsersInNamespace() {
     log.entry();
   
-    when(repository.findByNameSpace("namespace")).thenReturn(List.of());
+    when(repository.findByNameSpace("namespace")).thenReturn(Flux.empty());
   
     var result = sut.findByNamespace("namespace");
     log.debug("Result: users={}", result);
   
-    assertTrue(result.isEmpty());
-  
-    log.exit();
-  }
-  
-  // findByNamespace(String, Pageable)
-  @Test
-  void shouldReturnPageOfUsersByNamespace() {
-    log.entry();
-  
-    var pageable = mock(Pageable.class);
-    var page = new PageImpl<>(List.of(DEFAULT_USER));
-    when(repository.findByNameSpace("namespace", pageable)).thenReturn(page);
-  
-    var result = sut.findByNamespace("namespace", pageable);
-    log.debug("Result: users={}", result.getContent());
-  
-    assertTrue(result.getContent().contains(DEFAULT_USER));
-  
-    log.exit();
-  }
-  
-  @Test
-  void shouldReturnEmptyPageWhenNoUsersInNamespace() {
-    log.entry();
-  
-    Pageable pageable = mock(Pageable.class);
-    Page<UserJPA> page = new PageImpl<>(Collections.emptyList());
-    
-    when(repository.findByNameSpace("namespace", pageable)).thenReturn(page);
-  
-    var result = sut.findByNamespace("namespace", pageable);
-    log.debug("Result: users={}", result.getContent());
-  
-    assertTrue(result.isEmpty());
+    assertTrue(result.collectList().blockOptional().isEmpty());
   
     log.exit();
   }
@@ -239,7 +170,7 @@ public class R2dbcUserReadServiceTest {
   
   private static final UUID DEFAULT_ID = UUID.randomUUID();
   private static final OffsetDateTime CREATED_AT = OffsetDateTime.now();
-  private static final UserJPA DEFAULT_USER = UserJPA.builder()
+  private static final KpUserDetails DEFAULT_USER = KpUserDetails.builder()
       .id(DEFAULT_ID)
       
       .nameSpace("namespace")
@@ -247,10 +178,6 @@ public class R2dbcUserReadServiceTest {
       
       .issuer("issuer")
       .subject(DEFAULT_ID.toString())
-      
-      .version(0)
-      .revId(0)
-      .revisioned(CREATED_AT)
       
       .created(CREATED_AT)
       .modified(CREATED_AT)

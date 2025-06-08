@@ -49,9 +49,9 @@ import static org.mockito.Mockito.*;
  */
 @ExtendWith(MockitoExtension.class)
 @XSlf4j
-public class JpaRoleEventsHandlerTest {
+public class R2dbcRoleEventsHandlerTest {
   @InjectMocks
-  private JpaRoleEventsHandler sut;
+  private R2dbcRoleEventsHandler sut;
 
   @Mock
   private R2dbcRoleWriteService writeService;
@@ -62,7 +62,7 @@ public class JpaRoleEventsHandlerTest {
   @Mock
   private EventBus bus;
   
-  private static final String LOCAL_system = "kp-users";
+  private static final String LOCAL_SYSTEM = "kp-users";
   private static final String EXTERNAL_SYSTEM = "other-application";
   
   
@@ -96,7 +96,7 @@ public class JpaRoleEventsHandlerTest {
   
   
   @Test
-  void shouldCreateRoleOnRoleCreatedEventWhenEventIsFromExternalSystem() throws RoleCantBeCreatedException {
+  void shouldCreateRoleOnRoleCreatedEventWhenEventIsFromExternalSystem() {
     log.entry();
     
     // given
@@ -112,7 +112,7 @@ public class JpaRoleEventsHandlerTest {
   }
   
   @Test
-  void shouldHandleExceptionWhenCreationFailsWhenEventIsFromExternalSystem() throws RoleCantBeCreatedException {
+  void shouldHandleExceptionWhenCreationFailsWhenEventIsFromExternalSystem() {
     log.entry();
     
     // given
@@ -132,7 +132,7 @@ public class JpaRoleEventsHandlerTest {
   }
   
   @Test
-  void shouldIgnoreRoleOnRoleCreatedEventWhenEventIsFromLocalSystem() throws RoleCantBeCreatedException {
+  void shouldIgnoreRoleOnRoleCreatedEventWhenEventIsFromLocalSystem() {
     log.entry();
     
     // given
@@ -148,7 +148,7 @@ public class JpaRoleEventsHandlerTest {
   
   
   @Test
-  void shouldChangeNameSpaceOnRoleUpdateNameSpaceEventWhenEventIsFromExternalSystem() throws RoleNotFoundException {
+  void shouldChangeNameSpaceOnRoleUpdateNameSpaceEventWhenEventIsFromExternalSystem() {
     log.entry();
     
     // given
@@ -166,7 +166,7 @@ public class JpaRoleEventsHandlerTest {
   }
   
   @Test
-  void shouldHandleExceptionOnRoleUpdateNameSpaceEventWhenEventIsFromExternalSystem() throws RoleNotFoundException {
+  void shouldHandleExceptionOnRoleUpdateNameSpaceEventWhenEventIsFromExternalSystem() {
     log.entry();
     
     // given
@@ -187,7 +187,7 @@ public class JpaRoleEventsHandlerTest {
   }
   
   @Test
-  void shouldIgnoreNameSpaceOnRoleUpdateNameSpaceEventWhenEventIsFromLocalSystem() throws RoleNotFoundException {
+  void shouldIgnoreNameSpaceOnRoleUpdateNameSpaceEventWhenEventIsFromLocalSystem() {
     log.entry();
     
     // given
@@ -205,7 +205,7 @@ public class JpaRoleEventsHandlerTest {
   
   
   @Test
-  void shouldChangeNameOnRoleUpdateNameEventWhenEventIsFromExternalSystem() throws RoleNotFoundException {
+  void shouldChangeNameOnRoleUpdateNameEventWhenEventIsFromExternalSystem() {
     log.entry();
     
     // given
@@ -223,7 +223,7 @@ public class JpaRoleEventsHandlerTest {
   }
   
   @Test
-  void shouldHandleExceptionOnRoleUpdateNameEventWhenEventIsFromExternalSystem() throws RoleNotFoundException {
+  void shouldHandleExceptionOnRoleUpdateNameEventWhenEventIsFromExternalSystem() {
     log.entry();
     
     // given
@@ -243,7 +243,7 @@ public class JpaRoleEventsHandlerTest {
   }
   
   @Test
-  void shouldIgnoreNameOnRoleUpdateNameSpaceEventWhenEventIsFromLocalSystem() throws RoleNotFoundException {
+  void shouldIgnoreNameOnRoleUpdateNameSpaceEventWhenEventIsFromLocalSystem() {
     log.entry();
     
     // given

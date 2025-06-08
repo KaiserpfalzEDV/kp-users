@@ -18,25 +18,23 @@
 package de.kaiserpfalzedv.commons.users.store.model.role;
 
 
+import de.kaiserpfalzedv.commons.users.domain.model.role.KpRole;
 import lombok.extern.slf4j.XSlf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 /**
@@ -47,22 +45,20 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 @XSlf4j
 public class R2dbcRoleReadServiceTest {
-  private R2dbcRoleReadService sut;
+  @InjectMocks private R2dbcRoleReadService sut;
   
-  @Mock
-  private R2dbcRoleRepository r2dbcRoleRepository;
+  @Mock private R2dbcRoleRepository r2dbcRoleRepository;
   
   
   @BeforeEach
   public void setUp() {
     reset(r2dbcRoleRepository);
-    
-    sut = new R2dbcRoleReadService(r2dbcRoleRepository);
   }
   
   @AfterEach
   public void tearDown() {
     validateMockitoUsage(); // validate if the mocks are used as expected.
+    verifyNoMoreInteractions(r2dbcRoleRepository);
   }
   
   
@@ -70,12 +66,12 @@ public class R2dbcRoleReadServiceTest {
   void shouldFindRoleByIdWhenRoleExists() {
     log.entry();
     
-    when(r2dbcRoleRepository.findById(DEFAULT_ROLE.getId())).thenReturn(Optional.of(DEFAULT_ROLE));
+    when(r2dbcRoleRepository.findById(DEFAULT_ROLE.getId())).thenReturn(Mono.just(DEFAULT_ROLE));
     
-    Optional<RoleJPA> result = sut.retrieve(DEFAULT_ROLE.getId());
-    log.debug("result. role={}", result.orElse(null));
+    KpRole result = sut.retrieve(DEFAULT_ROLE.getId()).block();
+    log.debug("result. role={}", result);
     
-    assertTrue(result.isPresent());
+    assertNotNull(result);
     
     log.exit();
   }
@@ -84,12 +80,12 @@ public class R2dbcRoleReadServiceTest {
   void shouldNotFindRoleByIdWhenRoleWithIdDoesNotExist() {
     log.entry();
     
-    when(r2dbcRoleRepository.findById(DEFAULT_ROLE.getId())).thenReturn(Optional.empty());
+    when(r2dbcRoleRepository.findById(DEFAULT_ROLE.getId())).thenReturn(Mono.empty());
     
-    Optional<RoleJPA> result = sut.retrieve(DEFAULT_ROLE.getId());
-    log.debug("result. role={}", result.orElse(null));
+    KpRole result = sut.retrieve(DEFAULT_ROLE.getId()).block();
+    log.debug("result. role={}", result);
     
-    assertTrue(result.isEmpty());
+    assertNull(result);
     
     log.exit();
   }
@@ -98,83 +94,43 @@ public class R2dbcRoleReadServiceTest {
   void shouldReturnListOfRolesWhenRolesExist() {
     log.entry();
     
-    when(r2dbcRoleRepository.findAll()).thenReturn(List.of(DEFAULT_ROLE));
+    when(r2dbcRoleRepository.findAll()).thenReturn(Flux.just(DEFAULT_ROLE, DEFAULT_ROLE));
     
-    List<RoleJPA> result = sut.retrieveAll();
+    List<KpRole> result = sut.retrieveAll().collectList().block();
     log.debug("result. roles={}", result);
     
+    assertNotNull(result);
     assertEquals(1, result.size());
     
     log.exit();
   }
-  
-  @Test
-  void shouldReturnPageOfRolesWhenRolesExist() {
-    log.entry();
-    
-    when(r2dbcRoleRepository.findAll(DEFAULT_PAGEABLE)).thenReturn(DEFAULT_PAGE);
-    
-    Page<RoleJPA> result = sut.retrieveAll(DEFAULT_PAGEABLE);
-    log.debug("result. roles={}", result);
-    
-    assertEquals(1, result.getTotalElements());
-    
-    log.exit();
-  }
-  
   
   @Test
   void shouldReturnListOfRolesInNamespaceWhenRolesInNameSpaceExist() {
     log.entry();
     
-    when(r2dbcRoleRepository.findByNameSpace(DEFAULT_ROLE.getNameSpace())).thenReturn(List.of(DEFAULT_ROLE));
+    when(r2dbcRoleRepository.findByNameSpace(DEFAULT_ROLE.getNameSpace())).thenReturn(Flux.just(DEFAULT_ROLE, DEFAULT_ROLE));
     
-    List<RoleJPA> result = sut.retrieveAllFromNamespace(DEFAULT_ROLE.getNameSpace());
+    List<KpRole> result = sut.retrieveAllFromNamespace(DEFAULT_ROLE.getNameSpace()).collectList().block();
     log.debug("result. roles={}", result);
     
-    assertEquals(1, result.size());
+    assertNotNull(result);
+    assertEquals(2, result.size());
     
     log.exit();
   }
   
   @Test
-  void shouldReturnPageOfRolesInNamespaceWhenRolesInNameSpaceExist() {
+  void shouldReturnFluxOfRolesByNameWhenRolesWithNameExist() {
     log.entry();
     
-    when(r2dbcRoleRepository.findByNameSpace(DEFAULT_ROLE.getNameSpace(), DEFAULT_PAGEABLE)).thenReturn(DEFAULT_PAGE);
+    when(r2dbcRoleRepository.findByName(DEFAULT_ROLE.getName())).thenReturn(Flux.just(DEFAULT_ROLE, DEFAULT_ROLE));
     
-    Page<RoleJPA> result = sut.retrieveAllFromNamespace(DEFAULT_ROLE.getNameSpace(), DEFAULT_PAGEABLE);
+    List<KpRole> result = sut.retrieveByName(DEFAULT_ROLE.getName()).collectList().block();
     log.debug("result. roles={}", result);
     
-    assertEquals(1, result.getTotalElements());
-    
-    log.exit();
-  }
-  
-  @Test
-  void shouldReturnListOfRolesByNameWhenRolesWithNameExist() {
-    log.entry();
-    
-    when(r2dbcRoleRepository.findByName(DEFAULT_ROLE.getName())).thenReturn(List.of(DEFAULT_ROLE));
-    
-    List<RoleJPA> result = sut.retrieveByName(DEFAULT_ROLE.getName());
-    log.debug("result. roles={}", result);
-    
-    assertEquals(1, result.size());
-    
-    log.exit();
-  }
-  
-  @Test
-  void shouldReturnPageOfRolesByNameWhenRolesWithNameExist() {
-    log.entry();
-    
-    when(r2dbcRoleRepository.findByName(DEFAULT_ROLE.getName(), DEFAULT_PAGEABLE)).thenReturn(DEFAULT_PAGE);
-    
-    Page<RoleJPA> result = sut.retrieveByName(DEFAULT_ROLE.getName(), DEFAULT_PAGEABLE);
-    log.debug("result. roles={}", result);
-    
-    assertEquals(1, result.getTotalElements());
+    assertNotNull(result);
+    assertEquals(2, result.size());
     
     log.exit();
   }
@@ -182,15 +138,11 @@ public class R2dbcRoleReadServiceTest {
   
   private static final UUID DEFAULT_ID = UUID.randomUUID();
   private static final OffsetDateTime CREATED_AT = OffsetDateTime.now();
-  private static final RoleJPA DEFAULT_ROLE = RoleJPA.builder()
+  private static final KpRole DEFAULT_ROLE = KpRole.builder()
       .id(DEFAULT_ID)
       .nameSpace("namespace")
       .name("name")
-      .version(0)
       .created(CREATED_AT)
       .modified(CREATED_AT)
       .build();
-  
-  private static final Pageable DEFAULT_PAGEABLE = PageRequest.of(0, 10);
-  private static final Page<RoleJPA> DEFAULT_PAGE = new PageImpl<>(List.of(DEFAULT_ROLE));
 }

@@ -31,13 +31,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Mono;
 
 import java.time.OffsetDateTime;
-import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 /**
@@ -58,7 +57,7 @@ public class R2dbcApiKeyWriteServiceTest {
   private ApiKeyToImpl toImpl;
 
   @Mock
-  private ApiKeyToJPAImpl toJPA;
+  private ApiKeyToImpl toJPA;
   
   
   @BeforeEach
@@ -74,12 +73,12 @@ public class R2dbcApiKeyWriteServiceTest {
   
   
   @Test
-  void shouldSaveApiKeyWhenApiKeyIsNotADuplicate() throws InvalidApiKeyException {
+  void shouldSaveApiKeyWhenApiKeyIsNotADuplicate() {
     log.entry();
     
-    when(repository.save(DEFAULT_APIKEY)).thenReturn(DEFAULT_APIKEY);
+    when(repository.save(DEFAULT_APIKEY)).thenReturn(Mono.just(DEFAULT_APIKEY));
     
-    sut.create(DEFAULT_APIKEY);
+    sut.create(DEFAULT_APIKEY).block();
   }
   
   
@@ -89,35 +88,36 @@ public class R2dbcApiKeyWriteServiceTest {
     
     when(repository.save(DEFAULT_APIKEY)).thenThrow(new IllegalArgumentException("Duplicate ApiKey"));
     
-    assertThrows(InvalidApiKeyException.class, () -> sut.create(DEFAULT_APIKEY));
+    assertThrows(InvalidApiKeyException.class, () -> sut.create(DEFAULT_APIKEY).block());
     
     log.exit();
   }
   
   
   @Test
-  void shouldSaveApiKeyWhenApiKeyIsNotJPAType() throws InvalidApiKeyException {
+  void shouldSaveApiKeyWhenApiKeyIsNotJPAType() {
     log.entry();
     
-    when(repository.save(any(ApiKeyR2dbc.class))).thenReturn(DEFAULT_APIKEY);
+    when(repository.save(any(ApiKeyImpl.class))).thenReturn(Mono.just(DEFAULT_APIKEY));
     when(toJPA.apply(any(ApiKeyImpl.class))).thenReturn(DEFAULT_APIKEY);
     
-    sut.create(DEFAULT_APIKEY_IMPL);
+    sut.create(DEFAULT_APIKEY).block();
     
     log.exit();
   }
   
   
   @Test
-  void shouldReturnRefreshedKeyWithNewExpiryDateWhenApiKeyGetsRefreshed() throws ApiKeyNotFoundException {
+  void shouldReturnRefreshedKeyWithNewExpiryDateWhenApiKeyGetsRefreshed() {
     log.entry();
     
-    when(repository.findById(DEFAULT_APIKEY.getId())).thenReturn(Optional.of(DEFAULT_APIKEY));
-    when(repository.save(any(ApiKeyR2dbc.class))).thenReturn(DEFAULT_APIKEY);
+    when(repository.findById(DEFAULT_APIKEY.getId())).thenReturn(Mono.just(DEFAULT_APIKEY));
+    when(repository.save(any(ApiKeyImpl.class))).thenReturn(Mono.just(DEFAULT_APIKEY));
     
-    ApiKeyR2dbc result = sut.refresh(DEFAULT_ID, 20L);
+    ApiKeyImpl result = sut.refresh(DEFAULT_ID, 20L).block();
     log.debug("Refreshed ApiKey. apikey={}", result);
     
+    assertNotNull(result);
     assertTrue(result.getExpiration().plusSeconds(1).isAfter(DEFAULT_APIKEY.getExpiration().plusDays(10L)));
     
     log.exit();
@@ -128,9 +128,9 @@ public class R2dbcApiKeyWriteServiceTest {
   void shouldFailWhileRefreshingWhenApiKeyWithIdDoesNotExist() {
     log.entry();
     
-    when(repository.findById(any(UUID.class))).thenReturn(Optional.empty());
+    when(repository.findById(any(UUID.class))).thenReturn(Mono.empty());
     
-    assertThrows(ApiKeyNotFoundException.class, () -> sut.refresh(UUID.randomUUID(), 20L));
+    assertThrows(ApiKeyNotFoundException.class, () -> sut.refresh(UUID.randomUUID(), 20L).block());
     
     log.exit();
   }
@@ -140,7 +140,7 @@ public class R2dbcApiKeyWriteServiceTest {
   void shouldDeleteApiKeyWhenApiKeyExists() {
     log.entry();
     
-    sut.delete(DEFAULT_APIKEY.getId());
+    sut.delete(DEFAULT_APIKEY.getId()).block();
     
     verify(repository, times(1)).deleteById(DEFAULT_APIKEY.getId());
     
@@ -152,7 +152,7 @@ public class R2dbcApiKeyWriteServiceTest {
   void shouldDeleteApiKeyWhenApiKeyDoesNotExist() {
     log.entry();
     
-    sut.delete(UUID.randomUUID());
+    sut.delete(UUID.randomUUID()).block();
     
     // repository deleteById ignores if the target does not exist at all.
     verify(repository, times(1)).deleteById(any(UUID.class));
@@ -165,7 +165,7 @@ public class R2dbcApiKeyWriteServiceTest {
   void shouldRemoveApiKeyWhenApiKeyExists() {
     log.entry();
     
-    sut.remove(DEFAULT_APIKEY.getId());
+    sut.remove(DEFAULT_APIKEY.getId()).block();
 
     // remove is mapped to delete to keep the API structured the same way over all objects.
     verify(repository, times(1)).deleteById(DEFAULT_APIKEY.getId());
@@ -177,27 +177,8 @@ public class R2dbcApiKeyWriteServiceTest {
   
   private static final UUID DEFAULT_ID = UUID.randomUUID();
   private static final OffsetDateTime NOW = OffsetDateTime.now();
-  private static final UserJPA DEFAULT_USER = UserJPA.builder()
-      .id(DEFAULT_ID)
-      
-      .nameSpace("namespace")
-      .name("name")
-      
-      .issuer("issuer")
-      .subject(DEFAULT_ID.toString())
-
-      .email("email@email.email")
-      
-      .version(0)
-      .revId(0)
-      .revisioned(NOW)
-      
-      .created(NOW)
-      .modified(NOW)
-      
-      .build();
   
-  private static final KpUserDetails DEFAULT_USER_IMPL = KpUserDetails.builder()
+  private static final KpUserDetails DEFAULT_USER = KpUserDetails.builder()
       .id(DEFAULT_ID)
       
       .nameSpace("namespace")
@@ -213,9 +194,8 @@ public class R2dbcApiKeyWriteServiceTest {
       
       .build();
   
-  private static final ApiKeyR2dbc DEFAULT_APIKEY = ApiKeyR2dbc.builder()
+  private static final ApiKeyImpl DEFAULT_APIKEY = ApiKeyImpl.builder()
       .id(DEFAULT_ID)
-      .version(0)
       .expiration(NOW.plusDays(10L))
       
       .nameSpace("namespace")
@@ -225,16 +205,4 @@ public class R2dbcApiKeyWriteServiceTest {
       .modified(NOW)
       
       .build();
-  
-  private static final ApiKeyImpl DEFAULT_APIKEY_IMPL = ApiKeyImpl.builder()
-      .id(DEFAULT_ID)
-      .expiration(NOW.plusDays(10L))
-      
-      .nameSpace("namespace")
-      .user(DEFAULT_USER_IMPL)
-      
-      .created(NOW)
-      .modified(NOW)
-      
-      .build();
-}
+  }

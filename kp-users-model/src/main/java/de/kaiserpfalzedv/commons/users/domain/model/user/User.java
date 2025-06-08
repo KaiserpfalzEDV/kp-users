@@ -179,12 +179,13 @@ public interface User extends Principal, UserDetails, CredentialsContainer, HasI
     return this;
   }
   
-  default <R extends GrantedAuthority> boolean hasRole(@NotBlank final R role) {
+  default boolean hasRole(@NotBlank final GrantedAuthority role) {
     return getAuthorities().contains(role);
   }
   
   default boolean hasRole(@NotBlank final String role) {
-    return getAuthorities().stream().filter(a -> a.getAuthority().equals(role)).count() >= 1;
+    return getAuthorities().stream()
+        .map(GrantedAuthority::getAuthority).anyMatch(role::equals);
   }
   
   /**

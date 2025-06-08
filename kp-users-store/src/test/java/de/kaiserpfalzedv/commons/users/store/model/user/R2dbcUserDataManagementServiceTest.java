@@ -17,8 +17,9 @@
 
 package de.kaiserpfalzedv.commons.users.store.model.user;
 
-import de.kaiserpfalzedv.commons.api.events.EventBus;
+import de.kaiserpfalzedv.commons.users.domain.model.user.KpUserDetails;
 import de.kaiserpfalzedv.commons.users.domain.model.user.UserNotFoundException;
+import de.kaiserpfalzedv.commons.users.domain.model.user.UserToKpUserDetailsImpl;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.modification.*;
 import lombok.extern.slf4j.XSlf4j;
 import org.junit.jupiter.api.AfterEach;
@@ -28,6 +29,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
+import reactor.core.publisher.Mono;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -46,10 +49,10 @@ public class R2dbcUserDataManagementServiceTest {
   private R2dbcUserRepository repository;
   
   @Mock
-  private EventBus bus;
+  private ApplicationEventPublisher bus;
   
   @Mock
-  private UserToJpaImpl toJpa;
+  private UserToKpUserDetailsImpl toJpa;
   
   
   @BeforeEach
@@ -65,15 +68,15 @@ public class R2dbcUserDataManagementServiceTest {
   
   
   @Test
-  void shouldUpdateTheIssuerWhenUserExists() throws UserNotFoundException {
+  void shouldUpdateTheIssuerWhenUserExists() {
     log.entry();
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(java.util.Optional.of(DEFAULT_JPA_USER));
-    when(repository.saveAndFlush(any(UserJPA.class))).thenReturn(DEFAULT_JPA_USER.toBuilder().issuer("new-issuer").subject("new-subject").build());
+    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.just(DEFAULT_JPA_USER));
+    when(repository.save(any(KpUserDetails.class))).thenReturn(Mono.just(DEFAULT_JPA_USER.toBuilder().issuer("new-issuer").subject("new-subject").build()));
     
-    sut.updateSubject(DEFAULT_ID, "new-issuer", "new-subject");
+    sut.updateSubject(DEFAULT_ID, "new-issuer", "new-subject").block();
     
-    verify(bus).post(any(UserSubjectModificationEvent.class));
+    verify(bus).publishEvent(any(UserSubjectModificationEvent.class));
     
     log.exit();
   }
@@ -82,26 +85,26 @@ public class R2dbcUserDataManagementServiceTest {
   void shouldThrowExceptionWhenUpdatingTheIssuerWhenUserDoesNotExist() {
     log.entry();
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(java.util.Optional.empty());
+    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.empty());
     
-    assertThrows(UserNotFoundException.class, () -> sut.updateSubject(DEFAULT_ID, "new-issuer", "new-subject"));
+    assertThrows(UserNotFoundException.class, () -> sut.updateSubject(DEFAULT_ID, "new-issuer", "new-subject").block());
     
-    verify(bus, never()).post(any(UserSubjectModificationEvent.class));
+    verify(bus, never()).publishEvent(any(UserSubjectModificationEvent.class));
     
     log.exit();
   }
   
   
   @Test
-  void shoudUpdateNamespaceWhenUserExists() throws UserNotFoundException {
+  void shouldUpdateNamespaceWhenUserExists() {
     log.entry();
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(java.util.Optional.of(DEFAULT_JPA_USER));
-    when(repository.saveAndFlush(any(UserJPA.class))).thenReturn(DEFAULT_JPA_USER.toBuilder().nameSpace("new-namespace").build());
+    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.just(DEFAULT_JPA_USER));
+    when(repository.save(any(KpUserDetails.class))).thenReturn(Mono.just(DEFAULT_JPA_USER.toBuilder().nameSpace("new-namespace").build()));
     
-    sut.updateNamespace(DEFAULT_ID, "new-namespace");
+    sut.updateNamespace(DEFAULT_ID, "new-namespace").block();
     
-    verify(bus).post(any(UserNamespaceModificationEvent.class));
+    verify(bus).publishEvent(any(UserNamespaceModificationEvent.class));
     
     log.exit();
   }
@@ -110,26 +113,26 @@ public class R2dbcUserDataManagementServiceTest {
   void shouldThrowExceptionWhenUpdatingNamespaceWhenUserDoesNotExist() {
     log.entry();
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(java.util.Optional.empty());
+    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.empty());
     
-    assertThrows(UserNotFoundException.class, () -> sut.updateNamespace(DEFAULT_ID, "new-namespace"));
+    assertThrows(UserNotFoundException.class, () -> sut.updateNamespace(DEFAULT_ID, "new-namespace").block());
     
-    verify(bus, never()).post(any(UserNamespaceModificationEvent.class));
+    verify(bus, never()).publishEvent(any(UserNamespaceModificationEvent.class));
     
     log.exit();
   }
   
   
   @Test
-  void shouldUpdateNameWhenUserExists() throws UserNotFoundException {
+  void shouldUpdateNameWhenUserExists() {
     log.entry();
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(java.util.Optional.of(DEFAULT_JPA_USER));
-    when(repository.saveAndFlush(any(UserJPA.class))).thenReturn(DEFAULT_JPA_USER.toBuilder().name("new-name").build());
+    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.just(DEFAULT_JPA_USER));
+    when(repository.save(any(KpUserDetails.class))).thenReturn(Mono.just(DEFAULT_JPA_USER.toBuilder().name("new-name").build()));
     
-    sut.updateName(DEFAULT_ID, "new-name");
+    sut.updateName(DEFAULT_ID, "new-name").block();
     
-    verify(bus).post(any(UserNameModificationEvent.class));
+    verify(bus).publishEvent(any(UserNameModificationEvent.class));
     
     log.exit();
   }
@@ -138,26 +141,26 @@ public class R2dbcUserDataManagementServiceTest {
   void shouldThrowExceptionWhenUpdatingNameWhenUserDoesNotExist() {
     log.entry();
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(java.util.Optional.empty());
+    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.empty());
     
-    assertThrows(UserNotFoundException.class, () -> sut.updateName(DEFAULT_ID, "new-name"));
+    assertThrows(UserNotFoundException.class, () -> sut.updateName(DEFAULT_ID, "new-name").block());
     
-    verify(bus, never()).post(any(UserNameModificationEvent.class));
+    verify(bus, never()).publishEvent(any(UserNameModificationEvent.class));
     
     log.exit();
   }
   
   
   @Test
-  void shouldUpdateNamespaceAndNameWhenUserExists() throws UserNotFoundException {
+  void shouldUpdateNamespaceAndNameWhenUserExists() {
     log.entry();
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(java.util.Optional.of(DEFAULT_JPA_USER));
-    when(repository.saveAndFlush(any(UserJPA.class))).thenReturn(DEFAULT_JPA_USER.toBuilder().name("new-name").nameSpace("new-namespace").build());
+    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.just(DEFAULT_JPA_USER));
+    when(repository.save(any(KpUserDetails.class))).thenReturn(Mono.just(DEFAULT_JPA_USER.toBuilder().name("new-name").nameSpace("new-namespace").build()));
     
-    sut.updateNamespaceAndName(DEFAULT_ID, "new-namespace", "new-name");
+    sut.updateNamespaceAndName(DEFAULT_ID, "new-namespace", "new-name").block();
     
-    verify(bus).post(any(UserNamespaceAndNameModificationEvent.class));
+    verify(bus).publishEvent(any(UserNamespaceAndNameModificationEvent.class));
     
     log.exit();
   }
@@ -166,26 +169,26 @@ public class R2dbcUserDataManagementServiceTest {
   void shouldThrowExceptionWhenUpdatingNamespaceAndNameWhenUserDoesNotExist() {
     log.entry();
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(java.util.Optional.empty());
+    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.empty());
     
-    assertThrows(UserNotFoundException.class, () -> sut.updateNamespaceAndName(DEFAULT_ID, "new-namespace", "new-name"));
+    assertThrows(UserNotFoundException.class, () -> sut.updateNamespaceAndName(DEFAULT_ID, "new-namespace", "new-name").block());
     
-    verify(bus, never()).post(any(UserNamespaceAndNameModificationEvent.class));
+    verify(bus, never()).publishEvent(any(UserNamespaceAndNameModificationEvent.class));
     
     log.exit();
   }
   
   
   @Test
-  void shouldUpdateEmailWhenUserExists() throws UserNotFoundException {
+  void shouldUpdateEmailWhenUserExists() {
     log.entry();
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(java.util.Optional.of(DEFAULT_JPA_USER));
-    when(repository.saveAndFlush(any(UserJPA.class))).thenReturn(DEFAULT_JPA_USER.toBuilder().email("new-email@email.org").build());
+    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.just(DEFAULT_JPA_USER));
+    when(repository.save(any(KpUserDetails.class))).thenReturn(Mono.just(DEFAULT_JPA_USER.toBuilder().email("new-email@email.org").build()));
     
-    sut.updateEmail(DEFAULT_ID, "new-email@email.org");
+    sut.updateEmail(DEFAULT_ID, "new-email@email.org").block();
     
-    verify(bus).post(any(UserEmailModificationEvent.class));
+    verify(bus).publishEvent(any(UserEmailModificationEvent.class));
     
     log.exit();
   }
@@ -194,26 +197,26 @@ public class R2dbcUserDataManagementServiceTest {
   void shouldThrowAnExceptionWhenUpdatingEmailWhenUserDoesNotExist() {
     log.entry();
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(java.util.Optional.empty());
+    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.empty());
     
-    assertThrows(UserNotFoundException.class, () -> sut.updateEmail(DEFAULT_ID, "new-email@email.org"));
+    assertThrows(UserNotFoundException.class, () -> sut.updateEmail(DEFAULT_ID, "new-email@email.org").block());
     
-    verify(bus, never()).post(any(UserEmailModificationEvent.class));
+    verify(bus, never()).publishEvent(any(UserEmailModificationEvent.class));
     
     log.exit();
   }
   
   
   @Test
-  void shouldUpdateDiscordWhenUserExists() throws UserNotFoundException {
+  void shouldUpdateDiscordWhenUserExists() {
     log.entry();
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(java.util.Optional.of(DEFAULT_JPA_USER));
-    when(repository.saveAndFlush(any(UserJPA.class))).thenReturn(DEFAULT_JPA_USER.toBuilder().discord("new-discord").build());
+    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.just(DEFAULT_JPA_USER));
+    when(repository.save(any(KpUserDetails.class))).thenReturn(Mono.just(DEFAULT_JPA_USER.toBuilder().discord("new-discord").build()));
     
-    sut.updateDiscord(DEFAULT_ID, "new-discord");
+    sut.updateDiscord(DEFAULT_ID, "new-discord").block();
     
-    verify(bus).post(any(UserDiscordModificationEvent.class));
+    verify(bus).publishEvent(any(UserDiscordModificationEvent.class));
     
     log.exit();
   }
@@ -222,43 +225,21 @@ public class R2dbcUserDataManagementServiceTest {
   void shouldThrowAnExceptionWhenUpdatingDiscordWhenUserDoesNotExist() {
     log.entry();
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(java.util.Optional.empty());
+    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.empty());
     
-    assertThrows(UserNotFoundException.class, () -> sut.updateDiscord(DEFAULT_ID, "new-discord"));
+    assertThrows(UserNotFoundException.class, () -> sut.updateDiscord(DEFAULT_ID, "new-discord").block());
     
-    verify(bus, never()).post(any(UserDiscordModificationEvent.class));
-    
-    log.exit();
-  }
-  
-  
-  @Test
-  void shouldRegisterFromEventBus() {
-    log.entry();
-    
-    sut.init();
-    
-    verify(bus).register(sut);
+    verify(bus, never()).publishEvent(any(UserDiscordModificationEvent.class));
     
     log.exit();
   }
   
-  @Test
-  void shouldUnregisterFromEventBus() {
-    log.entry();
-    
-    sut.close();
-    
-    verify(bus).unregister(sut);
-    
-    log.exit();
-  }
   
   
   private static final UUID DEFAULT_ID = UUID.randomUUID();
   private static final OffsetDateTime CREATED_AT = OffsetDateTime.now();
   
-  private static final UserJPA DEFAULT_JPA_USER = UserJPA.builder()
+  private static final KpUserDetails DEFAULT_JPA_USER = KpUserDetails.builder()
       .id(DEFAULT_ID)
       
       .nameSpace("namespace")
@@ -268,10 +249,6 @@ public class R2dbcUserDataManagementServiceTest {
       .subject(DEFAULT_ID.toString())
       
       .email("email@email.email")
-      
-      .version(0)
-      .revId(0)
-      .revisioned(CREATED_AT)
       
       .created(CREATED_AT)
       .modified(CREATED_AT)

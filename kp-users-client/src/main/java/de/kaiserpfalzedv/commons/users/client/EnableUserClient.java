@@ -20,7 +20,7 @@ import de.kaiserpfalzedv.commons.users.client.reactive.ReactUserSecurityConfig;
 import de.kaiserpfalzedv.commons.users.client.reactive.ReactUserDetailsService;
 import de.kaiserpfalzedv.commons.users.client.service.*;
 import de.kaiserpfalzedv.commons.users.messaging.EnableUsersMessaging;
-import de.kaiserpfalzedv.commons.users.store.EnableUsersStore;
+import de.kaiserpfalzedv.commons.users.store.EnableR2dbcUsersStore;
 import org.springframework.context.annotation.Import;
 
 import java.lang.annotation.*;
@@ -38,7 +38,7 @@ import java.lang.annotation.*;
 @Target(ElementType.TYPE)
 @Documented
 @EnableUsersMessaging
-@EnableUsersStore
+@EnableR2dbcUsersStore
 @Import({
     ApiKeyAuthenticationManager.class,
     UserAuthenticationManager.class,

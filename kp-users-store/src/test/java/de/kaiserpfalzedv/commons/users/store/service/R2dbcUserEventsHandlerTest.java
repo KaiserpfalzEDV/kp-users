@@ -18,12 +18,9 @@
 package de.kaiserpfalzedv.commons.users.store.service;
 
 
-import de.kaiserpfalzedv.commons.api.events.EventBus;
 import de.kaiserpfalzedv.commons.users.domain.model.role.KpRole;
-import de.kaiserpfalzedv.commons.users.domain.model.role.Role;
 import de.kaiserpfalzedv.commons.users.domain.model.role.RoleNotFoundException;
 import de.kaiserpfalzedv.commons.users.domain.model.user.KpUserDetails;
-import de.kaiserpfalzedv.commons.users.domain.model.user.User;
 import de.kaiserpfalzedv.commons.users.domain.model.user.UserCantBeCreatedException;
 import de.kaiserpfalzedv.commons.users.domain.model.user.UserNotFoundException;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.arbitration.UserPetitionedEvent;
@@ -41,6 +38,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
+import reactor.core.publisher.Mono;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -53,16 +52,15 @@ import static org.mockito.Mockito.*;
  */
 @ExtendWith(MockitoExtension.class)
 @XSlf4j
-public class JpaUserEventsHandlerTest {
-  @InjectMocks private JpaUserEventsHandler sut;
+public class R2dbcUserEventsHandlerTest {
+  @InjectMocks private R2dbcUserEventsHandler sut;
   @Mock private R2dbcUserManagementService userManagement;
   @Mock private R2dbcUserDataManagementService userDataManagement;
   @Mock private R2dbcUserStateManagementService userStateManagement;
   @Mock private R2dbcUserRoleManagementService userRoleManagement;
-  @Mock private EventBus bus;
+  @Mock private ApplicationEventPublisher bus;
   
-  
-  private static final String LOCAL_system = "kp-users";
+  private static final String LOCAL_SYSTEM = "kp-users";
   private static final String EXTERNAL_SYSTEM = "other-application";
   
   private static final UUID USER_ID = UUID.randomUUID();
@@ -82,8 +80,8 @@ public class JpaUserEventsHandlerTest {
   private static final OffsetDateTime TEST_ROLE_CREATED_TIME = NOW.minusDays(100);
   
   
-  private User user;
-  private Role role;
+  private KpUserDetails user;
+  private KpRole role;
 
   @BeforeEach
   void setUp() {
@@ -126,7 +124,7 @@ public class JpaUserEventsHandlerTest {
   
   
   @Test
-  void shouldHandleActivationEventWhenEventIsFromExternalSystem() throws UserNotFoundException {
+  void shouldHandleActivationEventWhenEventIsFromExternalSystem() {
     log.entry();
     
     // given
@@ -148,7 +146,7 @@ public class JpaUserEventsHandlerTest {
   }
   
   @Test
-  void shouldHandleExceptionOnActivationEventWhenEventIsFromExternalSystem() throws UserNotFoundException {
+  void shouldHandleExceptionOnActivationEventWhenEventIsFromExternalSystem() {
     log.entry();
     
     // given
@@ -193,7 +191,7 @@ public class JpaUserEventsHandlerTest {
   
   
   @Test
-  void shouldCreateUserWhenEventIsFromExternalSystem() throws UserCantBeCreatedException {
+  void shouldCreateUserWhenEventIsFromExternalSystem() {
     log.entry();
     
     // given
@@ -215,7 +213,7 @@ public class JpaUserEventsHandlerTest {
   }
   
   @Test
-  void shouldHandleExceptionOnCreateUserWhenEventIsFromExternalSystem() throws UserCantBeCreatedException {
+  void shouldHandleExceptionOnCreateUserWhenEventIsFromExternalSystem() {
     log.entry();
     
     // given
@@ -594,7 +592,7 @@ public class JpaUserEventsHandlerTest {
   
   
   @Test
-  void shouldAddRoleToUserWhenEventIsFromExternalSystem() throws UserNotFoundException, RoleNotFoundException {
+  void shouldAddRoleToUserWhenEventIsFromExternalSystem() {
     log.entry();
     
     // given
@@ -602,6 +600,8 @@ public class JpaUserEventsHandlerTest {
     when(event.getApplication()).thenReturn(EXTERNAL_SYSTEM);
     when(event.getUser()).thenReturn(user);
     when(event.getRole()).thenReturn(role);
+    
+    when(userRoleManagement.addRole(user.getId(), role)).thenReturn(Mono.just(user));
     
     // when
     sut.event(event);
@@ -617,7 +617,7 @@ public class JpaUserEventsHandlerTest {
   }
   
   @Test
-  void shouldHandleUserNotFoundExceptionAddingRoleToUserWhenEventIsFromExternalSystem() throws UserNotFoundException, RoleNotFoundException {
+  void shouldHandleUserNotFoundExceptionAddingRoleToUserWhenEventIsFromExternalSystem() {
     log.entry();
     
     // given
@@ -641,7 +641,7 @@ public class JpaUserEventsHandlerTest {
   }
   
   @Test
-  void shouldHandleRoleNotFoundExceptionAddingRoleToUserWhenEventIsFromExternalSystem() throws UserNotFoundException, RoleNotFoundException {
+  void shouldHandleRoleNotFoundExceptionAddingRoleToUserWhenEventIsFromExternalSystem() {
     log.entry();
     
     // given
@@ -780,13 +780,16 @@ public class JpaUserEventsHandlerTest {
   
   
   @Test
-  void shouldUpdateSubjectWhenEventIsFromExternalSystem() throws UserNotFoundException {
+  void shouldUpdateSubjectWhenEventIsFromExternalSystem() {
     log.entry();
     
     // given
     UserSubjectModificationEvent event = mock(UserSubjectModificationEvent.class);
     when(event.getApplication()).thenReturn(EXTERNAL_SYSTEM);
     when(event.getUser()).thenReturn(user);
+    
+    when(userDataManagement.updateSubject(any(UUID.class), anyString(), anyString()))
+        .thenReturn(Mono.just(user));
     
     // when
     sut.event(event);
@@ -802,14 +805,14 @@ public class JpaUserEventsHandlerTest {
   }
   
   @Test
-  void shouldHandleUserNotFoundExceptionUpdatingSubjectWhenEventIsFromExternalSystem() throws UserNotFoundException {
+  void shouldHandleUserNotFoundExceptionUpdatingSubjectWhenEventIsFromExternalSystem() {
     log.entry();
     
     // given
     UserSubjectModificationEvent event = mock(UserSubjectModificationEvent.class);
     when(event.getApplication()).thenReturn(EXTERNAL_SYSTEM);
     when(event.getUser()).thenReturn(user);
-    doThrow(new UserNotFoundException(USER_ID)).when(userDataManagement).updateSubject(USER_ID, ISSUER, SUBJECT);
+    when(userDataManagement.updateSubject(any(UUID.class), anyString(), anyString()).thenReturn(Mono.error(() -> new UserNotFoundException(USER_ID))));
     
     // when
     sut.event(event);
@@ -847,7 +850,7 @@ public class JpaUserEventsHandlerTest {
   
   
   @Test
-  void shouldChangeNamespaceAndNameWhenEventIsFromExternalSystem() throws UserNotFoundException {
+  void shouldChangeNamespaceAndNameWhenEventIsFromExternalSystem() {
     log.entry();
     
     // given
@@ -869,7 +872,7 @@ public class JpaUserEventsHandlerTest {
   }
   
   @Test
-  void shouldHandleUserNotFoundUpdatingNamespaceAndNameWhenEventIsFromExternalSystem() throws UserNotFoundException {
+  void shouldHandleUserNotFoundUpdatingNamespaceAndNameWhenEventIsFromExternalSystem() {
     log.entry();
     
     // given
@@ -914,7 +917,7 @@ public class JpaUserEventsHandlerTest {
   
   
   @Test
-  void shouldUpdateNamespaceWhenEventIsFromExternalSystem() throws UserNotFoundException {
+  void shouldUpdateNamespaceWhenEventIsFromExternalSystem() {
     log.entry();
     
     // given
@@ -936,7 +939,7 @@ public class JpaUserEventsHandlerTest {
   }
   
   @Test
-  void shouldHandleUserNotFoundUpdatingNamespaceWhenEventIsFromExternalSystem() throws UserNotFoundException {
+  void shouldHandleUserNotFoundUpdatingNamespaceWhenEventIsFromExternalSystem() {
     log.entry();
     
     // given
@@ -981,7 +984,7 @@ public class JpaUserEventsHandlerTest {
   
   
   @Test
-  void shouldUpdateNameWhenEventIsFromExternalSystem() throws UserNotFoundException {
+  void shouldUpdateNameWhenEventIsFromExternalSystem() {
     log.entry();
     
     // given
@@ -1003,7 +1006,7 @@ public class JpaUserEventsHandlerTest {
   }
   
   @Test
-  void shouldHandleUserNotFoundUpdatingNameWhenEventIsFromExternalSystem() throws UserNotFoundException {
+  void shouldHandleUserNotFoundUpdatingNameWhenEventIsFromExternalSystem() {
     log.entry();
     
     // given
@@ -1048,7 +1051,7 @@ public class JpaUserEventsHandlerTest {
   
   
   @Test
-  void shouldUpdateEmailWhenEventIsFromExternalSystem() throws UserNotFoundException {
+  void shouldUpdateEmailWhenEventIsFromExternalSystem() {
     log.entry();
     
     // given
@@ -1070,7 +1073,7 @@ public class JpaUserEventsHandlerTest {
   }
   
   @Test
-  void shouldHandleUserNotFoundUpdatingEmailWhenEventIsFromExternalSystem() throws UserNotFoundException {
+  void shouldHandleUserNotFoundUpdatingEmailWhenEventIsFromExternalSystem() {
     log.entry();
     
     // given
@@ -1115,7 +1118,7 @@ public class JpaUserEventsHandlerTest {
   
   
   @Test
-  void shouldUpdateDiscordWhenEventIsFromExternalSystem() throws UserNotFoundException {
+  void shouldUpdateDiscordWhenEventIsFromExternalSystem() {
     log.entry();
     
     // given
@@ -1137,7 +1140,7 @@ public class JpaUserEventsHandlerTest {
   }
   
   @Test
-  void shouldHandleUserNotFoundUpdatingDiscordWhenEventIsFromExternalSystem() throws UserNotFoundException {
+  void shouldHandleUserNotFoundUpdatingDiscordWhenEventIsFromExternalSystem() {
     log.entry();
     
     // given
@@ -1176,33 +1179,6 @@ public class JpaUserEventsHandlerTest {
     verifyNoInteractions(userStateManagement);
     verifyNoInteractions(userRoleManagement);
     verifyNoInteractions(bus);
-    
-    log.exit();
-  }
-  
-  
-  @Test
-  void shouldRegisterToEventBus() {
-    log.entry();
-    
-    // when
-    sut.init();
-    
-    // then
-    verify(bus).register(sut);
-    
-    log.exit();
-  }
-  
-  @Test
-  void shouldUnregisterFromEventBus() {
-    log.entry();
-    
-    // when
-    sut.close();
-    
-    // then
-    verify(bus).unregister(sut);
     
     log.exit();
   }

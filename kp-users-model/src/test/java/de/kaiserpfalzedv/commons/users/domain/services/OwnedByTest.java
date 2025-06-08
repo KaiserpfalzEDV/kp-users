@@ -54,33 +54,38 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 @XSlf4j
 class OwnedByTest {
+  private static final KpRole ROLE_ADMIN = KpRole.builder().name("ADMIN").build();
+  private static final KpRole ROLE_ORGA = KpRole.builder().name("ORGA").build();
+  private static final KpRole ROLE_GM = KpRole.builder().name("GM").build();
+  private static final KpRole ROLE_PLAYER = KpRole.builder().name("PLAYER").build();
+  
   private static final User peter = KpUserDetails.builder()
       .issuer("https://sso.kaiserpfalz-edv.de/realms/Paladins-Inn")
       .subject(UUID.randomUUID().toString())
       .name("Peter")
       .nameSpace("Torganized Play")
-      .authorities(Set.of(KpRole.builder().name("ROLE_ADMIN").build(), KpRole.builder().name("ROLE_PLAYER").build()))
+      .authorities(Set.of(ROLE_ADMIN, ROLE_PLAYER))
       .build();
   private static final User paul = KpUserDetails.builder()
       .issuer("https://sso.kaiserpfalz-edv.de/realms/Paladins-Inn")
       .subject(UUID.randomUUID().toString())
       .name("Paul")
       .nameSpace("Torganized Play")
-      .authorities(Set.of(KpRole.builder().name("ROLE_ORGA").build(), KpRole.builder().name("ROLE_PLAYER").build()))
+      .authorities(Set.of(ROLE_ORGA, ROLE_PLAYER))
       .build();
   private static final User mary = KpUserDetails.builder()
       .issuer("https://sso.kaiserpfalz-edv.de/realms/Paladins-Inn")
       .subject(UUID.randomUUID().toString())
       .name("Mary")
       .nameSpace("Torganized Play")
-      .authorities(Set.of(KpRole.builder().name("ROLE_GM").build(), KpRole.builder().name("ROLE_PLAYER").build()))
+      .authorities(Set.of(ROLE_GM, ROLE_PLAYER))
       .build();
   private static final User andrew = KpUserDetails.builder()
       .issuer("https://sso.kaiserpfalz-edv.de/realms/Paladins-Inn")
       .subject(UUID.randomUUID().toString())
       .name("Andrew")
       .nameSpace("Torganized Play")
-      .authorities(Set.of(KpRole.builder().name("ROLE_PLAYER").build()))
+      .authorities(Set.of(ROLE_PLAYER))
       .build();
   
   private static final TestObject MarysObject = TestObject.builder()

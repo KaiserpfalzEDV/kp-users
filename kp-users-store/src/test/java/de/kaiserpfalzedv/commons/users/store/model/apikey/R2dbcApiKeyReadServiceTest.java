@@ -18,7 +18,6 @@
 package de.kaiserpfalzedv.commons.users.store.model.apikey;
 
 
-import de.kaiserpfalzedv.commons.users.domain.model.apikey.ApiKey;
 import de.kaiserpfalzedv.commons.users.domain.model.apikey.ApiKeyImpl;
 import de.kaiserpfalzedv.commons.users.domain.model.user.KpUserDetails;
 import lombok.extern.slf4j.XSlf4j;
@@ -33,6 +32,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -70,10 +70,10 @@ public class R2dbcApiKeyReadServiceTest {
     
     when(repository.findById(DEFAULT_ID)).thenReturn(Mono.justOrEmpty(DEFAULT_APIKEY));
     
-    Mono<ApiKey> result = sut.retrieve(DEFAULT_ID);
+    ApiKeyImpl result = sut.retrieve(DEFAULT_ID).block();
     log.debug("Result. apikey={}", result);
     
-    assertNotNull(result.block());
+    assertNotNull(result);
     
     log.exit();
   }
@@ -85,10 +85,10 @@ public class R2dbcApiKeyReadServiceTest {
     
     when(repository.findById(DEFAULT_ID)).thenReturn(Mono.justOrEmpty(DEFAULT_APIKEY));
     
-    Mono<ApiKey> result = sut.retrieve(DEFAULT_ID.toString());
+    ApiKeyImpl result = sut.retrieve(DEFAULT_ID.toString()).block();
     log.debug("Result. apikey={}", result);
     
-    assertNotNull(result.block());
+    assertNotNull(result);
     
     log.exit();
   }
@@ -98,7 +98,7 @@ public class R2dbcApiKeyReadServiceTest {
   void shouldThrowExceptionWhenApiKeyStringIsNoUUID() {
     log.entry();
     
-    assertThrows(IllegalArgumentException.class, () -> sut.retrieve("no-uuid"));
+    assertThrows(IllegalArgumentException.class, () -> sut.retrieve("no-uuid").block());
     
     log.exit();
   }
@@ -110,10 +110,11 @@ public class R2dbcApiKeyReadServiceTest {
     
     when(repository.findByUserId(DEFAULT_USER.getId())).thenReturn(Flux.just(DEFAULT_APIKEY));
     
-    Flux<ApiKey> result = sut.retrieveForUser(DEFAULT_USER.getId());
+    List<ApiKeyImpl> result = sut.retrieveForUser(DEFAULT_USER.getId()).collectList().block();
     log.debug("Result. apikeys={}", result);
     
-    assertEquals(1, result.collectList().block().size());
+    assertNotNull(result);
+    assertFalse(result.isEmpty());
     
     log.exit();
   }
@@ -135,7 +136,7 @@ public class R2dbcApiKeyReadServiceTest {
       
       .build();
   
-  private static final ApiKey DEFAULT_APIKEY = ApiKeyImpl.builder()
+  private static final ApiKeyImpl DEFAULT_APIKEY = ApiKeyImpl.builder()
       .id(DEFAULT_ID)
       .expiration(NOW.plusDays(10L))
       

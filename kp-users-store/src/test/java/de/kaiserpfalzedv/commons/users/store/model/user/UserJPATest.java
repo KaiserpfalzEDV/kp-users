@@ -17,7 +17,8 @@
 
 package de.kaiserpfalzedv.commons.users.store.model.user;
 
-import de.kaiserpfalzedv.commons.api.events.EventBus;
+import de.kaiserpfalzedv.commons.users.domain.model.role.KpRole;
+import de.kaiserpfalzedv.commons.users.domain.model.user.KpUserDetails;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.modification.RoleAddedToUserEvent;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.modification.RoleRemovedFromUserEvent;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.state.*;
@@ -28,7 +29,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.OffsetDateTime;
 
@@ -38,22 +39,21 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 @XSlf4j
 class UserJPATest {
-  private UserJPA user;
+  private KpUserDetails user;
   
   @Mock
-  private EventBus bus;
+  private ApplicationEventPublisher bus;
   
   @BeforeEach
   void setUp() {
     reset(bus);
     
-    user = UserJPA.builder()
+    user = KpUserDetails.builder()
         .issuer("issuer")
         .subject("subject")
         .nameSpace("namespace")
         .name("username")
 
-        .version(0)
         .created(DEFAULT_CREATE_TIME)
         .modified(DEFAULT_CREATE_TIME)
         .build();
@@ -71,7 +71,7 @@ class UserJPATest {
     
     user.detain(bus, 5);
 
-    verify(bus).post(any(UserDetainedEvent.class));
+    verify(bus).publishEvent(any(UserDetainedEvent.class));
     assertNotNull(user.getDetainedTill());
     assertNotNull(user.getDetainmentDuration());
     assertEquals(5, user.getDetainmentDuration().toDays());
@@ -88,7 +88,7 @@ class UserJPATest {
     
     user.release(bus);
     
-    verify(bus).post(any(UserReleasedEvent.class));
+    verify(bus).publishEvent(any(UserReleasedEvent.class));
     assertNull(user.getDetainedTill());
     assertNull(user.getDetainmentDuration());
     
@@ -104,7 +104,7 @@ class UserJPATest {
     
     user.release(bus);
     
-    verify(bus).post(any(UserReleasedEvent.class));
+    verify(bus).publishEvent(any(UserReleasedEvent.class));
     assertNull(user.getBannedOn());
     
     log.exit();
@@ -116,7 +116,7 @@ class UserJPATest {
     
     user.ban(bus);
     
-    verify(bus).post(any(UserBannedEvent.class));
+    verify(bus).publishEvent(any(UserBannedEvent.class));
     assertNotNull(user.getBannedOn());
     
     log.exit();
@@ -128,7 +128,7 @@ class UserJPATest {
     
     user.delete(bus);
     
-    verify(bus).post(any(UserDeletedEvent.class));
+    verify(bus).publishEvent(any(UserDeletedEvent.class));
     assertNotNull(user.getDeleted());
     
     log.exit();
@@ -140,7 +140,7 @@ class UserJPATest {
     
     user.undelete(bus);
     
-    verify(bus).post(any(UserActivatedEvent.class));
+    verify(bus).publishEvent(any(UserActivatedEvent.class));
     assertNull(user.getDeleted());
     
     log.exit();
@@ -150,9 +150,9 @@ class UserJPATest {
   void shouldAddRoleWhenUserDoesNotHaveTheRole() {
     log.entry();
     
-    user.addRole(bus, DEFAULT_ROLE);
+    user.addRole(DEFAULT_ROLE, bus);
 
-    verify(bus).post(any(RoleAddedToUserEvent.class));
+    verify(bus).publishEvent(any(RoleAddedToUserEvent.class));
     assertTrue(user.getAuthorities().contains(DEFAULT_ROLE));
     
     log.exit();
@@ -162,12 +162,12 @@ class UserJPATest {
   void shouldNotAddRoleWhenUserDoesHaveTheRoleAlready() {
     log.entry();
     
-    user.addRole(bus, DEFAULT_ROLE);
+    user.addRole(DEFAULT_ROLE, bus);
     reset(bus);
     
-    user.addRole(bus, DEFAULT_ROLE);
+    user.addRole(DEFAULT_ROLE, bus);
     
-    verify(bus, never()).post(any(RoleAddedToUserEvent.class));
+    verify(bus, never()).publishEvent(any(RoleAddedToUserEvent.class));
     assertTrue(user.getAuthorities().contains(DEFAULT_ROLE));
     
     log.exit();
@@ -177,11 +177,11 @@ class UserJPATest {
   void shouldRemoveTheRoleWhenUserDoesHaveTheRole() {
     log.entry();
     
-    user.addRole(bus, DEFAULT_ROLE);
+    user.addRole(DEFAULT_ROLE, bus);
     reset(bus);
     
-    user.removeRole(bus, DEFAULT_ROLE);
-    verify(bus).post(any(RoleRemovedFromUserEvent.class));
+    user.removeRole(DEFAULT_ROLE, bus);
+    verify(bus).publishEvent(any(RoleRemovedFromUserEvent.class));
     
     assertFalse(user.getAuthorities().contains(DEFAULT_ROLE));
     
@@ -192,8 +192,8 @@ class UserJPATest {
   void shouldNotRemoveTheRoleWhenUserDoesNotHaveTheRole() {
     log.entry();
     
-    user.removeRole(bus, DEFAULT_ROLE);
-    verify(bus, never()).post(any(RoleRemovedFromUserEvent.class));
+    user.removeRole(DEFAULT_ROLE, bus);
+    verify(bus, never()).publishEvent(any(RoleRemovedFromUserEvent.class));
     
     log.exit();
   }
@@ -219,10 +219,9 @@ class UserJPATest {
   
 
   private static final OffsetDateTime DEFAULT_CREATE_TIME = OffsetDateTime.now();
-  private static final RoleJPA DEFAULT_ROLE = RoleJPA.builder()
+  private static final KpRole DEFAULT_ROLE = KpRole.builder()
       .nameSpace("namespace")
       .name("name")
-      .version(0)
       .created(DEFAULT_CREATE_TIME)
       .modified(DEFAULT_CREATE_TIME)
       .build();

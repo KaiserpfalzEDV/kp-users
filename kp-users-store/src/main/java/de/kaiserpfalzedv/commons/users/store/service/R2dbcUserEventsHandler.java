@@ -18,9 +18,7 @@
 package de.kaiserpfalzedv.commons.users.store.service;
 
 
-import de.kaiserpfalzedv.commons.api.events.EventBus;
 import de.kaiserpfalzedv.commons.users.domain.model.role.RoleNotFoundException;
-import de.kaiserpfalzedv.commons.users.domain.model.user.UserCantBeCreatedException;
 import de.kaiserpfalzedv.commons.users.domain.model.user.UserNotFoundException;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.UserBaseEvent;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.UserEventsHandler;
@@ -43,6 +41,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+
 
 /**
  * Handles user events and updates the user repository accordingly.
@@ -55,12 +55,13 @@ import org.springframework.stereotype.Service;
 @Scope("singleton")
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @XSlf4j
-public class JpaUserEventsHandler implements UserEventsHandler, AutoCloseable {
+public class R2dbcUserEventsHandler implements UserEventsHandler, AutoCloseable {
+  private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(1L);
+  
   private final R2dbcUserManagementService service;
   private final R2dbcUserDataManagementService dataService;
   private final R2dbcUserRoleManagementService roleService;
   private final R2dbcUserStateManagementService stateService;
-  private final EventBus bus;
   
   
   @Value("${spring.application.application:kp-users}")
@@ -69,20 +70,14 @@ public class JpaUserEventsHandler implements UserEventsHandler, AutoCloseable {
   
   @PostConstruct
   public void init() {
-    log.entry(bus, system);
-    
-    bus.register(this);
-    
+    log.entry(system);
     log.exit();
   }
   
   @Override
   @PreDestroy
   public void close() {
-    log.entry(bus, system);
-    
-    bus.unregister(this);
-    
+    log.entry(system);
     log.exit();
   }
 
@@ -93,11 +88,7 @@ public class JpaUserEventsHandler implements UserEventsHandler, AutoCloseable {
     log.entry(event);
     
     if (eventIsFromExternalSystem(event)) {
-      try {
-        service.undelete(event.getUser().getId());
-      } catch (UserNotFoundException e) {
-        log.warn(e.getMessage(), e);
-      }
+      service.undelete(event.getUser().getId()).block(DEFAULT_TIMEOUT);
     }
     
     log.exit();
@@ -109,11 +100,7 @@ public class JpaUserEventsHandler implements UserEventsHandler, AutoCloseable {
     log.entry(event);
     
     if (eventIsFromExternalSystem(event)) {
-      try {
-        service.create(event.getUser());
-      } catch (UserCantBeCreatedException e) {
-        log.warn(e.getMessage());
-      }
+      service.create(event.getUser()).block(DEFAULT_TIMEOUT);
     }
     
     log.exit();
@@ -125,7 +112,7 @@ public class JpaUserEventsHandler implements UserEventsHandler, AutoCloseable {
     log.entry(event);
     
     if (eventIsFromExternalSystem(event)) {
-      service.delete(event.getUser().getId());
+      service.delete(event.getUser().getId()).block(DEFAULT_TIMEOUT);
     }
     
     log.exit();
@@ -137,7 +124,7 @@ public class JpaUserEventsHandler implements UserEventsHandler, AutoCloseable {
     log.entry(event);
     
     if (eventIsFromExternalSystem(event)) {
-      service.remove(event.getUser().getId());
+      service.remove(event.getUser().getId()).block(DEFAULT_TIMEOUT);
     }
 
     log.exit();
@@ -150,7 +137,7 @@ public class JpaUserEventsHandler implements UserEventsHandler, AutoCloseable {
 
     if (eventIsFromExternalSystem(event)) {
       try {
-        stateService.ban(event.getUser().getId());
+        stateService.ban(event.getUser().getId()).block(DEFAULT_TIMEOUT);
       } catch (UserNotFoundException e) {
         log.warn(e.getMessage(), e);
       }
@@ -166,7 +153,7 @@ public class JpaUserEventsHandler implements UserEventsHandler, AutoCloseable {
     
     if (eventIsFromExternalSystem(event)) {
       try {
-        stateService.detain(event.getUser().getId(), event.getDays());
+        stateService.detain(event.getUser().getId(), event.getDays()).block(DEFAULT_TIMEOUT);
       } catch (UserNotFoundException e) {
         log.warn(e.getMessage(), e);
       }
@@ -193,7 +180,7 @@ public class JpaUserEventsHandler implements UserEventsHandler, AutoCloseable {
     
     if (eventIsFromExternalSystem(event)) {
       try {
-        stateService.release(event.getUser().getId());
+        stateService.release(event.getUser().getId()).block(DEFAULT_TIMEOUT);
       } catch (UserNotFoundException e) {
         log.warn(e.getMessage(), e);
       }
@@ -234,11 +221,7 @@ public class JpaUserEventsHandler implements UserEventsHandler, AutoCloseable {
     log.entry(event);
     
     if (eventIsFromExternalSystem(event)) {
-      try {
-        roleService.addRole(event.getUser().getId(), event.getRole());
-      } catch (UserNotFoundException | RoleNotFoundException e) {
-        log.warn(e.getMessage(), e);
-      }
+      roleService.addRole(event.getUser().getId(), event.getRole()).block(DEFAULT_TIMEOUT);
     }
   }
   
@@ -249,7 +232,7 @@ public class JpaUserEventsHandler implements UserEventsHandler, AutoCloseable {
     
     if (eventIsFromExternalSystem(event)) {
       try {
-        roleService.removeRole(event.getUser().getId(), event.getRole());
+        roleService.removeRole(event.getUser().getId(), event.getRole()).block(DEFAULT_TIMEOUT);
       } catch (UserNotFoundException | RoleNotFoundException e) {
         log.warn(e.getMessage(), e);
       }
@@ -263,11 +246,7 @@ public class JpaUserEventsHandler implements UserEventsHandler, AutoCloseable {
     log.entry(event);
 
     if (eventIsFromExternalSystem(event)) {
-      try {
-        dataService.updateSubject(event.getUser().getId(), event.getUser().getIssuer(), event.getUser().getSubject());
-      } catch (UserNotFoundException e) {
-        log.warn(e.getMessage(), e);
-      }
+        dataService.updateSubject(event.getUser().getId(), event.getUser().getIssuer(), event.getUser().getSubject()).block(DEFAULT_TIMEOUT);
     }
     
     log.exit();
@@ -279,11 +258,7 @@ public class JpaUserEventsHandler implements UserEventsHandler, AutoCloseable {
     log.entry(event);
 
     if (eventIsFromExternalSystem(event)) {
-      try {
-        dataService.updateNamespaceAndName(event.getUser().getId(), event.getUser().getNameSpace(), event.getUser().getName());
-      } catch (UserNotFoundException e) {
-        log.warn(e.getMessage(), e);
-      }
+        dataService.updateNamespaceAndName(event.getUser().getId(), event.getUser().getNameSpace(), event.getUser().getName()).block(DEFAULT_TIMEOUT);
     }
     
     log.exit();
@@ -295,11 +270,7 @@ public class JpaUserEventsHandler implements UserEventsHandler, AutoCloseable {
     log.entry(event);
 
     if (eventIsFromExternalSystem(event)) {
-      try {
-        dataService.updateNamespace(event.getUser().getId(), event.getUser().getNameSpace());
-      } catch (UserNotFoundException e) {
-        log.warn(e.getMessage(), e);
-      }
+        dataService.updateNamespace(event.getUser().getId(), event.getUser().getNameSpace()).block(DEFAULT_TIMEOUT);
     }
     
     log.exit();
@@ -311,11 +282,7 @@ public class JpaUserEventsHandler implements UserEventsHandler, AutoCloseable {
     log.entry(event);
 
     if (eventIsFromExternalSystem(event)) {
-      try {
-        dataService.updateName(event.getUser().getId(), event.getUser().getName());
-      } catch (UserNotFoundException e) {
-        log.warn(e.getMessage(), e);
-      }
+        dataService.updateName(event.getUser().getId(), event.getUser().getName()).block(DEFAULT_TIMEOUT);
     }
     
     log.exit();
@@ -327,11 +294,7 @@ public class JpaUserEventsHandler implements UserEventsHandler, AutoCloseable {
     log.entry(event);
 
     if (eventIsFromExternalSystem(event)) {
-      try {
-        dataService.updateEmail(event.getUser().getId(), event.getUser().getEmail());
-      } catch (UserNotFoundException e) {
-        log.warn(e.getMessage(), e);
-      }
+        dataService.updateEmail(event.getUser().getId(), event.getUser().getEmail()).block(DEFAULT_TIMEOUT);
     }
     
     log.exit();
@@ -343,11 +306,7 @@ public class JpaUserEventsHandler implements UserEventsHandler, AutoCloseable {
     log.entry(event);
 
     if (eventIsFromExternalSystem(event)) {
-      try {
-        dataService.updateDiscord(event.getUser().getId(), event.getUser().getDiscord());
-      } catch (UserNotFoundException e) {
-        log.warn(e.getMessage(), e);
-      }
+        dataService.updateDiscord(event.getUser().getId(), event.getUser().getDiscord()).block(DEFAULT_TIMEOUT);
     }
     
     log.exit();

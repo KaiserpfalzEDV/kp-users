@@ -16,11 +16,7 @@
  */
 package de.kaiserpfalzedv.commons.users.store;
 
-import de.kaiserpfalzedv.commons.spring.events.SpringEventBus;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Import;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 import java.lang.annotation.*;
 
@@ -36,10 +32,5 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Documented
-@EnableJpaRepositories(basePackageClasses = EnableUsersStore.class)
-@EntityScan(basePackageClasses = EnableUsersStore.class)
-@ComponentScan(basePackageClasses = EnableUsersStore.class)
-@Import({
-    SpringEventBus.class,
-})
-public @interface EnableUsersStore {}
+@ComponentScan(basePackageClasses = EnableR2dbcUsersStore.class)
+public @interface EnableR2dbcUsersStore {}

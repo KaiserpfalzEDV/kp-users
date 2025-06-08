@@ -29,7 +29,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest(classes = {
   SpringIT.class
 })
-@EnableUsersStore
+@EnableR2dbcUsersStore
 @EnableAutoConfiguration
 public class SpringIT {
   @Test

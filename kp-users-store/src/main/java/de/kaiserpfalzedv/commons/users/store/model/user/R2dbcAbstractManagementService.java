@@ -50,7 +50,7 @@ public class R2dbcAbstractManagementService {
     log.entry(user, successMessage, errorMessage);
     
     Mono<KpUserDetails> result = repository.save(user)
-        .switchIfEmpty(Mono.error(new UserNotFoundException(user.getId())))
+        .switchIfEmpty(Mono.error(() -> new UserNotFoundException(user.getId())))
         .doOnSuccess(savedUser -> log.info("{}. user={}", successMessage, savedUser))
         .doOnError(error -> log.error("{}: {}. user={}", errorMessage, error.getMessage(), user));
     

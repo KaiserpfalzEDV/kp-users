@@ -18,10 +18,7 @@
 package de.kaiserpfalzedv.commons.users.store.model.role;
 
 
-import de.kaiserpfalzedv.commons.users.domain.model.role.KpRole;
-import de.kaiserpfalzedv.commons.users.domain.model.role.Role;
-import de.kaiserpfalzedv.commons.users.domain.model.role.RoleNotFoundException;
-import de.kaiserpfalzedv.commons.users.domain.model.role.RoleToImpl;
+import de.kaiserpfalzedv.commons.users.domain.model.role.*;
 import de.kaiserpfalzedv.commons.users.domain.model.role.events.RoleCreatedEvent;
 import de.kaiserpfalzedv.commons.users.domain.model.role.events.RoleRemovedEvent;
 import de.kaiserpfalzedv.commons.users.domain.model.role.events.RoleUpdateNameEvent;
@@ -31,13 +28,14 @@ import io.micrometer.core.annotation.Counted;
 import io.micrometer.core.annotation.Timed;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import jakarta.inject.Inject;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.XSlf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -50,7 +48,7 @@ import java.util.UUID;
  * @since 2025-05-17
  */
 @Service
-@RequiredArgsConstructor(onConstructor = @__(@Autowired))
+@RequiredArgsConstructor(onConstructor = @__(@Inject))
 @ToString(onlyExplicitlyIncluded = true)
 @XSlf4j
 public class R2dbcRoleWriteService implements RoleWriteService {
@@ -82,17 +80,12 @@ public class R2dbcRoleWriteService implements RoleWriteService {
   public Mono<KpRole> create(@NotNull final Role role) {
     log.entry(role);
     
-    Mono<KpRole> result = repository.save(toImpl.apply(role));
-    result
-        .doOnSuccess(role1 -> {
-          log.info("Created role. role={}", role1);
-          bus.publishEvent(RoleCreatedEvent.builder().system(system).role(role1).build());
-        })
-        .doOnError(
-            OptimisticLockingFailureException.class,
-            e -> log.error("Optimistic locking failure while creating role. role={}", role, e)
-        )
-        .subscribe();
+    Mono<KpRole> result = repository.save(toImpl.apply(role))
+        .onErrorMap(DuplicateKeyException.class, e -> new RoleCantBeCreatedException(role, e))
+        .doOnSuccess(r -> {
+          log.info("Created role. role={}", r);
+          bus.publishEvent(RoleCreatedEvent.builder().system(system).role(r).build());
+        });
     
     return log.exit(result);
   }
@@ -101,14 +94,12 @@ public class R2dbcRoleWriteService implements RoleWriteService {
   @Timed
   @Counted
   @Override
-  public Mono<KpRole> updateNameSpace(@NotNull final UUID id, @NotNull final String namespace) throws RoleNotFoundException {
+  public Mono<KpRole> updateNameSpace(@NotNull final UUID id, @NotNull final String namespace) {
     log.entry(id, namespace);
     
     Mono<KpRole> result = repository.findById(id)
-        .switchIfEmpty(Mono.error(new RoleNotFoundException(id)))
         .map(role -> role.toBuilder().nameSpace(namespace).build())
-        .flatMap(repository::save);
-    result
+        .flatMap(repository::save)
         .doOnSuccess(role -> {
           log.info("Updated role. nameSpace='{}', id={}", role.getNameSpace(), role.getId());
           bus.publishEvent(RoleUpdateNameSpaceEvent.builder().system(system).role(role).build());
@@ -116,8 +107,7 @@ public class R2dbcRoleWriteService implements RoleWriteService {
         .doOnError(
             OptimisticLockingFailureException.class,
             e -> log.error("Optimistic locking failure while updating role nameSpace. id={}, namespace={}", id, namespace, e)
-        )
-        .subscribe();
+        );
     
     return log.exit(result);
   }
@@ -125,14 +115,12 @@ public class R2dbcRoleWriteService implements RoleWriteService {
   @Timed
   @Counted
   @Override
-  public Mono<KpRole> updateName(@NotNull final UUID id, @NotNull final String name) throws RoleNotFoundException {
+  public Mono<KpRole> updateName(@NotNull final UUID id, @NotNull final String name) {
     log.entry(id, name);
     
     Mono<KpRole> result = repository.findById(id)
-        .switchIfEmpty(Mono.error(new RoleNotFoundException(id)))
         .map(role -> role.toBuilder().name(name).build())
-        .flatMap(repository::save);
-    result
+        .flatMap(repository::save)
         .doOnSuccess(role -> {
           log.info("Updated role. name='{}', id={}", role.getName(), role.getId());
           bus.publishEvent(RoleUpdateNameEvent.builder().system(system).role(role).build());
@@ -140,8 +128,7 @@ public class R2dbcRoleWriteService implements RoleWriteService {
         .doOnError(
             OptimisticLockingFailureException.class,
             e -> log.error("Optimistic locking failure while updating role name. id={}, name={}", id, name, e)
-        )
-        .subscribe();
+        );
     
     return log.exit(result);
   }
@@ -152,14 +139,12 @@ public class R2dbcRoleWriteService implements RoleWriteService {
   public Mono<Void> remove(@NotNull final UUID id) {
     log.entry(id);
     
-    Mono<Void> result = repository.deleteById(id);
-    result
+    Mono<Void> result = repository.deleteById(id)
         .doOnSuccess(role -> {
           log.info("Removed role. id={}", id);
           bus.publishEvent(RoleRemovedEvent.builder().system(system).id(id).build());
         })
-    .doOnError(r -> log.error("Error while removing role. id={}", id))
-        .subscribe();
+        .doOnError(r -> log.error("Error while removing role. id={}", id));
     
     return log.exit(result);
   }

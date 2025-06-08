@@ -18,8 +18,6 @@
 package de.kaiserpfalzedv.commons.users.store.service;
 
 
-import de.kaiserpfalzedv.commons.api.events.EventBus;
-import de.kaiserpfalzedv.commons.users.domain.model.apikey.InvalidApiKeyException;
 import de.kaiserpfalzedv.commons.users.domain.model.apikey.events.*;
 import de.kaiserpfalzedv.commons.users.store.model.apikey.R2dbcApiKeyWriteService;
 import jakarta.annotation.PostConstruct;
@@ -33,6 +31,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+
 
 /**
  * @author klenkes74 {@literal <rlichti@kaiserpfalz-edv.de>}
@@ -42,9 +42,9 @@ import org.springframework.stereotype.Service;
 @Scope("singleton")
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @XSlf4j
-public class JpaApiKeyEventsHandler implements ApiKeyEventsHandler, AutoCloseable {
+public class R2dbcApiKeyEventsHandler implements ApiKeyEventsHandler, AutoCloseable {
+  public static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(1L);
   private final R2dbcApiKeyWriteService writeService;
-  private final EventBus bus;
   
   @Value("${spring.application.system:kp-users}")
   private String system = "kp-users";
@@ -52,20 +52,14 @@ public class JpaApiKeyEventsHandler implements ApiKeyEventsHandler, AutoCloseabl
   
   @PostConstruct
   public void init() {
-    log.entry(bus, system);
-    
-    bus.register(this);
-    
+    log.entry(system);
     log.exit();
   }
 
   @Override
   @PreDestroy
   public void close() {
-    log.entry(bus, system);
-    
-    bus.unregister(this);
-    
+    log.entry(system);
     log.exit();
   }
 
@@ -76,11 +70,7 @@ public class JpaApiKeyEventsHandler implements ApiKeyEventsHandler, AutoCloseabl
     log.entry(event);
     
     if (eventIsFromExternalSystem(event)) {
-      try {
-        writeService.create(event.getApiKey());
-      } catch (InvalidApiKeyException e) {
-        log.warn(e.getMessage(), e);
-      }
+      writeService.create(event.getApiKey()).block(DEFAULT_TIMEOUT);
     }
     
     log.exit();
@@ -92,7 +82,7 @@ public class JpaApiKeyEventsHandler implements ApiKeyEventsHandler, AutoCloseabl
     log.entry(event);
     
     if (eventIsFromExternalSystem(event)) {
-      writeService.delete(event.getApiKey().getId());
+      writeService.delete(event.getApiKey().getId()).block(DEFAULT_TIMEOUT);
     }
 
     log.exit();

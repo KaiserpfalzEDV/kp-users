@@ -20,6 +20,7 @@ package de.kaiserpfalzedv.commons.users.domain.services;
 
 import de.kaiserpfalzedv.commons.users.domain.model.role.Role;
 import de.kaiserpfalzedv.commons.users.domain.model.role.RoleNotFoundException;
+import de.kaiserpfalzedv.commons.users.domain.model.user.User;
 import de.kaiserpfalzedv.commons.users.domain.model.user.UserNotFoundException;
 import jakarta.validation.constraints.NotNull;
 import reactor.core.publisher.Mono;
@@ -31,7 +32,7 @@ import java.util.UUID;
  * @since 03.05.2025
  */
 public interface UserRoleManagementService {
-  Mono<Role> addRole(@NotNull UUID id, @NotNull Role role) throws UserNotFoundException, RoleNotFoundException;
-  Mono<Role> removeRole(@NotNull UUID id, @NotNull Role role) throws UserNotFoundException, RoleNotFoundException;
-  Mono<Role> revokeRoleFromAllUsers(@NotNull Role role);
+  Mono<? extends User> addRole(@NotNull UUID id, @NotNull Role role) throws UserNotFoundException, RoleNotFoundException;
+  Mono<? extends User> removeRole(@NotNull UUID id, @NotNull Role role) throws UserNotFoundException, RoleNotFoundException;
+  Mono<? extends User> revokeRoleFromAllUsers(@NotNull Role role);
 }

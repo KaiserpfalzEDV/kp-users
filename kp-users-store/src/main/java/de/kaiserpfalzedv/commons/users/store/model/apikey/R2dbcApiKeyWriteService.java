@@ -61,12 +61,12 @@ public class R2dbcApiKeyWriteService implements ApiKeyWriteService {
                      : toImpl.apply(apiKey);
 
     Mono<ApiKeyImpl> result = repository.save(data)
-        .switchIfEmpty(Mono.error(new InvalidApiKeyException(apiKey)))
+        .switchIfEmpty(Mono.error(() -> new InvalidApiKeyException(apiKey)))
         .onErrorMap(IllegalArgumentException.class, e -> new InvalidApiKeyException(apiKey, e))
         .onErrorMap(OptimisticLockingFailureException.class, e -> new InvalidApiKeyException(apiKey, e))
         .doOnSuccess(a -> {
           log.info("Created API key. user={}, key={}", a.getUser(), a.getId());
-          bus.publishEvent(ApiKeyCreatedEvent.builder().application(system).user(a.getUser()).apiKey(a).build()));
+          bus.publishEvent(ApiKeyCreatedEvent.builder().application(system).user(a.getUser()).apiKey(a).build());
         })
         .doOnError(e -> log.error("{}. user={}, key={}", e.getMessage(), data.getUser(), data.getId()));
     
@@ -74,11 +74,11 @@ public class R2dbcApiKeyWriteService implements ApiKeyWriteService {
   }
   
   @Override
-  public Mono<ApiKeyImpl> refresh(final UUID apiKeyId, final long days) throws ApiKeyNotFoundException {
+  public Mono<ApiKeyImpl> refresh(final UUID apiKeyId, final long days) {
     log.entry(apiKeyId, days);
     
     Mono<ApiKeyImpl> result = repository.findById(apiKeyId)
-        .switchIfEmpty(Mono.error(new ApiKeyNotFoundException(apiKeyId)))
+        .switchIfEmpty(Mono.error(() -> new ApiKeyNotFoundException(apiKeyId)))
         .flatMap(data -> {
           ApiKeyImpl refreshed = data.toBuilder().expiration(OffsetDateTime.now().plusDays(days)).build();
           return repository.save(refreshed);
@@ -94,8 +94,9 @@ public class R2dbcApiKeyWriteService implements ApiKeyWriteService {
     log.entry(apiKeyId);
     
     Mono<Void> result = repository.deleteById(apiKeyId)
-        .doOnSuccess(a -> log.info("Deleted API key. id={}", apiKeyId))
         .doOnError(e -> log.error("{}. id={}", e.getMessage(), apiKeyId));
+    
+    log.info("Deleting API key. id={}", apiKeyId);
     
     return log.exit(result);
   }
