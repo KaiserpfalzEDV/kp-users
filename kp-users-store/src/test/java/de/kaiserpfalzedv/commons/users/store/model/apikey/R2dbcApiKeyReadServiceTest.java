@@ -19,6 +19,7 @@ package de.kaiserpfalzedv.commons.users.store.model.apikey;
 
 
 import de.kaiserpfalzedv.commons.users.domain.model.apikey.ApiKeyImpl;
+import de.kaiserpfalzedv.commons.users.domain.model.apikey.ApiKeyToImpl;
 import de.kaiserpfalzedv.commons.users.domain.model.user.KpUserDetails;
 import lombok.extern.slf4j.XSlf4j;
 import org.junit.jupiter.api.AfterEach;
@@ -28,6 +29,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
+import org.springframework.data.r2dbc.core.ReactiveSelectOperation;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -46,21 +50,26 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 @XSlf4j
 public class R2dbcApiKeyReadServiceTest {
-  @InjectMocks private R2dbcApiKeyReadService sut;
+  @InjectMocks private R2dbcApiKeyRepository sut;
+  @Mock private R2dbcApiKeyInternalRepository repository;
+  @Mock private ApplicationEventPublisher bus;
+  @Mock private ApiKeyToImpl toImpl;
   
-  @Mock
-  private R2dbcApiKeyRepository repository;
+  @Mock private R2dbcEntityTemplate template;
+  @Mock private ReactiveSelectOperation.ReactiveSelect<ApiKeyImpl> reactiveSelect;
+  @Mock private ReactiveSelectOperation.SelectWithProjection<ApiKeyImpl> selectWithProjection;
+  @Mock private ReactiveSelectOperation.TerminatingSelect<ApiKeyImpl> terminatingSelectOperation;
   
   
   @BeforeEach
   public void setUp() {
-    reset(repository);
+    reset(repository, template, reactiveSelect, terminatingSelectOperation);
   }
   
   @AfterEach
   public void tearDown() {
     validateMockitoUsage();
-    verifyNoMoreInteractions(repository);
+    verifyNoMoreInteractions(repository, template);
   }
   
   
@@ -108,9 +117,14 @@ public class R2dbcApiKeyReadServiceTest {
   void shouldReturnListOfApiKeysWhenUserExistsAndHasApiKeys() {
     log.entry();
     
-    when(repository.findByUserId(DEFAULT_USER.getId())).thenReturn(Flux.just(DEFAULT_APIKEY));
+    when(template.select(ApiKeyImpl.class)).thenReturn(reactiveSelect);
+    when(reactiveSelect.from("APIKEYS")).thenReturn(selectWithProjection);
+    when(selectWithProjection.matching(any())).thenReturn(terminatingSelectOperation);
+    when(terminatingSelectOperation.all()).thenReturn(Flux.just(DEFAULT_APIKEY));
     
-    List<ApiKeyImpl> result = sut.retrieveForUser(DEFAULT_USER.getId()).collectList().block();
+    List<ApiKeyImpl> result = sut
+        .retrieveForUser(DEFAULT_USER.getId())
+        .collectList().block();
     log.debug("Result. apikeys={}", result);
     
     assertNotNull(result);

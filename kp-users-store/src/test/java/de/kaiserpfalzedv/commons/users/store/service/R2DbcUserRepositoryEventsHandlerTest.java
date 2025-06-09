@@ -52,7 +52,7 @@ import static org.mockito.Mockito.*;
  */
 @ExtendWith(MockitoExtension.class)
 @XSlf4j
-public class R2dbcUserEventsHandlerTest {
+public class R2DbcUserRepositoryEventsHandlerTest {
   @InjectMocks private R2dbcUserEventsHandler sut;
   @Mock private R2dbcUserManagementService userManagement;
   @Mock private R2dbcUserDataManagementService userDataManagement;

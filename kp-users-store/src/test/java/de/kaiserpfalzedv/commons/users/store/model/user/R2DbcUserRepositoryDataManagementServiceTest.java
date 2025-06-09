@@ -40,7 +40,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @XSlf4j
-public class R2dbcUserDataManagementServiceTest {
+public class R2DbcUserRepositoryDataManagementServiceTest {
   
   @InjectMocks
   private R2dbcUserDataManagementService sut;

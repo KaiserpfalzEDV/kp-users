@@ -26,13 +26,15 @@ import de.kaiserpfalzedv.commons.users.domain.model.user.UserNotFoundException;
 import de.kaiserpfalzedv.commons.users.domain.services.UserRoleManagementService;
 import de.kaiserpfalzedv.commons.users.store.model.role.R2dbcRoleRepository;
 import jakarta.annotation.PreDestroy;
+import jakarta.inject.Inject;
+import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.XSlf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -45,31 +47,21 @@ import java.util.UUID;
  * @since 2025-05-16
  */
 @Service
+@RequiredArgsConstructor(onConstructor = @__(@Inject))
 @ToString(callSuper = true, onlyExplicitlyIncluded = true)
 @XSlf4j
-public class R2dbcUserRoleManagementService extends R2dbcAbstractManagementService implements UserRoleManagementService, AutoCloseable {
+public class R2dbcUserRoleManagementService implements UserRoleManagementService, AutoCloseable {
   private final R2dbcRoleRepository roleRepository;
+  private final R2dbcUserRepository userRepository;
+  private final ApplicationEventPublisher bus;
   private final RoleToImpl roleToImpl;
   
-  public R2dbcUserRoleManagementService(
-      @Autowired final R2dbcUserRepository repository,
-      @Autowired final R2dbcRoleRepository roleRepository,
-      @Autowired final RoleToImpl roleToImpl,
-      @Autowired final ApplicationEventPublisher bus,
-      @Value("${spring.application.system:kp-users}") final String system
-  ) {
-    super(repository, bus, system);
-    log.entry(repository, roleRepository, roleToImpl, bus, system);
-    
-    this.roleRepository = roleRepository;
-    this.roleToImpl = roleToImpl;
-    
-    log.exit();
-  }
+  @Value("${spring.application.system:kp-users}")
+  private final String system = "kp-users";
   
   @PreDestroy
   public void close() {
-    log.entry(repository, roleRepository, roleToImpl, bus, system);
+    log.entry(userRepository, roleRepository, roleToImpl, bus, system);
     log.exit();
   }
   
@@ -79,32 +71,35 @@ public class R2dbcUserRoleManagementService extends R2dbcAbstractManagementServi
     log.entry(id, role);
     
     Mono<KpUserDetails> result = roleRepository.findById(role.getId())
-        .switchIfEmpty(roleRepository.save(roleToImpl.apply(role)))
-        .switchIfEmpty(Mono.defer(() -> Mono.error(() -> new RoleNotFoundException(role.getId()))))
-        .filter(Objects::nonNull)
-        .flatMap(r -> repository.findById(id)
-            .switchIfEmpty(Mono.defer(() -> Mono.error(() -> new UserNotFoundException(id))))
-            .filter(Objects::nonNull)
+        .switchIfEmpty(Mono.error(new RoleNotFoundException(role.getId())))
+        .publishOn(Schedulers.boundedElastic())
+        .mapNotNull(r -> userRepository.findById(id)
+            .switchIfEmpty(Mono.error(new UserNotFoundException(id)))
             .map(u -> { u.addRole(r, bus); return u; })
-            .flatMap(u -> saveUser(u, "Role added to user", "Error adding role to user"))
+            .publishOn(Schedulers.boundedElastic())
+            .mapNotNull(
+                u -> userRepository.save(u).block()
+            ).block()
         );
     
     return log.exit(result);
   }
   
   @Override
-  public Mono<KpUserDetails> removeRole(final UUID id, final Role role) throws UserNotFoundException, RoleNotFoundException {
+  public Mono<KpUserDetails> removeRole(final UUID id, final Role role) {
     log.entry(id, role);
     
     Mono<KpUserDetails> result = roleRepository.findById(role.getId())
-        .switchIfEmpty(roleRepository.save(roleToImpl.apply(role)))
-        .switchIfEmpty(Mono.defer(() -> Mono.error(() -> new RoleNotFoundException(role.getId()))))
+        .switchIfEmpty(Mono.error(new RoleNotFoundException(role.getId())))
         .filter(Objects::nonNull)
-        .flatMap(r -> repository.findById(id)
+        .publishOn(Schedulers.boundedElastic())
+        .mapNotNull(r -> userRepository.findById(id)
             .switchIfEmpty(Mono.defer(() -> Mono.error(() -> new UserNotFoundException(id))))
             .filter(Objects::nonNull)
             .map(u -> { u.removeRole(r, bus); return u; })
-            .flatMap(u -> saveUser(u, "Role removed from user", "Error removing role from user"))
+            .publishOn(Schedulers.boundedElastic())
+            .mapNotNull(u -> userRepository.save(u).block())
+            .block()
         );
         
     return log.exit(result);

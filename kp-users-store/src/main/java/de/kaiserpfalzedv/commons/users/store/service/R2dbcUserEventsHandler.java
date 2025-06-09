@@ -18,7 +18,6 @@
 package de.kaiserpfalzedv.commons.users.store.service;
 
 
-import de.kaiserpfalzedv.commons.users.domain.model.role.RoleNotFoundException;
 import de.kaiserpfalzedv.commons.users.domain.model.user.UserNotFoundException;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.UserBaseEvent;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.UserEventsHandler;
@@ -231,11 +230,8 @@ public class R2dbcUserEventsHandler implements UserEventsHandler, AutoCloseable 
     log.entry(event);
     
     if (eventIsFromExternalSystem(event)) {
-      try {
-        roleService.removeRole(event.getUser().getId(), event.getRole()).block(DEFAULT_TIMEOUT);
-      } catch (UserNotFoundException | RoleNotFoundException e) {
-        log.warn(e.getMessage(), e);
-      }
+      roleService.removeRole(event.getUser().getId(), event.getRole())
+          .block(DEFAULT_TIMEOUT);
     }
   }
 

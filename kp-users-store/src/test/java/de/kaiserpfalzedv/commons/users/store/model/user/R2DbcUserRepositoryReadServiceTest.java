@@ -18,14 +18,19 @@
 package de.kaiserpfalzedv.commons.users.store.model.user;
 
 
+import de.kaiserpfalzedv.commons.users.domain.model.role.KpRole;
 import de.kaiserpfalzedv.commons.users.domain.model.user.KpUserDetails;
 import lombok.extern.slf4j.XSlf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
+import org.springframework.data.r2dbc.core.ReactiveSelectOperation;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -46,23 +51,27 @@ import static org.mockito.Mockito.*;
 @SuppressWarnings("LoggingSimilarMessage")
 @ExtendWith(MockitoExtension.class)
 @XSlf4j
-public class R2dbcUserReadServiceTest {
-  private R2dbcUserReadService sut;
+public class R2DbcUserRepositoryReadServiceTest {
+  @InjectMocks private R2dbcUserRepository sut;
   
-  @Mock
-  private R2dbcUserRepository repository;
+  @Mock private R2dbcUserInternalRepository repository;
+
+  @Mock private R2dbcEntityTemplate template;
+  @Mock private ReactiveSelectOperation.ReactiveSelect<KpUsersRoles> reactiveSelect;
+  @Mock ReactiveSelectOperation.TerminatingSelect<KpUsersRoles> terminatingSelect;
+
+  @Mock private ApplicationEventPublisher bus;
   
   
   @BeforeEach
   public void setUp() {
-    reset(repository);
-    
-    sut = new R2dbcUserReadService(repository);
+    reset(repository, template, bus);
   }
   
   @AfterEach
   public void tearDown() {
     validateMockitoUsage();
+    verifyNoMoreInteractions(repository, template, bus);
   }
   
   
@@ -71,6 +80,7 @@ public class R2dbcUserReadServiceTest {
     log.entry();
     
     when(repository.findById(DEFAULT_USER.getId())).thenReturn(Mono.just(DEFAULT_USER));
+    prepareRoleAddingToUser();
     
     Optional<KpUserDetails> result = sut.findById(DEFAULT_USER.getId()).blockOptional();
     log.debug("Result. user={}", result.orElse(null));
@@ -86,6 +96,7 @@ public class R2dbcUserReadServiceTest {
     log.entry();
     
     when(repository.findByNameSpaceAndName(DEFAULT_USER.getNameSpace(), DEFAULT_USER.getName())).thenReturn(Mono.just(DEFAULT_USER));
+    prepareRoleAddingToUser();
     
     Optional<KpUserDetails> result = sut.findByUsername(DEFAULT_USER.getNameSpace(), DEFAULT_USER.getName()).blockOptional();
     log.debug("Result. user={}", result.orElse(null));
@@ -101,8 +112,9 @@ public class R2dbcUserReadServiceTest {
     log.entry();
     
     when(repository.findByIssuerAndSubject(DEFAULT_USER.getIssuer(), DEFAULT_USER.getSubject())).thenReturn(Mono.just(DEFAULT_USER));
+    prepareRoleAddingToUser();
     
-    Optional<KpUserDetails> result = sut.findByOauth(DEFAULT_USER.getIssuer(), DEFAULT_USER.getSubject()).blockOptional();
+    Optional<KpUserDetails> result = sut.findByOauth(DEFAULT_USER.getIssuer(), DEFAULT_USER.getSubject());
     log.debug("Result. user={}", result.orElse(null));
     
     assertTrue(result.isPresent());
@@ -115,7 +127,8 @@ public class R2dbcUserReadServiceTest {
   void shouldReturnAllUsersWhenUsersExist() {
     log.entry();
   
-    when(repository.findAll()).thenReturn(Flux.just(DEFAULT_USER, DEFAULT_USER));
+    when(repository.findAll()).thenReturn(Flux.just(DEFAULT_USER));
+    prepareRoleAddingToUser();
   
     var result = sut.findAll();
     log.debug("Result: users={}", result);
@@ -146,14 +159,22 @@ public class R2dbcUserReadServiceTest {
   void shouldReturnUsersByNamespace() {
     log.entry();
   
-    when(repository.findByNameSpace("namespace")).thenReturn(Flux.just(DEFAULT_USER, DEFAULT_USER));
-  
-    var result = sut.findByNamespace("namespace");
+    when(repository.findByNameSpace("namespace")).thenReturn(Flux.just(DEFAULT_USER));
+    prepareRoleAddingToUser();
+    
+    var result = sut.findByNamespace("namespace").collectList().block();
     log.debug("Result: users={}", result);
 
-    assertTrue(result.collectList().blockOptional().orElse(List.of()).contains(DEFAULT_USER));
+    assertTrue(result.contains(DEFAULT_USER));
   
     log.exit();
+  }
+  
+  private void prepareRoleAddingToUser() {
+    when(template.select(KpUsersRoles.class)).thenReturn(reactiveSelect);
+    when(reactiveSelect.matching(any())).thenReturn(terminatingSelect);
+    when(terminatingSelect.all()).thenReturn(Flux.just(KpUsersRoles.builder().userId(DEFAULT_ID).roleId(DEFAULT_ROLE_ID).build()));
+    when(template.selectOne(any(),any())).thenReturn(Mono.just(DEFAULT_ROLE));
   }
   
   @Test
@@ -187,5 +208,12 @@ public class R2dbcUserReadServiceTest {
       .created(CREATED_AT)
       .modified(CREATED_AT)
       
+      .build();
+  
+  private static final UUID DEFAULT_ROLE_ID = UUID.randomUUID();
+  private static final KpRole DEFAULT_ROLE = KpRole.builder()
+      .id(DEFAULT_ROLE_ID)
+      .nameSpace("namespace")
+      .name("role")
       .build();
 }

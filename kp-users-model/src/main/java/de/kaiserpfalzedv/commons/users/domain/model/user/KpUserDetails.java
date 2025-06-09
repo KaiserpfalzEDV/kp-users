@@ -145,20 +145,20 @@ public class KpUserDetails implements User {
         // nothing to do, there are no credentials anywhere ...
     }
     
-    public void addRole(@NotNull final KpRole role, @NotNull ApplicationEventPublisher bus) {
+    public void addRole(@NotNull final KpRole role, ApplicationEventPublisher bus) {
         log.entry(role, bus);
         
-        if (authorities.add(role)) {
+        if (authorities.add(role) && bus != null) {
             bus.publishEvent(RoleAddedToUserEvent.builder().user(this).role(role).build());
         }
         
         log.exit();
     }
     
-    public void removeRole(@NotNull final KpRole role, @NotNull ApplicationEventPublisher bus) {
+    public void removeRole(@NotNull final KpRole role, ApplicationEventPublisher bus) {
         log.entry(role, bus);
         
-        if (authorities.remove(role)) {
+        if (authorities.remove(role) && bus != null) {
             bus.publishEvent(RoleRemovedFromUserEvent.builder().user(this).role(role).build());
         }
         

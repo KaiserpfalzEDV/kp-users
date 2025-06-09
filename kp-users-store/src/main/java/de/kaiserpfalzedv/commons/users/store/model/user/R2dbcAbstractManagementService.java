@@ -21,7 +21,7 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor(onConstructor = @__(@Inject))
 @ToString(onlyExplicitlyIncluded = true)
 @XSlf4j
-public class R2dbcAbstractManagementService {
+public abstract class R2dbcAbstractManagementService {
   protected final R2dbcUserRepository repository;
   protected final ApplicationEventPublisher bus;
   @ToString.Include

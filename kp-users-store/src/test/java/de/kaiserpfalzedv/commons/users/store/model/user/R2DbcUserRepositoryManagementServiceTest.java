@@ -46,22 +46,12 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @XSlf4j
-public class R2dbcUserManagementServiceTest {
-  
-  @InjectMocks
-  private R2dbcUserManagementService sut;
-  
-  @Mock
-  private R2dbcUserRepository repository;
-  
-  @Mock
-  private R2dbcApiKeyRepository apiKeyRepository;
-  
-  @Mock
-  private ApplicationEventPublisher bus;
-  
-  @Mock
-  private UserToKpUserDetailsImpl toJpa;
+public class R2DbcUserRepositoryManagementServiceTest {
+  @InjectMocks private R2dbcUserManagementService sut;
+  @Mock private R2dbcUserRepository repository;
+  @Mock private R2dbcApiKeyRepository apiKeyRepository;
+  @Mock private ApplicationEventPublisher bus;
+  @Mock private UserToKpUserDetailsImpl toJpa;
   
   
   @BeforeEach

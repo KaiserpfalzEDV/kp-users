@@ -22,6 +22,8 @@ import de.kaiserpfalzedv.commons.users.domain.model.apikey.ApiKeyImpl;
 import de.kaiserpfalzedv.commons.users.domain.model.apikey.ApiKeyNotFoundException;
 import de.kaiserpfalzedv.commons.users.domain.model.apikey.ApiKeyToImpl;
 import de.kaiserpfalzedv.commons.users.domain.model.apikey.InvalidApiKeyException;
+import de.kaiserpfalzedv.commons.users.domain.model.apikey.events.ApiKeyCreatedEvent;
+import de.kaiserpfalzedv.commons.users.domain.model.apikey.events.ApiKeyRevokedEvent;
 import de.kaiserpfalzedv.commons.users.domain.model.user.KpUserDetails;
 import lombok.extern.slf4j.XSlf4j;
 import org.junit.jupiter.api.AfterEach;
@@ -31,6 +33,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import reactor.core.publisher.Mono;
 
 import java.time.OffsetDateTime;
@@ -47,28 +50,21 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 @XSlf4j
 public class R2dbcApiKeyWriteServiceTest {
-  @InjectMocks
-  private R2dbcApiKeyWriteService sut;
-  
-  @Mock
-  private R2dbcApiKeyRepository repository;
-
-  @Mock
-  private ApiKeyToImpl toImpl;
-
-  @Mock
-  private ApiKeyToImpl toJPA;
+  @InjectMocks private R2dbcApiKeyRepository sut;
+  @Mock private R2dbcApiKeyInternalRepository repository;
+  @Mock private ApplicationEventPublisher bus;
+  @Mock private ApiKeyToImpl toImpl;
   
   
   @BeforeEach
   public void setUp() {
-    reset(repository, toImpl, toJPA);
+    reset(repository, bus, toImpl);
   }
   
   @AfterEach
   public void tearDown() {
     validateMockitoUsage();
-    verifyNoMoreInteractions(repository, toImpl, toJPA);
+    verifyNoMoreInteractions(repository, bus, toImpl);
   }
   
   
@@ -79,6 +75,8 @@ public class R2dbcApiKeyWriteServiceTest {
     when(repository.save(DEFAULT_APIKEY)).thenReturn(Mono.just(DEFAULT_APIKEY));
     
     sut.create(DEFAULT_APIKEY).block();
+    
+    verify(bus, times(1)).publishEvent(any(ApiKeyCreatedEvent.class));
   }
   
   
@@ -86,22 +84,20 @@ public class R2dbcApiKeyWriteServiceTest {
   void shouldThrowExceptionWhenApiKeyIsADuplicate() {
     log.entry();
     
-    when(repository.save(DEFAULT_APIKEY)).thenThrow(new IllegalArgumentException("Duplicate ApiKey"));
+    when(repository.save(DEFAULT_APIKEY)).thenReturn(Mono.error(new IllegalArgumentException("Duplicate key")));
     
-    assertThrows(InvalidApiKeyException.class, () -> sut.create(DEFAULT_APIKEY).block());
+    Mono<ApiKeyImpl> result = sut.create(DEFAULT_APIKEY);
     
-    log.exit();
-  }
-  
-  
-  @Test
-  void shouldSaveApiKeyWhenApiKeyIsNotJPAType() {
-    log.entry();
+    try {
+      result.block();
+      
+      fail("Expected InvalidApiKeyException to be thrown");
+    } catch (Exception e) {
+      log.debug("Caught exception: type={}, message={}", e.getCause().getClass().getSimpleName(), e.getCause().getMessage());
+      
+      assertTrue(e.getCause() instanceof InvalidApiKeyException, "Expected InvalidApiKeyException, but got: " + e.getCause().getClass().getName());
+    }
     
-    when(repository.save(any(ApiKeyImpl.class))).thenReturn(Mono.just(DEFAULT_APIKEY));
-    when(toJPA.apply(any(ApiKeyImpl.class))).thenReturn(DEFAULT_APIKEY);
-    
-    sut.create(DEFAULT_APIKEY).block();
     
     log.exit();
   }
@@ -112,7 +108,8 @@ public class R2dbcApiKeyWriteServiceTest {
     log.entry();
     
     when(repository.findById(DEFAULT_APIKEY.getId())).thenReturn(Mono.just(DEFAULT_APIKEY));
-    when(repository.save(any(ApiKeyImpl.class))).thenReturn(Mono.just(DEFAULT_APIKEY));
+    when(repository.save(any(ApiKeyImpl.class)))
+        .thenReturn(Mono.just(DEFAULT_APIKEY.toBuilder().expiration(OffsetDateTime.now().plusDays(20L)).build()));
     
     ApiKeyImpl result = sut.refresh(DEFAULT_ID, 20L).block();
     log.debug("Refreshed ApiKey. apikey={}", result);
@@ -130,32 +127,45 @@ public class R2dbcApiKeyWriteServiceTest {
     
     when(repository.findById(any(UUID.class))).thenReturn(Mono.empty());
     
-    assertThrows(ApiKeyNotFoundException.class, () -> sut.refresh(UUID.randomUUID(), 20L).block());
+    Mono<ApiKeyImpl> result = sut.refresh(DEFAULT_ID, 20L);
+    
+    try {
+      result.block();
+      
+      fail("Expected ApiKeyNotFoundException to be thrown");
+    } catch (Exception e) {
+      log.debug("Caught exception: type={}, message={}", e.getCause().getClass().getSimpleName(), e.getCause().getMessage());
+      
+      assertTrue(e.getCause() instanceof ApiKeyNotFoundException, "Expected ApiKeyNotFoundException, but got: " + e.getCause().getClass().getName());
+    }
     
     log.exit();
   }
   
   
   @Test
-  void shouldDeleteApiKeyWhenApiKeyExists() {
+  void shouldDeleteByIdApiKeyWhenApiKeyExists() {
     log.entry();
     
-    sut.delete(DEFAULT_APIKEY.getId()).block();
+    when(repository.deleteById(DEFAULT_ID)).thenReturn(Mono.empty());
     
-    verify(repository, times(1)).deleteById(DEFAULT_APIKEY.getId());
+    sut.deleteById(DEFAULT_APIKEY.getId());
+    
+    verify(bus, times(1)).publishEvent(any(ApiKeyRevokedEvent.class)); // This is a bit of a hack, but we want to verify the event is published.
     
     log.exit();
   }
   
   
   @Test
-  void shouldDeleteApiKeyWhenApiKeyDoesNotExist() {
+  void shouldDeleteByIdApiKeyWhenApiKeyDoesNotExist() {
     log.entry();
     
-    sut.delete(UUID.randomUUID()).block();
+    when(repository.deleteById(any(UUID.class))).thenReturn(Mono.empty());
     
-    // repository deleteById ignores if the target does not exist at all.
-    verify(repository, times(1)).deleteById(any(UUID.class));
+    sut.deleteById(UUID.randomUUID());
+    
+    verify(bus, times(1)).publishEvent(any(ApiKeyRevokedEvent.class)); // This is a bit of a hack, but we want to verify the event is published.
     
     log.exit();
   }
@@ -165,10 +175,11 @@ public class R2dbcApiKeyWriteServiceTest {
   void shouldRemoveApiKeyWhenApiKeyExists() {
     log.entry();
     
-    sut.remove(DEFAULT_APIKEY.getId()).block();
+    when(repository.deleteById(DEFAULT_ID)).thenReturn(Mono.empty());
+    
+    sut.deleteById(DEFAULT_APIKEY.getId());
 
-    // remove is mapped to delete to keep the API structured the same way over all objects.
-    verify(repository, times(1)).deleteById(DEFAULT_APIKEY.getId());
+    verify(bus, times(1)).publishEvent(any(ApiKeyRevokedEvent.class)); // This is a bit of a hack, but we want to verify the event is published.
     
     log.exit();
   }

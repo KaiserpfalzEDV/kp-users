@@ -58,7 +58,7 @@ public class R2dbcUserDataManagementService extends R2dbcAbstractManagementServi
   
   @PreDestroy
   public void close() {
-    log.entry(bus, system);
+    log.entry(repository, bus, system);
     log.exit();
   }
   

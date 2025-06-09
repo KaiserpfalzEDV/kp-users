@@ -32,8 +32,12 @@ import java.util.UUID;
 @Getter
 @ToString
 public class RoleNotFoundException extends BaseRoleException {
+  private final UUID roleId;
+  
   public RoleNotFoundException(@Nullable final UUID id) {
     super(null, createMessage(id));
+    
+    this.roleId = id;
   }
   
   private static String createMessage(@Nullable final UUID id) {

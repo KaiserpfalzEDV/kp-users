@@ -24,7 +24,7 @@ import de.kaiserpfalzedv.commons.users.domain.model.apikey.events.ApiKeyCreatedE
 import de.kaiserpfalzedv.commons.users.domain.model.apikey.events.ApiKeyRevokedEvent;
 import de.kaiserpfalzedv.commons.users.domain.model.user.KpUserDetails;
 import de.kaiserpfalzedv.commons.users.domain.model.user.User;
-import de.kaiserpfalzedv.commons.users.store.model.apikey.R2dbcApiKeyWriteService;
+import de.kaiserpfalzedv.commons.users.store.model.apikey.R2dbcApiKeyRepository;
 import lombok.extern.slf4j.XSlf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,15 +47,9 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 @XSlf4j
 public class R2dbcApiKeyEventsHandlerTest {
-  @InjectMocks
-  private R2dbcApiKeyEventsHandler sut;
-  
-  @Mock
-  private R2dbcApiKeyWriteService writeService;
-  
-  @Mock
-  private EventBus bus;
-  
+  @InjectMocks private R2dbcApiKeyEventsHandler sut;
+  @Mock private R2dbcApiKeyRepository writeService;
+  @Mock private EventBus bus;
   
   private static final String LOCAL_SYSTEM = "kp-users";
   private static final String EXTERNAL_SYSTEM = "other-application";
@@ -137,13 +131,13 @@ public class R2dbcApiKeyEventsHandlerTest {
     ApiKeyRevokedEvent event = mock(ApiKeyRevokedEvent.class);
     when(event.getApiKey()).thenReturn(API_KEY);
     when(event.getApplication()).thenReturn(EXTERNAL_SYSTEM);
-    when(writeService.delete(API_KEY.getId())).thenReturn(Mono.empty());
     
     // when
     sut.event(event);
     
     // then
-    verify(writeService).delete(DEFAULT_ID);
+    verify(writeService).deleteById(DEFAULT_ID);
+    
     
     log.exit();
   }
@@ -160,7 +154,7 @@ public class R2dbcApiKeyEventsHandlerTest {
     sut.event(event);
     
     // then
-    verify(writeService, never()).delete(DEFAULT_ID);
+    verify(writeService, never()).deleteById(DEFAULT_ID);
     
     log.exit();
   }

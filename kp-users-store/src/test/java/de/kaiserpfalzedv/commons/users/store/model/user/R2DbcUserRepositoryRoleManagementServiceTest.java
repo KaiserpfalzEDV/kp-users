@@ -18,14 +18,13 @@
 package de.kaiserpfalzedv.commons.users.store.model.user;
 
 import de.kaiserpfalzedv.commons.users.domain.model.role.KpRole;
-import de.kaiserpfalzedv.commons.users.domain.model.role.Role;
 import de.kaiserpfalzedv.commons.users.domain.model.role.RoleNotFoundException;
 import de.kaiserpfalzedv.commons.users.domain.model.role.RoleToImpl;
 import de.kaiserpfalzedv.commons.users.domain.model.user.KpUserDetails;
 import de.kaiserpfalzedv.commons.users.domain.model.user.UserNotFoundException;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.modification.RoleAddedToUserEvent;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.modification.RoleRemovedFromUserEvent;
-import de.kaiserpfalzedv.commons.users.store.model.role.R2dbcRoleReadService;
+import de.kaiserpfalzedv.commons.users.store.model.role.R2dbcRoleRepository;
 import lombok.extern.slf4j.XSlf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,42 +39,32 @@ import reactor.core.publisher.Mono;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @XSlf4j
-public class R2dbcUserRoleManagementServiceTest {
+public class R2DbcUserRepositoryRoleManagementServiceTest {
   
-  @InjectMocks
-  private R2dbcUserRoleManagementService sut;
-  
-  @Mock
-  private R2dbcRoleReadService jpaRoleReadService;
-  
-  @Mock
-  private R2dbcUserRepository repository;
-  
-  @Mock
-  private ApplicationEventPublisher bus;
-  
-  @Mock
-  private RoleToImpl toJpa;
+  @InjectMocks private R2dbcUserRoleManagementService sut;
+  @Mock private R2dbcUserRepository userRepository;
+  @Mock private R2dbcRoleRepository roleRepository;
+  @Mock private ApplicationEventPublisher bus;
+  @Mock private RoleToImpl toRole;
   
   private static final UUID DEFAULT_ID = UUID.randomUUID();
   private static final OffsetDateTime CREATED_AT = OffsetDateTime.now();
   private static final UUID DEFAULT_ROLE_ID = UUID.randomUUID();
 
-  private KpUserDetails jpaUser;
-  private Role role;
-  private KpRole jpaRole;
+  private KpUserDetails user;
+  private KpRole role;
   
   
   @BeforeEach
   public void setUp() {
-    reset(bus, repository, toJpa);
+    reset(bus, userRepository, roleRepository, toRole);
     
-    jpaUser = KpUserDetails.builder()
+    user = KpUserDetails.builder()
         .id(DEFAULT_ID)
         
         .nameSpace("namespace")
@@ -101,24 +90,12 @@ public class R2dbcUserRoleManagementServiceTest {
         .modified(CREATED_AT)
         
         .build();
-    
-    jpaRole = KpRole.builder()
-        .id(DEFAULT_ROLE_ID)
-        
-        .nameSpace("namespace")
-        .name("role")
-        
-        .created(CREATED_AT)
-        .modified(CREATED_AT)
-        
-        .build();
-    
   }
   
   @AfterEach
   public void tearDown() {
-    verifyNoMoreInteractions(bus, repository, toJpa);
     validateMockitoUsage();
+    verifyNoMoreInteractions(bus, userRepository, roleRepository, toRole);
   }
   
   
@@ -126,13 +103,13 @@ public class R2dbcUserRoleManagementServiceTest {
   void shouldAddRoleToUserWhenUserExists() {
     log.entry();
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.just(jpaUser));
-    when(jpaRoleReadService.retrieve(DEFAULT_ROLE_ID)).thenReturn(Mono.just(jpaRole));
-    when(repository.save(any(KpUserDetails.class))).thenReturn(Mono.just(jpaUser));
+    when(roleRepository.findById(DEFAULT_ROLE_ID)).thenReturn(Mono.just(role));
+    when(userRepository.findById(DEFAULT_ID)).thenReturn(Mono.just(user));
+    when(userRepository.save(any(KpUserDetails.class))).thenReturn(Mono.just(user));
     
     sut.addRole(DEFAULT_ID, role).block();
     
-    verify(repository).save(jpaUser);
+    verify(userRepository).save(user);
     verify(bus).publishEvent(any(RoleAddedToUserEvent.class));
     
     log.exit();
@@ -142,15 +119,15 @@ public class R2dbcUserRoleManagementServiceTest {
   void shouldDoNothingWhenUserHasRoleAlready() {
     log.entry();
     
-    jpaUser.addRole(jpaRole, bus);
-    reset(bus);
+    user.addRole(role, null);
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.just(jpaUser));
-    when(jpaRoleReadService.retrieve(DEFAULT_ROLE_ID)).thenReturn(Mono.just(jpaRole));
+    when(userRepository.findById(DEFAULT_ID)).thenReturn(Mono.just(user));
+    when(roleRepository.findById(DEFAULT_ROLE_ID)).thenReturn(Mono.just(role));
+    when(userRepository.save(any(KpUserDetails.class))).thenReturn(Mono.just(user));
     
     sut.addRole(DEFAULT_ID, role).block();
     
-    verify(repository).save(jpaUser);
+    verify(userRepository).save(user);
     verify(bus, never()).publishEvent(any(RoleAddedToUserEvent.class));
     
     log.exit();
@@ -160,13 +137,12 @@ public class R2dbcUserRoleManagementServiceTest {
   void shouldThrowRoleNotFoundExceptionWhenRoleDoesNotExistForAddRole() {
     log.entry();
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.just(jpaUser));
-    when(jpaRoleReadService.retrieve(DEFAULT_ROLE_ID)).thenReturn(Mono.empty());
+    when(roleRepository.findById(DEFAULT_ROLE_ID)).thenReturn(Mono.error(new RoleNotFoundException(DEFAULT_ROLE_ID)));
+    Exception expected = new RoleNotFoundException(DEFAULT_ROLE_ID);
     
-    assertThrows(RoleNotFoundException.class, () -> sut.addRole(DEFAULT_ID, role).block());
-    
-    verify(repository).findById(DEFAULT_ID);
-    verify(jpaRoleReadService).retrieve(DEFAULT_ROLE_ID);
+    Mono<KpUserDetails> result = sut.addRole(DEFAULT_ID, role);
+
+    checkException(result, expected);
     
     log.exit();
   }
@@ -175,30 +151,32 @@ public class R2dbcUserRoleManagementServiceTest {
   void shouldThrowUserNotFoundExceptionWhenUserDoesNotExistForAddRole() {
     log.entry();
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.empty());
+    when(userRepository.findById(DEFAULT_ID)).thenReturn(Mono.empty());
+    when(roleRepository.findById(DEFAULT_ROLE_ID)).thenReturn(Mono.just(role));
     
-    assertThrows(UserNotFoundException.class, () -> sut.addRole(DEFAULT_ID, role).block());
+    Exception expected = new UserNotFoundException(DEFAULT_ID);
     
-    verify(repository).findById(DEFAULT_ID);
+    Mono<KpUserDetails> result = sut.addRole(DEFAULT_ID, role);
+    
+    checkException(result, expected);
     
     log.exit();
   }
-  
   
   @Test
   void shouldRemoveRoleFromUserWhenUserWithRoleExists() throws UserNotFoundException, RoleNotFoundException {
     log.entry();
     
-    jpaUser.addRole(jpaRole, bus);
+    user.addRole(role, bus);
     reset(bus);
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.just(jpaUser));
-    when(jpaRoleReadService.retrieve(DEFAULT_ROLE_ID)).thenReturn(Mono.just(jpaRole));
-    when(repository.save(any(KpUserDetails.class))).thenReturn(Mono.just(jpaUser));
+    when(userRepository.findById(DEFAULT_ID)).thenReturn(Mono.just(user));
+    when(roleRepository.findById(DEFAULT_ROLE_ID)).thenReturn(Mono.just(role));
+    when(userRepository.save(any(KpUserDetails.class))).thenReturn(Mono.just(user));
     
     sut.removeRole(DEFAULT_ID, role).block();
     
-    verify(repository).save(jpaUser);
+    verify(userRepository).save(user);
     verify(bus).publishEvent(any(RoleRemovedFromUserEvent.class));
     
     log.exit();
@@ -208,12 +186,13 @@ public class R2dbcUserRoleManagementServiceTest {
   void shouldDoNothingWhenUserWithoutRoleExists() throws UserNotFoundException, RoleNotFoundException {
     log.entry();
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.just(jpaUser));
-    when(jpaRoleReadService.retrieve(DEFAULT_ROLE_ID)).thenReturn(Mono.just(jpaRole));
+    when(roleRepository.findById(DEFAULT_ROLE_ID)).thenReturn(Mono.just(role));
+    when(userRepository.findById(DEFAULT_ID)).thenReturn(Mono.just(user));
+    when(userRepository.save(any(KpUserDetails.class))).thenReturn(Mono.just(user));
     
     sut.removeRole(DEFAULT_ID, role).block();
     
-    verify(repository).save(jpaUser);
+    verify(userRepository).save(user);
     verify(bus, never()).publishEvent(any(RoleRemovedFromUserEvent.class));
     
     log.exit();
@@ -223,11 +202,13 @@ public class R2dbcUserRoleManagementServiceTest {
   void shouldThrowUserNotFoundExceptionWhenUserDoesNotExistForRemoveRole() {
     log.entry();
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.empty());
+    when(roleRepository.findById(DEFAULT_ROLE_ID)).thenReturn(Mono.just(role));
+    when(userRepository.findById(DEFAULT_ID)).thenReturn(Mono.empty());
+    UserNotFoundException expected = new UserNotFoundException(DEFAULT_ID);
     
-    assertThrows(UserNotFoundException.class, () -> sut.removeRole(DEFAULT_ID, role).block());
+    Mono<KpUserDetails> result = sut.removeRole(DEFAULT_ID, role);
     
-    verify(repository).findById(DEFAULT_ID);
+    checkException(result, expected);
     
     log.exit();
   }
@@ -236,13 +217,13 @@ public class R2dbcUserRoleManagementServiceTest {
   void shouldThrowRoleNotFoundExceptionWhenRoleDoesNotExistForRemoveRole() {
     log.entry();
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.just(jpaUser));
-    when(jpaRoleReadService.retrieve(DEFAULT_ROLE_ID)).thenReturn(Mono.empty());
+    when(roleRepository.findById(DEFAULT_ROLE_ID)).thenReturn(Mono.empty());
+    Exception expected = new RoleNotFoundException(DEFAULT_ROLE_ID);
     
-    assertThrows(RoleNotFoundException.class, () -> sut.removeRole(DEFAULT_ID, role).block());
+    Mono<KpUserDetails> result = sut.removeRole(DEFAULT_ID, role);
     
-    verify(repository).findById(DEFAULT_ID);
-    verify(jpaRoleReadService).retrieve(DEFAULT_ROLE_ID);
+    
+    checkException(result, expected);
     
     log.exit();
   }
@@ -255,4 +236,18 @@ public class R2dbcUserRoleManagementServiceTest {
     
     log.exit();
   }
+
+  
+  private static void checkException(final Mono<KpUserDetails> result, final Exception expected) {
+    try {
+      result.block();
+      
+      fail("Expected exception to be thrown, but it was not.");
+    } catch (Exception e) {
+      log.info(e.getCause().getMessage(), e.getCause().getCause());
+      
+      assertInstanceOf(expected.getClass(), e.getCause());
+    }
+  }
+  
 }

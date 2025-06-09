@@ -35,8 +35,5 @@ public interface ApiKeyWriteService {
   
   Mono<? extends ApiKey> refresh(@NotNull UUID apiKeyId, long days) throws ApiKeyNotFoundException;
   
-  Mono<Void> delete(@NotNull UUID apiKeyId);
-  default Mono<Void> remove(@NotNull UUID apiKeyId) {
-    return delete(apiKeyId);
-  }
+  void deleteById(@NotNull UUID apiKeyId);
 }

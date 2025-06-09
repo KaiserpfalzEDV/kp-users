@@ -98,6 +98,7 @@ public class R2dbcRoleWriteService implements RoleWriteService {
     log.entry(id, namespace);
     
     Mono<KpRole> result = repository.findById(id)
+        .switchIfEmpty(Mono.error(new RoleNotFoundException(id)))
         .map(role -> role.toBuilder().nameSpace(namespace).build())
         .flatMap(repository::save)
         .doOnSuccess(role -> {
@@ -119,6 +120,7 @@ public class R2dbcRoleWriteService implements RoleWriteService {
     log.entry(id, name);
     
     Mono<KpRole> result = repository.findById(id)
+        .switchIfEmpty(Mono.error(new RoleNotFoundException(id)))
         .map(role -> role.toBuilder().name(name).build())
         .flatMap(repository::save)
         .doOnSuccess(role -> {

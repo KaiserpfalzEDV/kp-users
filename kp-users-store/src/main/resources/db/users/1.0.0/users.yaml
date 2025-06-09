@@ -24,13 +24,6 @@ databaseChangeLog:
               unique: true
               uniqueConstraintName: USERS_ID_UK
         - column:
-            name: VERSION
-            type: INT
-            defaultValueNumeric: "0"
-            constraints:
-              nullable: false
-              notNullConstraintName: USERS_VERSION_NN
-        - column:
             name: REV_ID
             type: INT
             defaultValueNumeric: "0"

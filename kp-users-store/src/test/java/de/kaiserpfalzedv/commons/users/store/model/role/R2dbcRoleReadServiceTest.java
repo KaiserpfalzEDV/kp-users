@@ -94,7 +94,7 @@ public class R2dbcRoleReadServiceTest {
   void shouldReturnListOfRolesWhenRolesExist() {
     log.entry();
     
-    when(r2dbcRoleRepository.findAll()).thenReturn(Flux.just(DEFAULT_ROLE, DEFAULT_ROLE));
+    when(r2dbcRoleRepository.findAll()).thenReturn(Flux.just(DEFAULT_ROLE));
     
     List<KpRole> result = sut.retrieveAll().collectList().block();
     log.debug("result. roles={}", result);
@@ -109,13 +109,13 @@ public class R2dbcRoleReadServiceTest {
   void shouldReturnListOfRolesInNamespaceWhenRolesInNameSpaceExist() {
     log.entry();
     
-    when(r2dbcRoleRepository.findByNameSpace(DEFAULT_ROLE.getNameSpace())).thenReturn(Flux.just(DEFAULT_ROLE, DEFAULT_ROLE));
+    when(r2dbcRoleRepository.findByNameSpace(DEFAULT_ROLE.getNameSpace())).thenReturn(Flux.just(DEFAULT_ROLE));
     
     List<KpRole> result = sut.retrieveAllFromNamespace(DEFAULT_ROLE.getNameSpace()).collectList().block();
     log.debug("result. roles={}", result);
     
     assertNotNull(result);
-    assertEquals(2, result.size());
+    assertEquals(1, result.size());
     
     log.exit();
   }

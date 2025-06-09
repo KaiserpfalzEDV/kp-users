@@ -18,13 +18,13 @@
 package de.kaiserpfalzedv.commons.users.store.model.role;
 
 
-import de.kaiserpfalzedv.commons.api.events.EventBus;
 import de.kaiserpfalzedv.commons.users.domain.model.role.KpRole;
 import de.kaiserpfalzedv.commons.users.domain.model.role.RoleCantBeCreatedException;
 import de.kaiserpfalzedv.commons.users.domain.model.role.RoleNotFoundException;
 import de.kaiserpfalzedv.commons.users.domain.model.role.RoleToImpl;
 import de.kaiserpfalzedv.commons.users.domain.model.role.events.RoleCreatedEvent;
 import de.kaiserpfalzedv.commons.users.domain.model.role.events.RoleRemovedEvent;
+import de.kaiserpfalzedv.commons.users.domain.model.role.events.RoleUpdateNameEvent;
 import de.kaiserpfalzedv.commons.users.domain.model.role.events.RoleUpdateNameSpaceEvent;
 import lombok.extern.slf4j.XSlf4j;
 import org.junit.jupiter.api.AfterEach;
@@ -34,13 +34,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DuplicateKeyException;
 import reactor.core.publisher.Mono;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.*;
 
 /**
@@ -51,17 +53,10 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 @XSlf4j
 public class R2dbcRoleWriteServiceTest {
-  @InjectMocks
-  private R2dbcRoleWriteService sut;
-  
-  @Mock
-  private R2dbcRoleRepository repository;
-  
-  @Mock
-  private EventBus bus;
-  
-  @Mock
-  private RoleToImpl toJpa;
+  @InjectMocks private R2dbcRoleWriteService sut;
+  @Mock private R2dbcRoleRepository repository;
+  @Mock private ApplicationEventPublisher bus;
+  @Mock private RoleToImpl toJpa;
   
   
   @BeforeEach
@@ -85,7 +80,7 @@ public class R2dbcRoleWriteServiceTest {
     
     sut.create(DEFAULT_ROLE).block();
     
-    verify(bus).post(any(RoleCreatedEvent.class));
+    verify(bus).publishEvent(any(RoleCreatedEvent.class));
     
     log.exit();
   }
@@ -95,11 +90,13 @@ public class R2dbcRoleWriteServiceTest {
     log.entry();
 
     when(toJpa.apply(DEFAULT_ROLE)).thenReturn(DEFAULT_JPA_ROLE);
-    when(repository.save(DEFAULT_JPA_ROLE)).thenReturn(Mono.error(new OptimisticLockingFailureException("Test")));
+    when(repository.save(DEFAULT_JPA_ROLE)).thenReturn(Mono.error(new DuplicateKeyException("Test")));
+    Exception expected = new RoleCantBeCreatedException(DEFAULT_ROLE, new DuplicateKeyException("Test"));
     
-    assertThrows(RoleCantBeCreatedException.class, () -> sut.create(DEFAULT_ROLE).block());
+    Mono<KpRole> result = sut.create(DEFAULT_ROLE);
     
-    verify(bus, never()).post(any(RoleCreatedEvent.class));
+    checkException(result, expected);
+    verify(bus, never()).publishEvent(any(RoleCreatedEvent.class));
   }
   
   
@@ -112,7 +109,7 @@ public class R2dbcRoleWriteServiceTest {
     
     sut.updateNameSpace(DEFAULT_ID, "new-namespace").block();
     
-    verify(bus).post(any(RoleUpdateNameSpaceEvent.class));
+    verify(bus).publishEvent(any(RoleUpdateNameSpaceEvent.class));
     
     log.exit();
   }
@@ -122,10 +119,13 @@ public class R2dbcRoleWriteServiceTest {
     log.entry();
     
     when(repository.findById(DEFAULT_ID)).thenReturn(Mono.empty());
+    Exception expected = new RoleNotFoundException(DEFAULT_ID);
+
+    Mono<KpRole> result = sut.updateNameSpace(DEFAULT_ID, "new-namespace");
     
-    assertThrows(RoleNotFoundException.class, () -> sut.updateNameSpace(DEFAULT_ID, "new-namespace").block());
     
-    verify(bus, never()).post(any(RoleUpdateNameSpaceEvent.class));
+    checkException(result, expected);
+    verify(bus, never()).publishEvent(any(RoleUpdateNameSpaceEvent.class));
     
     log.exit();
   }
@@ -140,7 +140,7 @@ public class R2dbcRoleWriteServiceTest {
     
     sut.updateName(DEFAULT_ID, "new-name").block();
     
-    verify(bus).post(any(RoleUpdateNameSpaceEvent.class));
+    verify(bus).publishEvent(any(RoleUpdateNameEvent.class));
     
     log.exit();
   }
@@ -150,12 +150,24 @@ public class R2dbcRoleWriteServiceTest {
     log.entry();
     
     when(repository.findById(DEFAULT_ID)).thenReturn(Mono.empty());
+    Exception expected = new RoleNotFoundException(DEFAULT_ID);
+
+    Mono<KpRole> result = sut.updateName(DEFAULT_ID, "new-name");
     
-    assertThrows(RoleNotFoundException.class, () -> sut.updateName(DEFAULT_ID, "new-name").block());
-    
-    verify(bus, never()).post(any(RoleUpdateNameSpaceEvent.class));
+    checkException(result, expected);
+    verify(bus, never()).publishEvent(any(RoleUpdateNameEvent.class));
     
     log.exit();
+  }
+  
+  private static void checkException(final Mono<KpRole> result, final Exception expected) {
+    try {
+      result.block();
+      fail("Expected an exception to be thrown, but it was not.");
+    } catch (Exception e) {
+      log.info("Caught exception: type={}, message={}", e.getCause().getClass().getSimpleName(), e.getCause().getMessage());
+      assertInstanceOf(expected.getClass(), e.getCause());
+    }
   }
   
   
@@ -163,26 +175,24 @@ public class R2dbcRoleWriteServiceTest {
   void shouldRemoveRoleWhenRoleExists() {
     log.entry();
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.just(DEFAULT_JPA_ROLE));
+    when(repository.deleteById(DEFAULT_ID)).thenReturn(Mono.empty());
     
     sut.remove(DEFAULT_ID).block();
     
-    verify(repository).delete(DEFAULT_JPA_ROLE);
-    verify(bus).post(any(RoleRemovedEvent.class));
+    verify(bus).publishEvent(any(RoleRemovedEvent.class));
     
     log.exit();
   }
   
   @Test
-  void shouldDoNothingWhenRemovingANonExistingRole() {
+  void shouldSendRemoveEventWhenRemovingANonExistingRole() {
     log.entry();
     
-    when(repository.findById(DEFAULT_ID)).thenReturn(Mono.empty());
+    when(repository.deleteById(any(UUID.class))).thenReturn(Mono.empty());
     
-    sut.remove(DEFAULT_ID).block();
+    sut.remove(UUID.randomUUID()).block();
     
-    verify(repository, never()).delete(any(KpRole.class));
-    verify(bus, never()).post(any(RoleRemovedEvent.class));
+    verify(bus).publishEvent(any(RoleRemovedEvent.class));
     
     log.exit();
   }

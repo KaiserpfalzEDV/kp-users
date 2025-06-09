@@ -19,7 +19,7 @@ package de.kaiserpfalzedv.commons.users.store.service;
 
 
 import de.kaiserpfalzedv.commons.users.domain.model.apikey.events.*;
-import de.kaiserpfalzedv.commons.users.store.model.apikey.R2dbcApiKeyWriteService;
+import de.kaiserpfalzedv.commons.users.store.model.apikey.R2dbcApiKeyRepository;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.validation.constraints.NotNull;
@@ -44,7 +44,7 @@ import java.time.Duration;
 @XSlf4j
 public class R2dbcApiKeyEventsHandler implements ApiKeyEventsHandler, AutoCloseable {
   public static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(1L);
-  private final R2dbcApiKeyWriteService writeService;
+  private final R2dbcApiKeyRepository writeService;
   
   @Value("${spring.application.system:kp-users}")
   private String system = "kp-users";
@@ -82,7 +82,7 @@ public class R2dbcApiKeyEventsHandler implements ApiKeyEventsHandler, AutoClosea
     log.entry(event);
     
     if (eventIsFromExternalSystem(event)) {
-      writeService.delete(event.getApiKey().getId()).block(DEFAULT_TIMEOUT);
+      writeService.deleteById(event.getApiKey().getId());
     }
 
     log.exit();
