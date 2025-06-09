@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
@@ -131,9 +132,11 @@ public class R2dbcUserReadServiceTest {
     when(repository.findAll()).thenReturn(Flux.empty());
   
     var result = sut.findAll();
-    log.debug("Result: users={}", result);
-  
-    assertTrue(result.collectList().blockOptional().isEmpty());
+    List<KpUserDetails> data = result.collectList().block();
+    log.debug("Result: users={}, data={}", result, data);
+    
+    assertNotNull(data);
+    assertTrue(data.isEmpty());
   
     log.exit();
   }
@@ -160,9 +163,11 @@ public class R2dbcUserReadServiceTest {
     when(repository.findByNameSpace("namespace")).thenReturn(Flux.empty());
   
     var result = sut.findByNamespace("namespace");
-    log.debug("Result: users={}", result);
+    var data = result.collectList().block();
+    log.debug("Result: users={}, data={}", result, data);
   
-    assertTrue(result.collectList().blockOptional().isEmpty());
+    assertNotNull(data);
+    assertTrue(data.isEmpty());
   
     log.exit();
   }
