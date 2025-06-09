@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.util.UUID;
 
@@ -68,9 +69,10 @@ public class R2dbcUserDataManagementService extends R2dbcAbstractManagementServi
 
     Mono<KpUserDetails> result = repository.findById(id)
         .switchIfEmpty(Mono.error(new UserNotFoundException(id)))
-        .onErrorMap(UserNotFoundException.class, e -> log.throwing(e))
+        .onErrorMap(UserNotFoundException.class, log::throwing)
         .map(u -> u.toBuilder().issuer(issuer).subject(sub).build())
-        .map(u -> saveUser(u,
+        .publishOn(Schedulers.boundedElastic())
+        .mapNotNull(u -> saveUser(u,
             UserSubjectModificationEvent.builder().application(system).user(u).build(),
             "User subject updated",
             "User subject updating error").block()
@@ -87,7 +89,7 @@ public class R2dbcUserDataManagementService extends R2dbcAbstractManagementServi
 
     Mono<KpUserDetails> result = repository.findById(id)
         .switchIfEmpty(Mono.error(new UserNotFoundException(id)))
-        .onErrorMap(UserNotFoundException.class, e -> log.throwing(e))
+        .onErrorMap(UserNotFoundException.class, log::throwing)
         .map(u -> u.toBuilder().nameSpace(namespace).build())
         .flatMap(u -> saveUser(u,
             UserNamespaceModificationEvent.builder().application(system).user(u).build(),

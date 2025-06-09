@@ -41,9 +41,9 @@ public class R2dbcAbstractManagementService {
    * @param user           The user to save.
    * @param successMessage The message to log on success.
    * @param errorMessage   The message to log on error.
+   *
    * @return A Mono containing the saved user or an error if the save failed.
    */
-  @Deprecated
   protected Mono<KpUserDetails> saveUser(
       @NotNull KpUserDetails user,
       @NotNull final String successMessage,
@@ -54,11 +54,23 @@ public class R2dbcAbstractManagementService {
     Mono<KpUserDetails> result = repository.save(user)
         .switchIfEmpty(Mono.error(() -> new UserNotFoundException(user.getId())))
         .doOnSuccess(savedUser -> log.info("{}. user={}", successMessage, savedUser))
-        .doOnError(error -> log.error("{}: {}. user={}", errorMessage, error.getMessage(), user));
+        .doOnError(error -> log.error("{}: {}. user={}", errorMessage, error.getMessage(), user))
+        ;
     
     return log.exit(result);
   }
   
+  
+  /**
+   * Saves the user and publishes the event.
+   *
+   * @param user           The user to save.
+   * @param event          The event to publish.
+   * @param successMessage The message to log on success.
+   * @param errorMessage   The message to log on error.
+   *
+   * @return A Mono containing the saved user or an error if the save failed.
+   */
   protected <T extends UserBaseEvent> Mono<KpUserDetails> saveUser(
       @NotNull KpUserDetails user,
       T event,
@@ -67,13 +79,9 @@ public class R2dbcAbstractManagementService {
   ) {
     log.entry(user, successMessage, errorMessage);
     
-    Mono<KpUserDetails> result = repository.save(user)
-        .switchIfEmpty(Mono.error(() -> new UserNotFoundException(user.getId())))
-        .doOnSuccess(savedUser -> {
-          log.info("{}. user={}", successMessage, savedUser);
-          bus.publishEvent(event);
-        })
-        .doOnError(error -> log.error("{}: {}. user={}", errorMessage, error.getMessage(), user));
+    Mono<KpUserDetails> result = saveUser(user, successMessage, errorMessage)
+        .doOnSuccess(savedUser -> bus.publishEvent(event))
+        ;
     
     return log.exit(result);
   }

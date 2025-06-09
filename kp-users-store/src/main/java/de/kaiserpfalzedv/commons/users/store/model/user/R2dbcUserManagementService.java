@@ -18,11 +18,11 @@
 package de.kaiserpfalzedv.commons.users.store.model.user;
 
 
-import de.kaiserpfalzedv.commons.users.domain.model.apikey.events.ApiKeyRevokedEvent;
 import de.kaiserpfalzedv.commons.users.domain.model.user.*;
+import de.kaiserpfalzedv.commons.users.domain.model.user.events.state.UserActivatedEvent;
+import de.kaiserpfalzedv.commons.users.domain.model.user.events.state.UserCreatedEvent;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.state.UserRemovedEvent;
 import de.kaiserpfalzedv.commons.users.domain.services.UserManagementService;
-import de.kaiserpfalzedv.commons.users.store.model.apikey.R2dbcApiKeyRepository;
 import jakarta.validation.constraints.NotNull;
 import lombok.ToString;
 import lombok.extern.slf4j.XSlf4j;
@@ -33,9 +33,6 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
-import java.time.Duration;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.util.UUID;
 
 
@@ -49,22 +46,18 @@ import java.util.UUID;
 @ToString(onlyExplicitlyIncluded = true)
 @XSlf4j
 public class R2dbcUserManagementService extends R2dbcAbstractManagementService implements UserManagementService {
-  private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(1L);
   
-  private final R2dbcApiKeyRepository r2dbcApiKeyRepository;
   private final UserToKpUserDetailsImpl toImpl;
 
   public R2dbcUserManagementService(
       @NotNull final R2dbcUserRepository repository,
       @NotNull final ApplicationEventPublisher bus,
-      @NotNull final R2dbcApiKeyRepository r2dbcApiKeyRepository,
       @NotNull final UserToKpUserDetailsImpl toImpl,
       @Value("${spring.application.system:kp-users}") final String system
   ) {
     super(repository, bus, system);
-    log.entry(repository, bus, r2dbcApiKeyRepository, system);
+    log.entry(repository, bus, system);
     
-    this.r2dbcApiKeyRepository = r2dbcApiKeyRepository;
     this.toImpl = toImpl;
     
     log.exit();
@@ -75,13 +68,15 @@ public class R2dbcUserManagementService extends R2dbcAbstractManagementService i
   public Mono<KpUserDetails> create(@NotNull final User user) {
     log.entry(user);
     
-    Mono<KpUserDetails> result = repository.save(toImpl.apply(user));
-    result = result
-        .switchIfEmpty(Mono.error(() -> new UserCantBeCreatedException(user)))
+    Mono<KpUserDetails> result = repository.save(toImpl.apply(user))
         .onErrorMap(IllegalArgumentException.class, e -> new UserCantBeCreatedException(user, e))
         .onErrorMap(OptimisticLockingFailureException.class, e -> new UserCantBeCreatedException(user, e))
-        .doOnSuccess(u -> log.info("User created successfully. id={}", u.getId()))
-        .doOnError(e -> log.error("Error creating user: {}", e.getMessage(), e));
+        .switchIfEmpty(Mono.error(new UserCantBeCreatedException(user)))
+        .map(u -> {
+          log.info("User created successfully. id={}", u.getId());
+          bus.publishEvent(UserCreatedEvent.builder().application(system).user(u).build());
+          return u;
+        });
     
     return log.exit(result);
   }
@@ -91,26 +86,17 @@ public class R2dbcUserManagementService extends R2dbcAbstractManagementService i
   public Mono<KpUserDetails> delete(final UUID id) {
     log.entry(id);
     
-    Mono<KpUserDetails> result = repository.findById(id);
-    result = result
-        .switchIfEmpty(Mono.error(() -> new UserNotFoundException(id)))
-        .map(user -> user.toBuilder().deleted(OffsetDateTime.now(ZoneOffset.UTC)).build())
+    Mono<KpUserDetails> result = repository.findById(id)
+        .switchIfEmpty(Mono.error(new UserNotFoundException(id)))
+        .map(user -> user.delete(bus))
         .publishOn(Schedulers.boundedElastic())
-        .doOnSuccess(u -> revokeAllApiKeysForUser(u).block(DEFAULT_TIMEOUT))
-        .flatMap(u -> saveUser(u, "User deleted", "User deleting error"));
-    
-    return log.exit(result);
-  }
-  
-  private Mono<Void> revokeAllApiKeysForUser(final User id) {
-    log.entry(id);
-    
-    Mono<Void> result = r2dbcApiKeyRepository.deleteAll(r2dbcApiKeyRepository.findByUserId(id.getId()));
-    result = result
-        .doOnSuccess(k -> {
-          log.info("Revoked all API keys for user. user={}", id);
-          bus.publishEvent(ApiKeyRevokedEvent.builder().application(system).user(id).build());
-        });
+        .mapNotNull(u -> saveUser(
+            u,
+            "User deleted",
+            "User deleting error"
+          ).block()
+        )
+    ;
     
     return log.exit(result);
   }
@@ -120,12 +106,17 @@ public class R2dbcUserManagementService extends R2dbcAbstractManagementService i
   public Mono<KpUserDetails> undelete(final UUID id) {
     log.entry(id);
     
-    Mono<KpUserDetails> result = repository.findById(id);
-    result = result
-        .switchIfEmpty(Mono.error(() -> new UserNotFoundException(id)))
-        .onErrorMap(UserNotFoundException.class, e -> e)
+    Mono<KpUserDetails> result = repository.findById(id)
+        .switchIfEmpty(Mono.error(new UserNotFoundException(id)))
         .map(user -> user.toBuilder().deleted(null).build())
-        .flatMap(u -> saveUser(u, "User undeleted", "User undeleting error"));
+        .publishOn(Schedulers.boundedElastic())
+        .mapNotNull(u -> saveUser(
+            u,
+            UserActivatedEvent.builder().application(system).user(u).build(),
+            "User undeleted",
+            "User undeleting error")
+            .block()
+        );
     
     return log.exit(result);
   }
@@ -136,12 +127,9 @@ public class R2dbcUserManagementService extends R2dbcAbstractManagementService i
     log.entry(id);
     
     Mono<Void> result = repository.deleteById(id);
-    result = result
-        .doOnSuccess(v -> {
-          bus.publishEvent(UserRemovedEvent.builder().application(system).id(id).build());
-          log.info("User removed successfully. id={}", id);
-        })
-        .doOnError(e -> log.error("Error removing user: {}", e.getMessage(), e));
+    
+    log.info("User removed successfully. id={}", id);
+    bus.publishEvent(UserRemovedEvent.builder().application(system).id(id).build());
 
     return log.exit(result);
   }
