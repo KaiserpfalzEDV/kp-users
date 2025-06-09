@@ -70,7 +70,6 @@ public class R2dbcApiKeyRepository implements ApiKeyReadService, ApiKeyWriteServ
             .from("APIKEYS")
             .matching(query(where("user").is("userId")))
             .all()
-            .map(e -> (ApiKeyImpl) e)
     );
   }
   

@@ -23,7 +23,6 @@ import jakarta.validation.constraints.NotBlank;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -33,7 +32,7 @@ import java.util.UUID;
 public interface UserReadService<T extends User> {
   Mono<T> findById(@NotBlank UUID id);
   Mono<T> findByUsername(@NotBlank final String nameSpace, @NotBlank final String name);
-  Optional<T> findByOauth(@NotBlank final String issuer, @NotBlank final String sub);
+  Mono<T> findByIssuerAndSubject(@NotBlank final String issuer, @NotBlank final String sub);
   
   Flux<T> findAll();
   Flux<T> findByNamespace(@NotBlank final String nameSpace);

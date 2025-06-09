@@ -114,7 +114,7 @@ public class R2DbcUserRepositoryReadServiceTest {
     when(repository.findByIssuerAndSubject(DEFAULT_USER.getIssuer(), DEFAULT_USER.getSubject())).thenReturn(Mono.just(DEFAULT_USER));
     prepareRoleAddingToUser();
     
-    Optional<KpUserDetails> result = sut.findByOauth(DEFAULT_USER.getIssuer(), DEFAULT_USER.getSubject());
+    Optional<KpUserDetails> result = sut.findByIssuerAndSubject(DEFAULT_USER.getIssuer(), DEFAULT_USER.getSubject()).blockOptional();
     log.debug("Result. user={}", result.orElse(null));
     
     assertTrue(result.isPresent());
@@ -165,6 +165,7 @@ public class R2DbcUserRepositoryReadServiceTest {
     var result = sut.findByNamespace("namespace").collectList().block();
     log.debug("Result: users={}", result);
 
+    assertNotNull(result);
     assertTrue(result.contains(DEFAULT_USER));
   
     log.exit();

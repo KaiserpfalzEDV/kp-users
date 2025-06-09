@@ -164,7 +164,7 @@ public class R2DbcUserRepositoryRoleManagementServiceTest {
   }
   
   @Test
-  void shouldRemoveRoleFromUserWhenUserWithRoleExists() throws UserNotFoundException, RoleNotFoundException {
+  void shouldRemoveRoleFromUserWhenUserWithRoleExists() {
     log.entry();
     
     user.addRole(role, bus);
@@ -183,7 +183,7 @@ public class R2DbcUserRepositoryRoleManagementServiceTest {
   }
   
   @Test
-  void shouldDoNothingWhenUserWithoutRoleExists() throws UserNotFoundException, RoleNotFoundException {
+  void shouldDoNothingWhenUserWithoutRoleExists() {
     log.entry();
     
     when(roleRepository.findById(DEFAULT_ROLE_ID)).thenReturn(Mono.just(role));

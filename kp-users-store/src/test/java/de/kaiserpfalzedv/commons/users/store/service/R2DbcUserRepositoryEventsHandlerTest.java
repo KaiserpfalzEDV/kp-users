@@ -687,7 +687,7 @@ public class R2DbcUserRepositoryEventsHandlerTest {
   
   
   @Test
-  void shouldRemoveRoleFromUserWhenEventIsFromExternalSystem() throws UserNotFoundException, RoleNotFoundException {
+  void shouldRemoveRoleFromUserWhenEventIsFromExternalSystem() {
     log.entry();
     
     // given
@@ -710,7 +710,7 @@ public class R2DbcUserRepositoryEventsHandlerTest {
   }
   
   @Test
-  void shouldHandleUserNotFoundExceptionRemovingRoleFromUserWhenEventIsFromExternalSystem() throws UserNotFoundException, RoleNotFoundException {
+  void shouldHandleUserNotFoundExceptionRemovingRoleFromUserWhenEventIsFromExternalSystem() {
     log.entry();
     
     // given
@@ -734,7 +734,7 @@ public class R2DbcUserRepositoryEventsHandlerTest {
   }
   
   @Test
-  void shouldHandleRoleNotFoundExeptionRemovingRoleFromUserWhenEventIsFromExternalSystem() throws UserNotFoundException, RoleNotFoundException {
+  void shouldHandleRoleNotFoundExeptionRemovingRoleFromUserWhenEventIsFromExternalSystem() {
     log.entry();
     
     // given

@@ -95,7 +95,7 @@ public class R2dbcApiKeyWriteServiceTest {
     } catch (Exception e) {
       log.debug("Caught exception: type={}, message={}", e.getCause().getClass().getSimpleName(), e.getCause().getMessage());
       
-      assertTrue(e.getCause() instanceof InvalidApiKeyException, "Expected InvalidApiKeyException, but got: " + e.getCause().getClass().getName());
+      assertInstanceOf(InvalidApiKeyException.class, e.getCause(), "Expected InvalidApiKeyException, but got: " + e.getCause().getClass().getName());
     }
     
     
@@ -136,7 +136,7 @@ public class R2dbcApiKeyWriteServiceTest {
     } catch (Exception e) {
       log.debug("Caught exception: type={}, message={}", e.getCause().getClass().getSimpleName(), e.getCause().getMessage());
       
-      assertTrue(e.getCause() instanceof ApiKeyNotFoundException, "Expected ApiKeyNotFoundException, but got: " + e.getCause().getClass().getName());
+      assertInstanceOf(ApiKeyNotFoundException.class, e.getCause(), "Expected ApiKeyNotFoundException, but got: " + e.getCause().getClass().getName());
     }
     
     log.exit();

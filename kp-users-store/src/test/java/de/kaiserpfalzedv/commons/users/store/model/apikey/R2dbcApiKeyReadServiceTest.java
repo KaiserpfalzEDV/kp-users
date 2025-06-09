@@ -19,7 +19,6 @@ package de.kaiserpfalzedv.commons.users.store.model.apikey;
 
 
 import de.kaiserpfalzedv.commons.users.domain.model.apikey.ApiKeyImpl;
-import de.kaiserpfalzedv.commons.users.domain.model.apikey.ApiKeyToImpl;
 import de.kaiserpfalzedv.commons.users.domain.model.user.KpUserDetails;
 import lombok.extern.slf4j.XSlf4j;
 import org.junit.jupiter.api.AfterEach;
@@ -29,7 +28,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.data.r2dbc.core.ReactiveSelectOperation;
 import reactor.core.publisher.Flux;
@@ -52,8 +50,6 @@ import static org.mockito.Mockito.*;
 public class R2dbcApiKeyReadServiceTest {
   @InjectMocks private R2dbcApiKeyRepository sut;
   @Mock private R2dbcApiKeyInternalRepository repository;
-  @Mock private ApplicationEventPublisher bus;
-  @Mock private ApiKeyToImpl toImpl;
   
   @Mock private R2dbcEntityTemplate template;
   @Mock private ReactiveSelectOperation.ReactiveSelect<ApiKeyImpl> reactiveSelect;

@@ -3,7 +3,7 @@ package de.kaiserpfalzedv.commons.users.client.service;
 
 import de.kaiserpfalzedv.commons.users.domain.model.user.KpUserDetails;
 import de.kaiserpfalzedv.commons.users.domain.model.user.User;
-import de.kaiserpfalzedv.commons.users.store.model.user.R2dbcUserRepository;
+import de.kaiserpfalzedv.commons.users.domain.services.UserReadService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.XSlf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +22,7 @@ import java.util.Optional;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @XSlf4j
 public class KpUserDetailsService implements UserDetailsService {
-  private final R2dbcUserRepository read;
+  private final UserReadService<KpUserDetails> read;
   
   /**
    *
@@ -57,7 +57,7 @@ public class KpUserDetailsService implements UserDetailsService {
   private User loadUserOrThrowException(final String username, final String[] credentials) {
     log.entry(username, credentials);
     
-    Optional<KpUserDetails> user = read.findByOauth(credentials[0], credentials[1]);
+    Optional<KpUserDetails> user = read.findByIssuerAndSubject(credentials[0], credentials[1]).blockOptional();
     
     if (user.isEmpty()) {
       throw log.throwing(new UsernameNotFoundException(username));

@@ -16,7 +16,6 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.springframework.data.relational.core.query.Criteria.where;
@@ -78,11 +77,6 @@ public class R2dbcUserRepository implements UserReadService<KpUserDetails> {
   @Override
   public Mono<KpUserDetails> findByUsername(final String nameSpace, final String name) {
     return findByNameSpaceAndName(nameSpace, name);
-  }
-  
-  @Override
-  public Optional<KpUserDetails> findByOauth(final String issuer, final String sub) {
-    return findByIssuerAndSubject(issuer, sub).blockOptional();
   }
   
   public Flux<KpUserDetails> findAll() {
