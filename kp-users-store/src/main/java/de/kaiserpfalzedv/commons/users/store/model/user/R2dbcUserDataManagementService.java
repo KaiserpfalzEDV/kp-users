@@ -20,6 +20,7 @@ package de.kaiserpfalzedv.commons.users.store.model.user;
 
 import de.kaiserpfalzedv.commons.users.domain.model.user.KpUserDetails;
 import de.kaiserpfalzedv.commons.users.domain.model.user.UserNotFoundException;
+import de.kaiserpfalzedv.commons.users.domain.model.user.events.modification.*;
 import de.kaiserpfalzedv.commons.users.domain.services.UserDataManagementService;
 import jakarta.annotation.PreDestroy;
 import jakarta.validation.constraints.NotNull;
@@ -30,7 +31,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import java.util.Objects;
 import java.util.UUID;
 
 
@@ -67,10 +67,15 @@ public class R2dbcUserDataManagementService extends R2dbcAbstractManagementServi
     log.entry(id, issuer, sub);
 
     Mono<KpUserDetails> result = repository.findById(id)
-        .switchIfEmpty(Mono.error(() -> new UserNotFoundException(id)))
-        .filter(Objects::nonNull)
+        .switchIfEmpty(Mono.error(new UserNotFoundException(id)))
+        .onErrorMap(UserNotFoundException.class, e -> log.throwing(e))
         .map(u -> u.toBuilder().issuer(issuer).subject(sub).build())
-        .flatMap(u -> saveUser(u, "User subject updated", "User subject updating error"));
+        .map(u -> saveUser(u,
+            UserSubjectModificationEvent.builder().application(system).user(u).build(),
+            "User subject updated",
+            "User subject updating error").block()
+        )
+        ;
         
     return log.exit(result);
   }
@@ -81,9 +86,14 @@ public class R2dbcUserDataManagementService extends R2dbcAbstractManagementServi
     log.entry(id, namespace);
 
     Mono<KpUserDetails> result = repository.findById(id)
-        .switchIfEmpty(Mono.error(() -> new UserNotFoundException(id)))
+        .switchIfEmpty(Mono.error(new UserNotFoundException(id)))
+        .onErrorMap(UserNotFoundException.class, e -> log.throwing(e))
         .map(u -> u.toBuilder().nameSpace(namespace).build())
-        .flatMap(u -> saveUser(u, "User namespace updated", "User namespace updating error"));
+        .flatMap(u -> saveUser(u,
+            UserNamespaceModificationEvent.builder().application(system).user(u).build(),
+            "User namespace updated",
+            "User namespace updating error"))
+        ;
     
     return log.exit(result);
   }
@@ -96,7 +106,12 @@ public class R2dbcUserDataManagementService extends R2dbcAbstractManagementServi
     Mono<KpUserDetails> result = repository.findById(id)
         .switchIfEmpty(Mono.error(() -> new UserNotFoundException(id)))
         .map(u -> u.toBuilder().name(name).build())
-        .flatMap(u -> saveUser(u, "User name updated", "User name updating error"));
+        .flatMap(u -> saveUser(
+            u,
+            UserNameModificationEvent.builder().application(system).user(u).build(),
+            "User name updated",
+            "User name updating error"
+        ));
     
     return log.exit(result);
   }
@@ -109,7 +124,12 @@ public class R2dbcUserDataManagementService extends R2dbcAbstractManagementServi
     Mono<KpUserDetails> result = repository.findById(id)
         .switchIfEmpty(Mono.error(() -> new UserNotFoundException(id)))
         .map(u -> u.toBuilder().nameSpace(namespace).name(name).build())
-        .flatMap(u -> saveUser(u, "User namespace and name updated", "User namespace and name updating error"));
+        .flatMap(u -> saveUser(
+            u,
+            UserNamespaceAndNameModificationEvent.builder().application(system).user(u).build(),
+            "User namespace and name updated",
+            "User namespace and name updating error"
+        ));
     
     return log.exit(result);
   }
@@ -122,7 +142,12 @@ public class R2dbcUserDataManagementService extends R2dbcAbstractManagementServi
     Mono<KpUserDetails> result = repository.findById(id)
         .switchIfEmpty(Mono.error(() -> new UserNotFoundException(id)))
         .map(u -> u.toBuilder().email(email).build())
-        .flatMap(u -> saveUser(u, "User email updated", "User email updating error"));
+        .flatMap(u -> saveUser(
+            u,
+            UserEmailModificationEvent.builder().application(system).user(u).build(),
+            "User email updated",
+            "User email updating error"
+        ));
     
     return log.exit(result);
   }
@@ -135,7 +160,12 @@ public class R2dbcUserDataManagementService extends R2dbcAbstractManagementServi
     Mono<KpUserDetails> result = repository.findById(id)
         .switchIfEmpty(Mono.error(() -> new UserNotFoundException(id)))
         .map(u -> u.toBuilder().discord(discord).build())
-        .flatMap(u -> saveUser(u, "User Discord updated", "User Discord updating error"));
+        .flatMap(u -> saveUser(
+            u,
+            UserDiscordModificationEvent.builder().application(system).user(u).build(),
+            "User Discord updated",
+            "User Discord updating error"
+        ));
 
     return log.exit(result);
   }

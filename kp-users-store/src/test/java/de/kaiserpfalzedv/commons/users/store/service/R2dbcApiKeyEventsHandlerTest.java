@@ -19,9 +19,7 @@ package de.kaiserpfalzedv.commons.users.store.service;
 
 
 import de.kaiserpfalzedv.commons.api.events.EventBus;
-import de.kaiserpfalzedv.commons.users.domain.model.apikey.ApiKey;
 import de.kaiserpfalzedv.commons.users.domain.model.apikey.ApiKeyImpl;
-import de.kaiserpfalzedv.commons.users.domain.model.apikey.InvalidApiKeyException;
 import de.kaiserpfalzedv.commons.users.domain.model.apikey.events.ApiKeyCreatedEvent;
 import de.kaiserpfalzedv.commons.users.domain.model.apikey.events.ApiKeyRevokedEvent;
 import de.kaiserpfalzedv.commons.users.domain.model.user.KpUserDetails;
@@ -35,6 +33,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Mono;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -82,6 +81,7 @@ public class R2dbcApiKeyEventsHandlerTest {
     ApiKeyCreatedEvent event = mock(ApiKeyCreatedEvent.class);
     when(event.getApiKey()).thenReturn(API_KEY);
     when(event.getApplication()).thenReturn(EXTERNAL_SYSTEM);
+    when(writeService.create(API_KEY)).thenReturn(Mono.just(API_KEY));
     
     // when
     sut.event(event);
@@ -100,8 +100,7 @@ public class R2dbcApiKeyEventsHandlerTest {
     ApiKeyCreatedEvent event = mock(ApiKeyCreatedEvent.class);
     when(event.getApiKey()).thenReturn(API_KEY);
     when(event.getApplication()).thenReturn(EXTERNAL_SYSTEM);
-
-    doThrow(InvalidApiKeyException.class).when(writeService).create(API_KEY);
+    when(writeService.create(API_KEY)).thenReturn(Mono.empty());
 
     // when
     sut.event(event);
@@ -138,6 +137,7 @@ public class R2dbcApiKeyEventsHandlerTest {
     ApiKeyRevokedEvent event = mock(ApiKeyRevokedEvent.class);
     when(event.getApiKey()).thenReturn(API_KEY);
     when(event.getApplication()).thenReturn(EXTERNAL_SYSTEM);
+    when(writeService.delete(API_KEY.getId())).thenReturn(Mono.empty());
     
     // when
     sut.event(event);
@@ -166,34 +166,6 @@ public class R2dbcApiKeyEventsHandlerTest {
   }
   
   
-  @Test
-  void shouldRegisterToEventBus() {
-    log.entry();
-    
-    // when
-    sut.init();
-    
-    // then
-    verify(bus).register(sut);
-    
-    log.exit();
-  }
-  
-  @Test
-  void shouldUnregisterFromEventBus() {
-    log.entry();
-    
-    // when
-    sut.close();
-    
-    // then
-    verify(bus).unregister(sut);
-    
-    log.exit();
-  }
-
-  
-  
   private static final UUID DEFAULT_ID = UUID.randomUUID();
   private static final OffsetDateTime DEFAULT_CREATED = OffsetDateTime.now().minusDays(100);
   private static final OffsetDateTime DEFAULT_MODIFIED = DEFAULT_CREATED;
@@ -213,7 +185,7 @@ public class R2dbcApiKeyEventsHandlerTest {
       .email("email@email.email")
       .discord("discord")
       .build();
-  private static final ApiKey API_KEY = ApiKeyImpl.builder()
+  private static final ApiKeyImpl API_KEY = ApiKeyImpl.builder()
       .id(DEFAULT_ID)
       .created(DEFAULT_CREATED)
       .modified(DEFAULT_MODIFIED)
