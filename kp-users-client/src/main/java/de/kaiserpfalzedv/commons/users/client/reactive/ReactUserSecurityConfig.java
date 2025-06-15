@@ -18,6 +18,7 @@
 package de.kaiserpfalzedv.commons.users.client.reactive;
 
 
+import de.kaiserpfalzedv.commons.users.store.EnableR2dbcUsersStore;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.XSlf4j;
@@ -31,7 +32,9 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
  */
 @Configuration
 @EnableReactiveMethodSecurity
+@EnableR2dbcUsersStore
 @Import({
+    ReactUserAuthenticationManager.class,
     ReactUserDetailsService.class
 })
 @XSlf4j

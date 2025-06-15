@@ -18,6 +18,7 @@
 package de.kaiserpfalzedv.commons.users.store.model.user;
 
 import de.kaiserpfalzedv.commons.users.domain.model.user.KpUserDetails;
+import de.kaiserpfalzedv.commons.users.domain.model.user.User;
 import de.kaiserpfalzedv.commons.users.domain.model.user.UserToKpUserDetailsImpl;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.modification.*;
 import lombok.extern.slf4j.XSlf4j;
@@ -88,7 +89,7 @@ public class R2DbcUserRepositoryDataManagementServiceTest {
     
     when(repository.findById(DEFAULT_ID)).thenReturn(Mono.empty());
     
-    Mono<KpUserDetails> result = sut.updateSubject(DEFAULT_ID, "new-issuer", "new-subject");
+    Mono<User> result = sut.updateSubject(DEFAULT_ID, "new-issuer", "new-subject");
 
 
     checkUserNotFoundException(result);
@@ -119,7 +120,7 @@ public class R2DbcUserRepositoryDataManagementServiceTest {
     
     when(repository.findById(DEFAULT_ID)).thenReturn(Mono.empty());
     
-    Mono<KpUserDetails> result = sut.updateNamespace(DEFAULT_ID, "new-namespace");
+    Mono<User> result = sut.updateNamespace(DEFAULT_ID, "new-namespace");
     checkUserNotFoundException(result);
     
     verify(bus, never()).publishEvent(any(UserNamespaceModificationEvent.class));
@@ -148,7 +149,7 @@ public class R2DbcUserRepositoryDataManagementServiceTest {
     
     when(repository.findById(DEFAULT_ID)).thenReturn(Mono.empty());
     
-    Mono<KpUserDetails> result = sut.updateName(DEFAULT_ID, "new-name");
+    Mono<User> result = sut.updateName(DEFAULT_ID, "new-name");
     checkUserNotFoundException(result);
     
     verify(bus, never()).publishEvent(any(UserNameModificationEvent.class));
@@ -176,7 +177,7 @@ public class R2DbcUserRepositoryDataManagementServiceTest {
     
     when(repository.findById(DEFAULT_ID)).thenReturn(Mono.empty());
     
-    Mono<KpUserDetails> result = sut.updateNamespaceAndName(DEFAULT_ID, "new-namespace", "new-name");
+    Mono<User> result = sut.updateNamespaceAndName(DEFAULT_ID, "new-namespace", "new-name");
 
     checkUserNotFoundException(result);
     verify(bus, never()).publishEvent(any(UserNamespaceAndNameModificationEvent.class));
@@ -205,7 +206,7 @@ public class R2DbcUserRepositoryDataManagementServiceTest {
     
     when(repository.findById(DEFAULT_ID)).thenReturn(Mono.empty());
     
-    Mono<KpUserDetails> result = sut.updateEmail(DEFAULT_ID, "new-email@email.org");
+    Mono<User> result = sut.updateEmail(DEFAULT_ID, "new-email@email.org");
     
     checkUserNotFoundException(result);
     verify(bus, never()).publishEvent(any(UserEmailModificationEvent.class));
@@ -234,7 +235,7 @@ public class R2DbcUserRepositoryDataManagementServiceTest {
     
     when(repository.findById(DEFAULT_ID)).thenReturn(Mono.empty());
     
-    Mono<KpUserDetails> result = sut.updateDiscord(DEFAULT_ID, "new-discord");
+    Mono<User> result = sut.updateDiscord(DEFAULT_ID, "new-discord");
       
     checkUserNotFoundException(result);
     verify(bus, never()).publishEvent(any(UserDiscordModificationEvent.class));
@@ -244,7 +245,7 @@ public class R2DbcUserRepositoryDataManagementServiceTest {
   
   
   
-  private static void checkUserNotFoundException(final Mono<KpUserDetails> result) {
+  private static void checkUserNotFoundException(final Mono<User> result) {
     try {
       result.block();
       

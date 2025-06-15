@@ -18,6 +18,7 @@
 package de.kaiserpfalzedv.commons.users.client.service;
 
 
+import de.kaiserpfalzedv.commons.users.domain.model.role.KpRole;
 import de.kaiserpfalzedv.commons.users.domain.model.user.*;
 import de.kaiserpfalzedv.commons.users.domain.services.UserManagementService;
 import de.kaiserpfalzedv.commons.users.domain.services.UserReadService;
@@ -28,21 +29,19 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import reactor.core.publisher.Mono;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
 import java.time.OffsetDateTime;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -67,13 +66,11 @@ public class UserAuthenticationServiceTest {
   @Mock
   private OidcUser oidcUser;
   
-  @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
   @Mock
-  private Optional<User> PLAYER_OPTIONAL;
+  private Mono<User> MONO_USER;
   
-  @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
   @Mock
-  private Optional<User> BANNED_OPTIONAL;
+  private Mono<User> MONO_BANNED;
   
   
   @BeforeEach
@@ -88,7 +85,8 @@ public class UserAuthenticationServiceTest {
 
     when(oidcUser.getIssuer()).thenReturn(DEFAULT_ISSUER);
     when(oidcUser.getSubject()).thenReturn(PLAYER.getSubject());
-    when(userReadService.findByOauth(PLAYER.getIssuer(), PLAYER.getSubject())).thenReturn(PLAYER_OPTIONAL);
+    when(userReadService.findByIssuerAndSubject(PLAYER.getIssuer(), PLAYER.getSubject())).thenReturn(MONO_USER);
+    when(MONO_USER.block()).thenReturn(PLAYER);
 
     User result = sut.authenticate(oidcUser);
     
@@ -104,7 +102,8 @@ public class UserAuthenticationServiceTest {
     when(authentication.getPrincipal()).thenReturn(oidcUser);
     when(oidcUser.getIssuer()).thenReturn(DEFAULT_ISSUER);
     when(oidcUser.getSubject()).thenReturn(PLAYER.getSubject());
-    when(userReadService.findByOauth(PLAYER.getIssuer(), PLAYER.getSubject())).thenReturn(Optional.of(PLAYER));
+    when(userReadService.findByIssuerAndSubject(PLAYER.getIssuer(), PLAYER.getSubject())).thenReturn(MONO_USER);
+    when(MONO_USER.block()).thenReturn(PLAYER);
     
     User result = sut.authenticate(authentication);
     
@@ -120,8 +119,8 @@ public class UserAuthenticationServiceTest {
     
     when(oidcUser.getIssuer()).thenReturn(DEFAULT_ISSUER);
     when(oidcUser.getSubject()).thenReturn(BANNED.getSubject());
-    when(userReadService.findByOauth(BANNED.getIssuer(), BANNED.getSubject())).thenReturn(BANNED_OPTIONAL);
-    when(BANNED_OPTIONAL.orElse(any())).thenReturn(BANNED);
+    when(userReadService.findByIssuerAndSubject(BANNED.getIssuer(), BANNED.getSubject())).thenReturn(MONO_BANNED);
+    when(MONO_BANNED.block()).thenReturn(BANNED);
     
     try {
       sut.authenticate(oidcUser);
@@ -142,7 +141,7 @@ public class UserAuthenticationServiceTest {
     
     when(oidcUser.getIssuer()).thenReturn(DEFAULT_ISSUER);
     when(oidcUser.getSubject()).thenReturn(DETAINED.getSubject());
-    when(userReadService.findByOauth(DETAINED.getIssuer(), DETAINED.getSubject())).thenReturn(Optional.of(DETAINED));
+    when(userReadService.findByIssuerAndSubject(DETAINED.getIssuer(), DETAINED.getSubject())).thenReturn(Mono.just(DETAINED));
     
     try {
       sut.authenticate(oidcUser);
@@ -163,7 +162,7 @@ public class UserAuthenticationServiceTest {
     
     when(oidcUser.getIssuer()).thenReturn(DEFAULT_ISSUER);
     when(oidcUser.getSubject()).thenReturn(DELETED.getSubject());
-    when(userReadService.findByOauth(DELETED.getIssuer(), DELETED.getSubject())).thenReturn(Optional.of(DELETED));
+    when(userReadService.findByIssuerAndSubject(DELETED.getIssuer(), DELETED.getSubject())).thenReturn(Mono.just(DELETED));
     
     try {
       sut.authenticate(oidcUser);
@@ -189,11 +188,12 @@ public class UserAuthenticationServiceTest {
     when(oidcUser.getEmail()).thenReturn(CREATED.getEmail());
     when(oidcUser.getPhoneNumber()).thenReturn(CREATED.getPhone());
     
-    when(userReadService.findByOauth(CREATED.getIssuer(), CREATED.getSubject())).thenReturn(Optional.empty());
+    when(userReadService.findByIssuerAndSubject(CREATED.getIssuer(), CREATED.getSubject())).thenReturn(Mono.empty());
+    when(userWriteService.create(any())).thenReturn(MONO_USER);
+    when(MONO_USER.block()).thenReturn(CREATED);
+    
     
     User result = sut.authenticate(oidcUser);
-    
-    verify(userWriteService).create(CREATED);
     
     assertEquals(CREATED, result);
     
@@ -224,8 +224,8 @@ public class UserAuthenticationServiceTest {
   private static final OffsetDateTime CREATED_AT = OffsetDateTime.now().minusMonths(6L);
   private static final OffsetDateTime MODIFIED_AT = OffsetDateTime.now().minusMonths(1L);
   
-  private static final Set<SimpleGrantedAuthority> PLAYER_AUTHORITIES = Set.of(
-      new SimpleGrantedAuthority("ROLE_PLAYER")
+  private static final Set<KpRole> PLAYER_AUTHORITIES = Set.of(
+      KpRole.builder().nameSpace("default-namespace").name("default").build()
   );
   
   

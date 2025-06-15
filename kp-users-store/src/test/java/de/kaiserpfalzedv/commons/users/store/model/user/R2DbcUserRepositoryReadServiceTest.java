@@ -20,6 +20,7 @@ package de.kaiserpfalzedv.commons.users.store.model.user;
 
 import de.kaiserpfalzedv.commons.users.domain.model.role.KpRole;
 import de.kaiserpfalzedv.commons.users.domain.model.user.KpUserDetails;
+import de.kaiserpfalzedv.commons.users.domain.model.user.User;
 import lombok.extern.slf4j.XSlf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -82,7 +83,7 @@ public class R2DbcUserRepositoryReadServiceTest {
     when(repository.findById(DEFAULT_USER.getId())).thenReturn(Mono.just(DEFAULT_USER));
     prepareRoleAddingToUser();
     
-    Optional<KpUserDetails> result = sut.findById(DEFAULT_USER.getId()).blockOptional();
+    Optional<User> result = sut.findById(DEFAULT_USER.getId()).blockOptional();
     log.debug("Result. user={}", result.orElse(null));
     
     assertTrue(result.isPresent());
@@ -98,7 +99,7 @@ public class R2DbcUserRepositoryReadServiceTest {
     when(repository.findByNameSpaceAndName(DEFAULT_USER.getNameSpace(), DEFAULT_USER.getName())).thenReturn(Mono.just(DEFAULT_USER));
     prepareRoleAddingToUser();
     
-    Optional<KpUserDetails> result = sut.findByUsername(DEFAULT_USER.getNameSpace(), DEFAULT_USER.getName()).blockOptional();
+    Optional<User> result = sut.findByUsername(DEFAULT_USER.getNameSpace(), DEFAULT_USER.getName()).blockOptional();
     log.debug("Result. user={}", result.orElse(null));
     
     assertTrue(result.isPresent());
@@ -114,7 +115,7 @@ public class R2DbcUserRepositoryReadServiceTest {
     when(repository.findByIssuerAndSubject(DEFAULT_USER.getIssuer(), DEFAULT_USER.getSubject())).thenReturn(Mono.just(DEFAULT_USER));
     prepareRoleAddingToUser();
     
-    Optional<KpUserDetails> result = sut.findByIssuerAndSubject(DEFAULT_USER.getIssuer(), DEFAULT_USER.getSubject()).blockOptional();
+    Optional<User> result = sut.findByIssuerAndSubject(DEFAULT_USER.getIssuer(), DEFAULT_USER.getSubject()).blockOptional();
     log.debug("Result. user={}", result.orElse(null));
     
     assertTrue(result.isPresent());
@@ -145,7 +146,7 @@ public class R2DbcUserRepositoryReadServiceTest {
     when(repository.findAll()).thenReturn(Flux.empty());
   
     var result = sut.findAll();
-    List<KpUserDetails> data = result.collectList().block();
+    List<User> data = result.collectList().block();
     log.debug("Result: users={}, data={}", result, data);
     
     assertNotNull(data);

@@ -22,6 +22,7 @@ import de.kaiserpfalzedv.commons.users.domain.model.role.Role;
 import de.kaiserpfalzedv.commons.users.domain.model.role.RoleNotFoundException;
 import de.kaiserpfalzedv.commons.users.domain.model.role.RoleToImpl;
 import de.kaiserpfalzedv.commons.users.domain.model.user.KpUserDetails;
+import de.kaiserpfalzedv.commons.users.domain.model.user.User;
 import de.kaiserpfalzedv.commons.users.domain.model.user.UserNotFoundException;
 import de.kaiserpfalzedv.commons.users.domain.services.UserRoleManagementService;
 import de.kaiserpfalzedv.commons.users.store.model.role.R2dbcRoleRepository;
@@ -32,12 +33,16 @@ import lombok.ToString;
 import lombok.extern.slf4j.XSlf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.util.Objects;
 import java.util.UUID;
+
+import static org.springframework.data.relational.core.query.Criteria.where;
+import static org.springframework.data.relational.core.query.Query.query;
 
 
 /**
@@ -53,6 +58,7 @@ import java.util.UUID;
 public class R2dbcUserRoleManagementService implements UserRoleManagementService, AutoCloseable {
   private final R2dbcRoleRepository roleRepository;
   private final R2dbcUserRepository userRepository;
+  private final R2dbcEntityTemplate template;
   private final ApplicationEventPublisher bus;
   private final RoleToImpl roleToImpl;
   
@@ -67,18 +73,18 @@ public class R2dbcUserRoleManagementService implements UserRoleManagementService
   
   
   @Override
-  public Mono<KpUserDetails> addRole(final UUID id, final Role role) {
+  public Mono<User> addRole(final UUID id, final Role role) {
     log.entry(id, role);
     
-    Mono<KpUserDetails> result = roleRepository.findById(role.getId())
+    Mono<User> result = roleRepository.findById(role.getId())
         .switchIfEmpty(Mono.error(new RoleNotFoundException(role.getId())))
         .publishOn(Schedulers.boundedElastic())
         .mapNotNull(r -> userRepository.findById(id)
             .switchIfEmpty(Mono.error(new UserNotFoundException(id)))
-            .map(u -> { u.addRole(r, bus); return u; })
+            .map(u -> { ((KpUserDetails)u).addRole(r, bus); return u; })
             .publishOn(Schedulers.boundedElastic())
             .mapNotNull(
-                u -> userRepository.save(u).block()
+                u -> userRepository.save(((KpUserDetails)u)).block()
             ).block()
         );
     
@@ -86,19 +92,19 @@ public class R2dbcUserRoleManagementService implements UserRoleManagementService
   }
   
   @Override
-  public Mono<KpUserDetails> removeRole(final UUID id, final Role role) {
+  public Mono<User> removeRole(final UUID id, final Role role) {
     log.entry(id, role);
     
-    Mono<KpUserDetails> result = roleRepository.findById(role.getId())
+    Mono<User> result = roleRepository.findById(role.getId())
         .switchIfEmpty(Mono.error(new RoleNotFoundException(role.getId())))
         .filter(Objects::nonNull)
         .publishOn(Schedulers.boundedElastic())
         .mapNotNull(r -> userRepository.findById(id)
             .switchIfEmpty(Mono.defer(() -> Mono.error(() -> new UserNotFoundException(id))))
             .filter(Objects::nonNull)
-            .map(u -> { u.removeRole(r, bus); return u; })
+            .map(u -> { ((KpUserDetails)u).removeRole(r, bus); return u; })
             .publishOn(Schedulers.boundedElastic())
-            .mapNotNull(u -> userRepository.save(u).block())
+            .mapNotNull(u -> userRepository.save(((KpUserDetails)u)).block())
             .block()
         );
         
@@ -106,10 +112,12 @@ public class R2dbcUserRoleManagementService implements UserRoleManagementService
   }
   
   @Override
-  public Mono<KpUserDetails> revokeRoleFromAllUsers(final Role role) {
+  public Mono<Long> revokeRoleFromAllUsers(final Role role) {
     log.entry(role);
     
-    // TODO 2025-05-16 klenkes74 Implement the role removal.
-    throw log.throwing(new UnsupportedOperationException("Revoke role from all users is not implemented yet!"));
+    return template
+        .delete(KpUsersRoles.class)
+        .matching(query(where("ROLE_ID").is(role.getId())))
+        .all();
   }
 }

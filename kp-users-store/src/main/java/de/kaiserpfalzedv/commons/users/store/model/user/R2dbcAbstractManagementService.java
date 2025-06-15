@@ -2,6 +2,7 @@ package de.kaiserpfalzedv.commons.users.store.model.user;
 
 
 import de.kaiserpfalzedv.commons.users.domain.model.user.KpUserDetails;
+import de.kaiserpfalzedv.commons.users.domain.model.user.User;
 import de.kaiserpfalzedv.commons.users.domain.model.user.UserNotFoundException;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.UserBaseEvent;
 import jakarta.annotation.PreDestroy;
@@ -44,17 +45,18 @@ public abstract class R2dbcAbstractManagementService {
    *
    * @return A Mono containing the saved user or an error if the save failed.
    */
-  protected Mono<KpUserDetails> saveUser(
+  protected Mono<User> saveUser(
       @NotNull KpUserDetails user,
       @NotNull final String successMessage,
       @NotNull final String errorMessage
   ) {
     log.entry(user, successMessage, errorMessage);
     
-    Mono<KpUserDetails> result = repository.save(user)
+    Mono<User> result = repository.save(user)
         .switchIfEmpty(Mono.error(() -> new UserNotFoundException(user.getId())))
         .doOnSuccess(savedUser -> log.info("{}. user={}", successMessage, savedUser))
         .doOnError(error -> log.error("{}: {}. user={}", errorMessage, error.getMessage(), user))
+        .map(u -> u)
         ;
     
     return log.exit(result);
@@ -71,7 +73,7 @@ public abstract class R2dbcAbstractManagementService {
    *
    * @return A Mono containing the saved user or an error if the save failed.
    */
-  protected <T extends UserBaseEvent> Mono<KpUserDetails> saveUser(
+  protected <T extends UserBaseEvent> Mono<User> saveUser(
       @NotNull KpUserDetails user,
       T event,
       @NotNull final String successMessage,
@@ -79,7 +81,7 @@ public abstract class R2dbcAbstractManagementService {
   ) {
     log.entry(user, successMessage, errorMessage);
     
-    Mono<KpUserDetails> result = saveUser(user, successMessage, errorMessage)
+    Mono<User> result = saveUser(user, successMessage, errorMessage)
         .doOnSuccess(savedUser -> bus.publishEvent(event))
         ;
     

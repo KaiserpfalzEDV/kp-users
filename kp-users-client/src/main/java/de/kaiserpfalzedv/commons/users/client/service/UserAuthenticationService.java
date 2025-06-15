@@ -30,7 +30,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
 import java.util.UUID;
 
 
@@ -64,11 +63,11 @@ public class UserAuthenticationService implements AuthenticationService {
   public User authenticate(final OidcUser oidcUser) throws UserIsInactiveException, UserCantBeCreatedException {
     log.entry(namespace, oidcUser);
     
-    Optional<User> data = readService.findByOauth(oidcUser.getIssuer().toString(), oidcUser.getSubject());
+    User result = readService.findByIssuerAndSubject(oidcUser.getIssuer().toString(), oidcUser.getSubject())
+        .block();
     
-    log.debug("Data found. found={}, data={}", data.isPresent(), data.orElse(null));
+    log.debug("Data loaded? found={}, data={}", result != null, result);
     
-    User result = data.orElse(null);
     if (result == null) {
       result = createNewUser(oidcUser);
     }
@@ -83,7 +82,15 @@ public class UserAuthenticationService implements AuthenticationService {
     log.entry(oidcUser);
     
     User user = createUserFromOidcUser(oidcUser);
-    writeService.create(user);
+    user = writeService.create(user).block();
+    
+    if (user == null) {
+      throw log.throwing(new UserCantBeCreatedException(
+          oidcUser.getIssuer().toString(), oidcUser.getSubject(),
+          oidcUser.getPreferredUsername(),
+          oidcUser.getEmail()
+      ));
+    }
 
     return log.exit(user);
   }

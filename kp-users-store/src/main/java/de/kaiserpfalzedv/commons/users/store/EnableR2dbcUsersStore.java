@@ -16,7 +16,11 @@
  */
 package de.kaiserpfalzedv.commons.users.store;
 
+import de.kaiserpfalzedv.commons.users.domain.model.apikey.ApiKey;
+import de.kaiserpfalzedv.commons.users.domain.model.role.Role;
+import de.kaiserpfalzedv.commons.users.domain.model.user.User;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories;
 
 import java.lang.annotation.*;
 
@@ -32,5 +36,11 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Documented
-@ComponentScan(basePackageClasses = EnableR2dbcUsersStore.class)
+@ComponentScan(basePackageClasses = {
+    EnableR2dbcUsersStore.class,
+    ApiKey.class,
+    Role.class,
+    User.class,
+})
+@EnableR2dbcRepositories(basePackageClasses = EnableR2dbcUsersStore.class)
 public @interface EnableR2dbcUsersStore {}

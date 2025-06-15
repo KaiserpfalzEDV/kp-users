@@ -65,6 +65,7 @@
             <groupId>org.casbin</groupId>
             <artifactId>casbin-spring-boot-starter</artifactId>
             <version>1.9.0</version>
+            <optional>true</optional>
             <exclusions>
                 <exclusion>
                     <groupId>com.h2database</groupId>

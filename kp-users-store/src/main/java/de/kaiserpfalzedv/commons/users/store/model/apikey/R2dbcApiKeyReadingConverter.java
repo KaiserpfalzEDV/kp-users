@@ -2,6 +2,7 @@ package de.kaiserpfalzedv.commons.users.store.model.apikey;
 
 
 import de.kaiserpfalzedv.commons.users.domain.model.apikey.ApiKeyImpl;
+import de.kaiserpfalzedv.commons.users.domain.model.user.KpUserDetails;
 import de.kaiserpfalzedv.commons.users.store.model.user.R2dbcUserRepository;
 import io.r2dbc.spi.Row;
 import jakarta.annotation.Nullable;
@@ -54,7 +55,7 @@ public class R2dbcApiKeyReadingConverter implements Converter<Row, ApiKeyImpl> {
     users
         .findById(source.get("user", UUID.class))
         .blockOptional(TIMEOUT)
-        .ifPresent(result::user);
+        .ifPresent(u -> result.user((KpUserDetails) u));
     
     return log.exit(result.build());
   }

@@ -111,7 +111,8 @@ public class R2dbcRoleEventsHandler implements RoleEventsHandler, AutoCloseable 
     log.entry(event);
     
     if (eventIsFromExternalSystem(event)) {
-      userRoleManagement.revokeRoleFromAllUsers(event.getRole()).block(DEFAULT_TIMEOUT);
+      Long count = userRoleManagement.revokeRoleFromAllUsers(event.getRole()).block();
+      log.info("Removed Role from all users. count={}, role={}", count, event.getRole());
       writeService.remove(event.getRole().getId()).block(DEFAULT_TIMEOUT);
     }
     

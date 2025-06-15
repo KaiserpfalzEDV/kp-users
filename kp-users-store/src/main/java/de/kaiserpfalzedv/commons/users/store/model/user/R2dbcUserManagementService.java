@@ -65,10 +65,10 @@ public class R2dbcUserManagementService extends R2dbcAbstractManagementService i
   
   
   @Override
-  public Mono<KpUserDetails> create(@NotNull final User user) {
+  public Mono<User> create(@NotNull final User user) {
     log.entry(user);
     
-    Mono<KpUserDetails> result = repository.save(toImpl.apply(user))
+    Mono<User> result = repository.save(toImpl.apply(user))
         .onErrorMap(IllegalArgumentException.class, e -> new UserCantBeCreatedException(user, e))
         .onErrorMap(OptimisticLockingFailureException.class, e -> new UserCantBeCreatedException(user, e))
         .switchIfEmpty(Mono.error(new UserCantBeCreatedException(user)))
@@ -83,15 +83,15 @@ public class R2dbcUserManagementService extends R2dbcAbstractManagementService i
   
   
   @Override
-  public Mono<KpUserDetails> delete(final UUID id) {
+  public Mono<User> delete(final UUID id) {
     log.entry(id);
     
-    Mono<KpUserDetails> result = repository.findById(id)
+    Mono<User> result = repository.findById(id)
         .switchIfEmpty(Mono.error(new UserNotFoundException(id)))
-        .map(user -> user.delete(bus))
+        .map(u -> u.delete(bus))
         .publishOn(Schedulers.boundedElastic())
         .mapNotNull(u -> saveUser(
-            u,
+            (KpUserDetails)u,
             "User deleted",
             "User deleting error"
           ).block()
@@ -103,12 +103,12 @@ public class R2dbcUserManagementService extends R2dbcAbstractManagementService i
   
   
   @Override
-  public Mono<KpUserDetails> undelete(final UUID id) {
+  public Mono<User> undelete(final UUID id) {
     log.entry(id);
     
-    Mono<KpUserDetails> result = repository.findById(id)
+    Mono<User> result = repository.findById(id)
         .switchIfEmpty(Mono.error(new UserNotFoundException(id)))
-        .map(user -> user.toBuilder().deleted(null).build())
+        .map(u -> ((KpUserDetails)u).toBuilder().deleted(null).build())
         .publishOn(Schedulers.boundedElastic())
         .mapNotNull(u -> saveUser(
             u,

@@ -30,7 +30,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.stream.binder.test.EnableTestBinder;
-import org.springframework.cloud.stream.binder.test.InputDestination;
 import org.springframework.cloud.stream.binder.test.OutputDestination;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
@@ -47,16 +46,16 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * @author klenkes74 {@literal <rlichti@kaiserpfalz-edv.de>}
  * @since 2025-05-18
  */
-@SpringBootTest(classes = SendingUserActivityEventsHandlerIT.TestConfiguration.class)
+@SpringBootTest(
+    webEnvironment = SpringBootTest.WebEnvironment.NONE,
+    classes = SendingUserActivityEventsHandlerIT.TestConfiguration.class
+)
 @ActiveProfiles("test")
 @EnableTestBinder
 @RequiredArgsConstructor(onConstructor_ = {@Autowired})
 @XSlf4j
 public class SendingUserActivityEventsHandlerIT {
   private final ApplicationEventPublisher bus;
-  
-  @Autowired
-  private InputDestination input;
   
   @Autowired
   private OutputDestination output;

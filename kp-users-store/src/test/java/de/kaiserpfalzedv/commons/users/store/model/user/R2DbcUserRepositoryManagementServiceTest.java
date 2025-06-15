@@ -17,10 +17,7 @@
 
 package de.kaiserpfalzedv.commons.users.store.model.user;
 
-import de.kaiserpfalzedv.commons.users.domain.model.user.KpUserDetails;
-import de.kaiserpfalzedv.commons.users.domain.model.user.UserCantBeCreatedException;
-import de.kaiserpfalzedv.commons.users.domain.model.user.UserNotFoundException;
-import de.kaiserpfalzedv.commons.users.domain.model.user.UserToKpUserDetailsImpl;
+import de.kaiserpfalzedv.commons.users.domain.model.user.*;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.state.UserActivatedEvent;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.state.UserCreatedEvent;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.state.UserDeletedEvent;
@@ -90,7 +87,7 @@ public class R2DbcUserRepositoryManagementServiceTest {
     Exception expected = new UserCantBeCreatedException(DEFAULT_USER, new OptimisticLockingFailureException("User already exists."));
     
     
-    Mono<KpUserDetails> result = sut.create(DEFAULT_USER);
+    Mono<User> result = sut.create(DEFAULT_USER);
     
     
     checkException(result, expected);
@@ -122,7 +119,7 @@ public class R2DbcUserRepositoryManagementServiceTest {
     when(repository.findById(DEFAULT_ID)).thenReturn(Mono.empty());
     Exception expected = new UserNotFoundException(DEFAULT_ID);
     
-    Mono<KpUserDetails> result = sut.delete(DEFAULT_ID);
+    Mono<User> result = sut.delete(DEFAULT_ID);
     checkException(result, expected);
     
     verify(bus, never()).publishEvent(any(UserDeletedEvent.class));
@@ -153,7 +150,7 @@ public class R2DbcUserRepositoryManagementServiceTest {
     Exception expected = new UserNotFoundException(DEFAULT_ID);
     
     
-    Mono<KpUserDetails> result = sut.undelete(DEFAULT_ID);
+    Mono<User> result = sut.undelete(DEFAULT_ID);
     
     
     checkException(result, expected);
@@ -191,7 +188,7 @@ public class R2DbcUserRepositoryManagementServiceTest {
   }
   
   
-  private static void checkException(final Mono<KpUserDetails> result, final Exception expected) {
+  private static void checkException(final Mono<User> result, final Exception expected) {
     try {
       result.block();
       

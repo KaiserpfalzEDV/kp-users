@@ -3,6 +3,7 @@ package de.kaiserpfalzedv.commons.users.store.model.user;
 
 import de.kaiserpfalzedv.commons.users.domain.model.role.KpRole;
 import de.kaiserpfalzedv.commons.users.domain.model.user.KpUserDetails;
+import de.kaiserpfalzedv.commons.users.domain.model.user.User;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.state.UserRemovedEvent;
 import de.kaiserpfalzedv.commons.users.domain.services.UserReadService;
 import jakarta.inject.Inject;
@@ -28,7 +29,7 @@ import static org.springframework.data.relational.core.query.Query.query;
 @Component
 @RequiredArgsConstructor(onConstructor = @__(@Inject))
 @XSlf4j
-public class R2dbcUserRepository implements UserReadService<KpUserDetails> {
+public class R2dbcUserRepository implements UserReadService<User> {
   private final R2dbcUserInternalRepository repository;
   private final R2dbcEntityTemplate template;
   private final ApplicationEventPublisher bus;
@@ -40,15 +41,15 @@ public class R2dbcUserRepository implements UserReadService<KpUserDetails> {
   
   // Delegate for the R2DBC repository
   
-  public Mono<KpUserDetails> findByEmail(@NotNull final String email) {
+  public Mono<User> findByEmail(@NotNull final String email) {
     log.entry(email);
     return log.exit(addRoles(repository.findByEmail(email)));
   }
   
-  private Mono<KpUserDetails> addRoles(final Mono<KpUserDetails> user) {
+  private Mono<User> addRoles(final Mono<KpUserDetails> user) {
     log.entry(user);
     
-    Mono<KpUserDetails> result = user
+    Mono<User> result = user
         .flatMap(u  -> loadRolesForUser(u.getId())
                 .collectList()
                 .flatMap(roles -> {
@@ -60,43 +61,43 @@ public class R2dbcUserRepository implements UserReadService<KpUserDetails> {
     return log.exit(result);
   }
   
-  public Mono<KpUserDetails> findByIssuerAndSubject(@NotNull final String issuer, final String subject) {
+  public Mono<User> findByIssuerAndSubject(@NotNull final String issuer, final String subject) {
     log.entry(issuer, subject);
     return log.exit(addRoles(repository.findByIssuerAndSubject(issuer, subject)));
   }
   
-  public Mono<KpUserDetails> findByNameSpaceAndName(@NotNull final String nameSpace, final String name) {
+  public Mono<User> findByNameSpaceAndName(@NotNull final String nameSpace, final String name) {
     log.entry(nameSpace, name);
     return log.exit(addRoles(repository.findByNameSpaceAndName(nameSpace, name)));
   }
   
-  public Mono<KpUserDetails> findById(@NotNull final UUID uuid) {
-    return log.exit(addRoles(repository.findById(uuid)));
+  public Mono<User> findById(@NotNull final UUID uuid) {
+    return log.exit(addRoles(repository.findById(uuid)).map(u -> u));
   }
   
   @Override
-  public Mono<KpUserDetails> findByUsername(final String nameSpace, final String name) {
+  public Mono<User> findByUsername(final String nameSpace, final String name) {
     return findByNameSpaceAndName(nameSpace, name);
   }
   
-  public Flux<KpUserDetails> findAll() {
-    return log.exit(addRoles(repository.findAll()));
+  public Flux<User> findAll() {
+    return log.exit(addRoles(repository.findAll()).map(u -> u));
   }
   
   @Override
-  public Flux<KpUserDetails> findByNamespace(final String nameSpace) {
+  public Flux<User> findByNamespace(final String nameSpace) {
     log.entry(nameSpace);
-    return log.exit(addRoles(repository.findByNameSpace(nameSpace)));
+    return log.exit(addRoles(repository.findByNameSpace(nameSpace)).map(u -> u).map(u -> u));
   }
   
-  public Flux<KpUserDetails> findByIssuer(@NotNull final String issuer) {
+  public Flux<User> findByIssuer(@NotNull final String issuer) {
     log.entry(issuer);
-    return log.exit(addRoles(repository.findByIssuer(issuer)));
+    return log.exit(addRoles(repository.findByIssuer(issuer)).map(u -> u));
   }
   
-  public Flux<KpUserDetails> findByNameSpace(@NotNull final String nameSpace) {
+  public Flux<User> findByNameSpace(@NotNull final String nameSpace) {
     log.entry(nameSpace);
-    return log.exit(addRoles(repository.findByNameSpace(nameSpace)));
+    return log.exit(addRoles(repository.findByNameSpace(nameSpace)).map(u -> u));
   }
   
   private Flux<KpUserDetails> addRoles(final Flux<KpUserDetails> user) {
@@ -130,11 +131,11 @@ public class R2dbcUserRepository implements UserReadService<KpUserDetails> {
   }
   
   
-  public Mono<KpUserDetails> save(@NotNull final KpUserDetails entity) {
+  public Mono<User> save(@NotNull final KpUserDetails entity) {
     log.entry(entity);
     
     return saveRolesForUser(entity)
-        .then(log.exit(repository.save(entity)));
+        .then(log.exit(repository.save(entity).map(KpUserDetails.class::cast)));
   }
   
   private Mono<Void> saveRolesForUser(final KpUserDetails entity) {

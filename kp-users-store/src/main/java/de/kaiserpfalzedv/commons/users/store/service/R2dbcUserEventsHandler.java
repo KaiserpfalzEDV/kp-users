@@ -18,6 +18,8 @@
 package de.kaiserpfalzedv.commons.users.store.service;
 
 
+import de.kaiserpfalzedv.commons.users.domain.model.role.RoleNotFoundException;
+import de.kaiserpfalzedv.commons.users.domain.model.user.UserCantBeCreatedException;
 import de.kaiserpfalzedv.commons.users.domain.model.user.UserNotFoundException;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.UserBaseEvent;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.UserEventsHandler;
@@ -79,7 +81,7 @@ public class R2dbcUserEventsHandler implements UserEventsHandler, AutoCloseable 
     log.entry(system);
     log.exit();
   }
-
+  
   
   @Override
   @EventListener
@@ -87,7 +89,15 @@ public class R2dbcUserEventsHandler implements UserEventsHandler, AutoCloseable 
     log.entry(event);
     
     if (eventIsFromExternalSystem(event)) {
-      service.undelete(event.getUser().getId()).block(DEFAULT_TIMEOUT);
+      try {
+        service.undelete(event.getUser().getId()).block(DEFAULT_TIMEOUT);
+      } catch (Exception e) {
+        if (e.getCause() instanceof UserNotFoundException) {
+          log.warn("User not found for this id. id={}", event.getUser().getId());
+        } else {
+          throw e;
+        }
+      }
     }
     
     log.exit();
@@ -99,7 +109,15 @@ public class R2dbcUserEventsHandler implements UserEventsHandler, AutoCloseable 
     log.entry(event);
     
     if (eventIsFromExternalSystem(event)) {
-      service.create(event.getUser()).block(DEFAULT_TIMEOUT);
+      try {
+        service.create(event.getUser()).block(DEFAULT_TIMEOUT);
+      } catch (Exception e) {
+        if (e.getCause() instanceof UserCantBeCreatedException) {
+          log.warn("{}", e.getCause().getMessage());
+        } else {
+          throw e;
+        }
+      }
     }
     
     log.exit();
@@ -111,7 +129,15 @@ public class R2dbcUserEventsHandler implements UserEventsHandler, AutoCloseable 
     log.entry(event);
     
     if (eventIsFromExternalSystem(event)) {
-      service.delete(event.getUser().getId()).block(DEFAULT_TIMEOUT);
+      try {
+        service.delete(event.getUser().getId()).block(DEFAULT_TIMEOUT);
+      } catch (Exception e) {
+        if (e.getCause() instanceof UserNotFoundException) {
+          log.warn("User not found for this id. id={}", event.getUser().getId());
+        } else {
+          throw e;
+        }
+      }
     }
     
     log.exit();
@@ -125,7 +151,7 @@ public class R2dbcUserEventsHandler implements UserEventsHandler, AutoCloseable 
     if (eventIsFromExternalSystem(event)) {
       service.remove(event.getUser().getId()).block(DEFAULT_TIMEOUT);
     }
-
+    
     log.exit();
   }
   
@@ -133,12 +159,17 @@ public class R2dbcUserEventsHandler implements UserEventsHandler, AutoCloseable 
   @EventListener
   public void event(final UserBannedEvent event) {
     log.entry(event);
-
+    
     if (eventIsFromExternalSystem(event)) {
       try {
         stateService.ban(event.getUser().getId()).block(DEFAULT_TIMEOUT);
-      } catch (UserNotFoundException e) {
-        log.warn(e.getMessage(), e);
+      } catch (Exception e) {
+        if (e.getCause() instanceof UserNotFoundException) {
+          log.warn("User not found for this id. id={}", event.getUser().getId());
+        } else {
+          // This is a general error, so we log it as an error.
+          log.warn(e.getMessage(), e);
+        }
       }
     }
     
@@ -153,8 +184,12 @@ public class R2dbcUserEventsHandler implements UserEventsHandler, AutoCloseable 
     if (eventIsFromExternalSystem(event)) {
       try {
         stateService.detain(event.getUser().getId(), event.getDays()).block(DEFAULT_TIMEOUT);
-      } catch (UserNotFoundException e) {
-        log.warn(e.getMessage(), e);
+      } catch (Exception e) {
+        if (e.getCause() instanceof UserNotFoundException) {
+          log.warn("User not found for this id. id={}", event.getUser().getId());
+        } else {
+          throw e;
+        }
       }
     }
     log.exit();
@@ -164,7 +199,7 @@ public class R2dbcUserEventsHandler implements UserEventsHandler, AutoCloseable 
   @EventListener
   public void event(final UserPetitionedEvent event) {
     log.entry(event);
-
+    
     if (eventIsFromExternalSystem(event)) {
       log.info("User petitioned event not yet implemented!");
     }
@@ -179,9 +214,14 @@ public class R2dbcUserEventsHandler implements UserEventsHandler, AutoCloseable 
     
     if (eventIsFromExternalSystem(event)) {
       try {
+        // Release the user from detention.
         stateService.release(event.getUser().getId()).block(DEFAULT_TIMEOUT);
-      } catch (UserNotFoundException e) {
-        log.warn(e.getMessage(), e);
+      } catch (Exception e) {
+        if (e.getCause() instanceof UserNotFoundException) {
+          log.warn("User not found for this id. id={}", event.getUser().getId());
+        } else {
+          throw e;
+        }
       }
     }
     
@@ -197,7 +237,7 @@ public class R2dbcUserEventsHandler implements UserEventsHandler, AutoCloseable 
       // TODO 2025-05-10 klenkes74 Implement a user log database.
       log.info("User logged in. user={}", event.getUser());
     }
-
+    
     log.exit();
   }
   
@@ -205,7 +245,7 @@ public class R2dbcUserEventsHandler implements UserEventsHandler, AutoCloseable 
   @EventListener
   public void event(final UserLogoutEvent event) {
     log.entry(event);
-
+    
     if (eventIsFromExternalSystem(event)) {
       // TODO 2025-05-10 klenkes74 Implement a user log database.
       log.info("User logged out. user={}", event.getUser());
@@ -220,7 +260,18 @@ public class R2dbcUserEventsHandler implements UserEventsHandler, AutoCloseable 
     log.entry(event);
     
     if (eventIsFromExternalSystem(event)) {
-      roleService.addRole(event.getUser().getId(), event.getRole()).block(DEFAULT_TIMEOUT);
+      try {
+        // Add the role to the user.
+        roleService.addRole(event.getUser().getId(), event.getRole()).block(DEFAULT_TIMEOUT);
+      } catch (Exception e) {
+        if (e.getCause() instanceof UserNotFoundException) {
+          log.warn("User not found for this id. id={}", event.getUser().getId());
+        } else if (e.getCause() instanceof RoleNotFoundException) {
+          log.warn("Role not found for this id. id={}", event.getRole().getId());
+        } else {
+          throw e;
+        }
+      }
     }
   }
   
@@ -230,19 +281,39 @@ public class R2dbcUserEventsHandler implements UserEventsHandler, AutoCloseable 
     log.entry(event);
     
     if (eventIsFromExternalSystem(event)) {
-      roleService.removeRole(event.getUser().getId(), event.getRole())
-          .block(DEFAULT_TIMEOUT);
+      try {
+        // Remove the role from the user.
+        roleService.removeRole(event.getUser().getId(), event.getRole()).block(DEFAULT_TIMEOUT);
+      } catch (Exception e) {
+        if (e.getCause() instanceof UserNotFoundException) {
+          log.warn("User not found for this id. id={}", event.getUser().getId());
+        } else if (e.getCause() instanceof RoleNotFoundException) {
+          log.warn("Role not found for this id. id={}", event.getRole().getId());
+        } else {
+          throw e;
+        }
+      }
     }
   }
-
+  
   
   @Override
   @EventListener
   public void event(final UserSubjectModificationEvent event) {
     log.entry(event);
-
+    
+    log.info("Modifying user subject. user={}", event.getUser());
+    
     if (eventIsFromExternalSystem(event)) {
+      try {
         dataService.updateSubject(event.getUser().getId(), event.getUser().getIssuer(), event.getUser().getSubject()).block(DEFAULT_TIMEOUT);
+      } catch (Exception e) {
+        if (e.getCause() instanceof UserNotFoundException) {
+          log.warn("User not found for this id. id={}", event.getUser().getId());
+        } else {
+          throw e;
+        }
+      }
     }
     
     log.exit();
@@ -252,9 +323,17 @@ public class R2dbcUserEventsHandler implements UserEventsHandler, AutoCloseable 
   @EventListener
   public void event(final UserNamespaceAndNameModificationEvent event) {
     log.entry(event);
-
+    
     if (eventIsFromExternalSystem(event)) {
+      try {
         dataService.updateNamespaceAndName(event.getUser().getId(), event.getUser().getNameSpace(), event.getUser().getName()).block(DEFAULT_TIMEOUT);
+      } catch (Exception e) {
+        if (e.getCause() instanceof UserNotFoundException) {
+          log.warn("User not found for this id. id={}", event.getUser().getId());
+        } else {
+          throw e;
+        }
+      }
     }
     
     log.exit();
@@ -264,9 +343,17 @@ public class R2dbcUserEventsHandler implements UserEventsHandler, AutoCloseable 
   @EventListener
   public void event(final UserNamespaceModificationEvent event) {
     log.entry(event);
-
+    
     if (eventIsFromExternalSystem(event)) {
+      try {
         dataService.updateNamespace(event.getUser().getId(), event.getUser().getNameSpace()).block(DEFAULT_TIMEOUT);
+      } catch (Exception e) {
+        if (e.getCause() instanceof UserNotFoundException) {
+          log.warn("User not found for this id. id={}", event.getUser().getId());
+        } else {
+          throw e;
+        }
+      }
     }
     
     log.exit();
@@ -276,9 +363,17 @@ public class R2dbcUserEventsHandler implements UserEventsHandler, AutoCloseable 
   @EventListener
   public void event(final UserNameModificationEvent event) {
     log.entry(event);
-
+    
     if (eventIsFromExternalSystem(event)) {
+      try {
         dataService.updateName(event.getUser().getId(), event.getUser().getName()).block(DEFAULT_TIMEOUT);
+      } catch (Exception e) {
+        if (e.getCause() instanceof UserNotFoundException) {
+          log.warn("User not found for this id. id={}", event.getUser().getId());
+        } else {
+          throw e;
+        }
+      }
     }
     
     log.exit();
@@ -288,9 +383,17 @@ public class R2dbcUserEventsHandler implements UserEventsHandler, AutoCloseable 
   @EventListener
   public void event(final UserEmailModificationEvent event) {
     log.entry(event);
-
+    
     if (eventIsFromExternalSystem(event)) {
+      try {
         dataService.updateEmail(event.getUser().getId(), event.getUser().getEmail()).block(DEFAULT_TIMEOUT);
+      } catch (Exception e) {
+        if (e.getCause() instanceof UserNotFoundException) {
+          log.warn("User not found for this id. id={}", event.getUser().getId());
+        } else {
+          throw e;
+        }
+      }
     }
     
     log.exit();
@@ -300,17 +403,26 @@ public class R2dbcUserEventsHandler implements UserEventsHandler, AutoCloseable 
   @EventListener
   public void event(final UserDiscordModificationEvent event) {
     log.entry(event);
-
+    
     if (eventIsFromExternalSystem(event)) {
+      try {
         dataService.updateDiscord(event.getUser().getId(), event.getUser().getDiscord()).block(DEFAULT_TIMEOUT);
+      } catch (Exception e) {
+        if (e.getCause() instanceof UserNotFoundException) {
+          log.warn("User not found for this id. id={}", event.getUser().getId());
+        } else {
+          throw e;
+        }
+      }
     }
     
     log.exit();
   }
-
+  
   
   /**
    * Check if the event is from an external application.
+   *
    * @param event The event to check.
    * @return True if the event is from an external application, false otherwise.
    */

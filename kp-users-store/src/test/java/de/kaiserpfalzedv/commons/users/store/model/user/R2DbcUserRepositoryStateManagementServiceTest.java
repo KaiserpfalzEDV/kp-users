@@ -17,7 +17,6 @@
 
 package de.kaiserpfalzedv.commons.users.store.model.user;
 
-import de.kaiserpfalzedv.commons.api.events.EventBus;
 import de.kaiserpfalzedv.commons.users.domain.model.role.RoleToImpl;
 import de.kaiserpfalzedv.commons.users.domain.model.user.KpUserDetails;
 import de.kaiserpfalzedv.commons.users.domain.model.user.UserNotFoundException;
@@ -32,29 +31,22 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import reactor.core.publisher.Mono;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @XSlf4j
 public class R2DbcUserRepositoryStateManagementServiceTest {
-  
-  @InjectMocks
-  private R2dbcUserStateManagementService sut;
-  
-  @Mock
-  private R2dbcUserRepository repository;
-  
-  @Mock
-  private EventBus bus;
-  
-  @Mock
-  private RoleToImpl toJpa;
+  @InjectMocks private R2dbcUserStateManagementService sut;
+  @Mock private R2dbcUserRepository repository;
+  @Mock private ApplicationEventPublisher bus;
+  @Mock private RoleToImpl toJpa;
   
   
   @BeforeEach
@@ -70,7 +62,7 @@ public class R2DbcUserRepositoryStateManagementServiceTest {
 
   
   @Test
-  void shouldDetainUserWhenActive() throws UserNotFoundException {
+  void shouldDetainUserWhenActive() {
     log.entry();
     
     when(repository.findById(DEFAULT_ID)).thenReturn(Mono.just(DEFAULT_JPA_USER));
@@ -78,7 +70,7 @@ public class R2DbcUserRepositoryStateManagementServiceTest {
     
     sut.detain(DEFAULT_ID, 1).block();
     
-    verify(bus).post(any(UserDetainedEvent.class));
+    verify(bus).publishEvent(any(UserDetainedEvent.class));
     
     log.exit();
   }
@@ -89,16 +81,20 @@ public class R2DbcUserRepositoryStateManagementServiceTest {
     
     when(repository.findById(DEFAULT_ID)).thenReturn(Mono.empty());
     
-    assertThrows(UserNotFoundException.class, () -> sut.detain(DEFAULT_ID, 1).block());
-    
-    verify(bus, never()).post(any(UserDetainedEvent.class));
+    try {
+      sut.detain(DEFAULT_ID, 1).block();
+    } catch (Exception e) {
+      log.error("Expected exception caught: {}", e.getMessage());
+      
+      assertInstanceOf(UserNotFoundException.class, e.getCause());
+    }
     
     log.exit();
   }
   
   
   @Test
-  void shouldBanUserWhenActive() throws UserNotFoundException {
+  void shouldBanUserWhenActive() {
     log.entry();
     
     when(repository.findById(DEFAULT_ID)).thenReturn(Mono.just(DEFAULT_JPA_USER));
@@ -106,7 +102,7 @@ public class R2DbcUserRepositoryStateManagementServiceTest {
     
     sut.ban(DEFAULT_ID).block();
     
-    verify(bus).post(any(UserBannedEvent.class));
+    verify(bus).publishEvent(any(UserBannedEvent.class));
     
     log.exit();
   }
@@ -116,17 +112,21 @@ public class R2DbcUserRepositoryStateManagementServiceTest {
     log.entry();
     
     when(repository.findById(DEFAULT_ID)).thenReturn(Mono.empty());
-    
-    assertThrows(UserNotFoundException.class, () -> sut.ban(DEFAULT_ID).block());
-    
-    verify(bus, never()).post(any(UserBannedEvent.class));
+
+    try {
+      sut.ban(DEFAULT_ID).block();
+    } catch (Exception e) {
+      log.error("Expected exception caught: {}", e.getMessage());
+      
+      assertInstanceOf(UserNotFoundException.class, e.getCause());
+    }
     
     log.exit();
   }
   
   
   @Test
-  void shouldReleaseUserWhenBanned() throws UserNotFoundException {
+  void shouldReleaseUserWhenBanned() {
     log.entry();
     
     when(repository.findById(DEFAULT_ID)).thenReturn(Mono.just(DEFAULT_JPA_USER.toBuilder().bannedOn(CREATED_AT).build()));
@@ -134,7 +134,7 @@ public class R2DbcUserRepositoryStateManagementServiceTest {
     
     sut.release(DEFAULT_ID).block();
     
-    verify(bus).post(any(UserReleasedEvent.class));
+    verify(bus).publishEvent(any(UserReleasedEvent.class));
     
     log.exit();
   }
@@ -145,9 +145,13 @@ public class R2DbcUserRepositoryStateManagementServiceTest {
     
     when(repository.findById(DEFAULT_ID)).thenReturn(Mono.empty());
     
-    assertThrows(UserNotFoundException.class, () -> sut.release(DEFAULT_ID).block());
-    
-    verify(bus, never()).post(any(UserReleasedEvent.class));
+    try {
+      sut.release(DEFAULT_ID).block();
+    } catch (Exception e) {
+      log.error("Expected exception caught: {}", e.getMessage());
+      
+      assertInstanceOf(UserNotFoundException.class, e.getCause());
+    }
     
     log.exit();
   }

@@ -30,10 +30,10 @@ import java.util.UUID;
  * @since 03.05.2025
  */
 public interface UserDataManagementService {
-  Mono<? extends User> updateSubject(@NotNull UUID id, @NotBlank String issuer, @NotBlank String sub);
-  Mono<? extends User> updateNamespace(@NotNull UUID id, @NotBlank String namespace);
-  Mono<? extends User> updateName(@NotNull UUID id, @NotBlank String name);
-  Mono<? extends User> updateNamespaceAndName(@NotNull UUID id, @NotBlank String namespace, @NotBlank String name);
-  Mono<? extends User> updateEmail(@NotNull UUID id, @NotBlank String email);
-  Mono<? extends User> updateDiscord(@NotNull UUID id, @NotBlank String discord);
+  Mono<User> updateSubject(@NotNull UUID id, @NotBlank String issuer, @NotBlank String sub);
+  Mono<User> updateNamespace(@NotNull UUID id, @NotBlank String namespace);
+  Mono<User> updateName(@NotNull UUID id, @NotBlank String name);
+  Mono<User> updateNamespaceAndName(@NotNull UUID id, @NotBlank String namespace, @NotBlank String name);
+  Mono<User> updateEmail(@NotNull UUID id, @NotBlank String email);
+  Mono<User> updateDiscord(@NotNull UUID id, @NotBlank String discord);
 }

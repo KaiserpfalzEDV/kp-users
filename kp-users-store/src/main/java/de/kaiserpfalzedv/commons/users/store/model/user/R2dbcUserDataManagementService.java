@@ -19,6 +19,7 @@ package de.kaiserpfalzedv.commons.users.store.model.user;
 
 
 import de.kaiserpfalzedv.commons.users.domain.model.user.KpUserDetails;
+import de.kaiserpfalzedv.commons.users.domain.model.user.User;
 import de.kaiserpfalzedv.commons.users.domain.model.user.UserNotFoundException;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.modification.*;
 import de.kaiserpfalzedv.commons.users.domain.services.UserDataManagementService;
@@ -64,13 +65,13 @@ public class R2dbcUserDataManagementService extends R2dbcAbstractManagementServi
   
   
   @Override
-  public Mono<KpUserDetails> updateSubject(@NotNull final UUID id, @NotNull final String issuer, @NotNull final String sub) {
+  public Mono<User> updateSubject(@NotNull final UUID id, @NotNull final String issuer, @NotNull final String sub) {
     log.entry(id, issuer, sub);
 
-    Mono<KpUserDetails> result = repository.findById(id)
+    Mono<User> result = repository.findById(id)
         .switchIfEmpty(Mono.error(new UserNotFoundException(id)))
         .onErrorMap(UserNotFoundException.class, log::throwing)
-        .map(u -> u.toBuilder().issuer(issuer).subject(sub).build())
+        .map(u -> ((KpUserDetails)u).toBuilder().issuer(issuer).subject(sub).build())
         .publishOn(Schedulers.boundedElastic())
         .mapNotNull(u -> saveUser(u,
             UserSubjectModificationEvent.builder().application(system).user(u).build(),
@@ -84,13 +85,13 @@ public class R2dbcUserDataManagementService extends R2dbcAbstractManagementServi
 
   
   @Override
-  public Mono<KpUserDetails> updateNamespace(@NotNull final UUID id, @NotNull final String namespace) {
+  public Mono<User> updateNamespace(@NotNull final UUID id, @NotNull final String namespace) {
     log.entry(id, namespace);
 
-    Mono<KpUserDetails> result = repository.findById(id)
+    Mono<User> result = repository.findById(id)
         .switchIfEmpty(Mono.error(new UserNotFoundException(id)))
         .onErrorMap(UserNotFoundException.class, log::throwing)
-        .map(u -> u.toBuilder().nameSpace(namespace).build())
+        .map(u -> ((KpUserDetails)u).toBuilder().nameSpace(namespace).build())
         .flatMap(u -> saveUser(u,
             UserNamespaceModificationEvent.builder().application(system).user(u).build(),
             "User namespace updated",
@@ -102,12 +103,12 @@ public class R2dbcUserDataManagementService extends R2dbcAbstractManagementServi
   
   
   @Override
-  public Mono<KpUserDetails> updateName(@NotNull final UUID id, @NotNull final String name) {
+  public Mono<User> updateName(@NotNull final UUID id, @NotNull final String name) {
     log.entry(id, name);
     
-    Mono<KpUserDetails> result = repository.findById(id)
+    Mono<User> result = repository.findById(id)
         .switchIfEmpty(Mono.error(() -> new UserNotFoundException(id)))
-        .map(u -> u.toBuilder().name(name).build())
+        .map(u -> ((KpUserDetails)u).toBuilder().name(name).build())
         .flatMap(u -> saveUser(
             u,
             UserNameModificationEvent.builder().application(system).user(u).build(),
@@ -120,12 +121,12 @@ public class R2dbcUserDataManagementService extends R2dbcAbstractManagementServi
   
   
   @Override
-  public Mono<KpUserDetails> updateNamespaceAndName(@NotNull final UUID id, @NotNull final String namespace, @NotNull final String name) {
+  public Mono<User> updateNamespaceAndName(@NotNull final UUID id, @NotNull final String namespace, @NotNull final String name) {
     log.entry(id, namespace, name);
     
-    Mono<KpUserDetails> result = repository.findById(id)
+    Mono<User> result = repository.findById(id)
         .switchIfEmpty(Mono.error(() -> new UserNotFoundException(id)))
-        .map(u -> u.toBuilder().nameSpace(namespace).name(name).build())
+        .map(u -> ((KpUserDetails)u).toBuilder().nameSpace(namespace).name(name).build())
         .flatMap(u -> saveUser(
             u,
             UserNamespaceAndNameModificationEvent.builder().application(system).user(u).build(),
@@ -138,12 +139,12 @@ public class R2dbcUserDataManagementService extends R2dbcAbstractManagementServi
   
   
   @Override
-  public Mono<KpUserDetails> updateEmail(@NotNull final UUID id, @NotNull final String email) {
+  public Mono<User> updateEmail(@NotNull final UUID id, @NotNull final String email) {
     log.entry(id, email);
     
-    Mono<KpUserDetails> result = repository.findById(id)
+    Mono<User> result = repository.findById(id)
         .switchIfEmpty(Mono.error(() -> new UserNotFoundException(id)))
-        .map(u -> u.toBuilder().email(email).build())
+        .map(u -> ((KpUserDetails)u).toBuilder().email(email).build())
         .flatMap(u -> saveUser(
             u,
             UserEmailModificationEvent.builder().application(system).user(u).build(),
@@ -156,12 +157,12 @@ public class R2dbcUserDataManagementService extends R2dbcAbstractManagementServi
 
   
   @Override
-  public Mono<KpUserDetails> updateDiscord(@NotNull final UUID id, @NotNull final String discord) {
+  public Mono<User> updateDiscord(@NotNull final UUID id, @NotNull final String discord) {
     log.entry(id, discord);
     
-    Mono<KpUserDetails> result = repository.findById(id)
+    Mono<User> result = repository.findById(id)
         .switchIfEmpty(Mono.error(() -> new UserNotFoundException(id)))
-        .map(u -> u.toBuilder().discord(discord).build())
+        .map(u -> ((KpUserDetails)u).toBuilder().discord(discord).build())
         .flatMap(u -> saveUser(
             u,
             UserDiscordModificationEvent.builder().application(system).user(u).build(),

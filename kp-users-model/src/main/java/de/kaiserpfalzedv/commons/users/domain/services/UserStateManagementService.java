@@ -18,8 +18,7 @@
 package de.kaiserpfalzedv.commons.users.domain.services;
 
 
-import de.kaiserpfalzedv.commons.users.domain.model.user.KpUserDetails;
-import de.kaiserpfalzedv.commons.users.domain.model.user.UserNotFoundException;
+import de.kaiserpfalzedv.commons.users.domain.model.user.User;
 import jakarta.validation.constraints.NotNull;
 import reactor.core.publisher.Mono;
 
@@ -33,8 +32,8 @@ import java.util.UUID;
  */
 public interface UserStateManagementService {
   @Deprecated(forRemoval = true)
-  Mono<KpUserDetails> activate(@NotNull UUID id) throws UserNotFoundException;
-  Mono<KpUserDetails> detain(@NotNull UUID id, long days) throws UserNotFoundException;
-  Mono<KpUserDetails> ban(@NotNull UUID id) throws UserNotFoundException;
-  Mono<KpUserDetails> release(@NotNull UUID id) throws UserNotFoundException;
+  Mono<User> activate(@NotNull UUID id);
+  Mono<User> detain(@NotNull UUID id, long days);
+  Mono<User> ban(@NotNull UUID id);
+  Mono<User> release(@NotNull UUID id);
 }

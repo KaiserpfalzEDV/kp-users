@@ -19,6 +19,7 @@ package de.kaiserpfalzedv.commons.users.store.model.user;
 
 
 import de.kaiserpfalzedv.commons.users.domain.model.user.KpUserDetails;
+import de.kaiserpfalzedv.commons.users.domain.model.user.User;
 import de.kaiserpfalzedv.commons.users.domain.model.user.UserNotFoundException;
 import de.kaiserpfalzedv.commons.users.domain.services.UserStateManagementService;
 import jakarta.validation.constraints.NotNull;
@@ -56,46 +57,50 @@ public class R2dbcUserStateManagementService extends R2dbcAbstractManagementServ
   
   @SuppressWarnings("removal")
   @Override
-  public Mono<KpUserDetails> activate(final UUID id) {
+  public Mono<User> activate(final UUID id) {
     log.entry(id);
     
-    Mono<KpUserDetails> result = repository.findById(id)
+    Mono<User> result = repository.findById(id)
+        .switchIfEmpty(Mono.error(new UserNotFoundException(id)))
         .map(u -> u.undelete(bus))
-        .flatMap(user -> saveUser(user, "User undeleted", "User undeleting error"));
+        .flatMap(u -> saveUser(((KpUserDetails)u), "User undeleted", "User undeleting error"));
     
     return log.exit(result);
     
   }
   
   @Override
-  public Mono<KpUserDetails> detain(final UUID id, final long days) throws UserNotFoundException {
+  public Mono<User> detain(final UUID id, final long days) {
     log.entry(id, days);
     
-    Mono<KpUserDetails> result = repository.findById(id)
+    Mono<User> result = repository.findById(id)
+        .switchIfEmpty(Mono.error(new UserNotFoundException(id)))
         .map(u -> u.detain(bus, days))
-        .flatMap(user -> saveUser(user, "User detained", "User detaining error"));
+        .flatMap(u -> saveUser(((KpUserDetails)u), "User detained", "User detaining error"));
     
     return log.exit(result);
   }
   
   @Override
-  public Mono<KpUserDetails> ban(final UUID id) throws UserNotFoundException {
+  public Mono<User> ban(final UUID id) {
     log.entry(id);
     
-    Mono<KpUserDetails> result = repository.findById(id)
+    Mono<User> result = repository.findById(id)
+        .switchIfEmpty(Mono.error(new UserNotFoundException(id)))
         .map(u -> u.ban(bus))
-        .flatMap(user -> saveUser(user, "User banned", "User banning error"));
+        .flatMap(u -> saveUser(((KpUserDetails)u), "User banned", "User banning error"));
     
     return log.exit(result);
   }
   
   @Override
-  public Mono<KpUserDetails> release(final UUID id) throws UserNotFoundException {
+  public Mono<User> release(final UUID id) {
     log.entry(id);
     
-    Mono<KpUserDetails> result = repository.findById(id)
+    Mono<User> result = repository.findById(id)
+        .switchIfEmpty(Mono.error(new UserNotFoundException(id)))
         .map(u -> u.release(bus))
-        .flatMap(user -> saveUser(user, "User released", "User releasing error"));
+        .flatMap(u -> saveUser(((KpUserDetails)u), "User released", "User releasing error"));
     
     return log.exit(result);
   }

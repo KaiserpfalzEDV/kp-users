@@ -34,5 +34,5 @@ import java.util.UUID;
 public interface UserRoleManagementService {
   Mono<? extends User> addRole(@NotNull UUID id, @NotNull Role role) throws UserNotFoundException, RoleNotFoundException;
   Mono<? extends User> removeRole(@NotNull UUID id, @NotNull Role role) throws UserNotFoundException, RoleNotFoundException;
-  Mono<? extends User> revokeRoleFromAllUsers(@NotNull Role role);
+  Mono<Long> revokeRoleFromAllUsers(@NotNull Role role);
 }

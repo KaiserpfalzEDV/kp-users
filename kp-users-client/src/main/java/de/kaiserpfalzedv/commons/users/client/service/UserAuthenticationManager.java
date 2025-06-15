@@ -7,7 +7,6 @@ import de.kaiserpfalzedv.commons.users.domain.model.user.UserIsInactiveException
 import de.kaiserpfalzedv.commons.users.domain.model.user.User;
 import de.kaiserpfalzedv.commons.users.domain.services.AuthenticationService;
 import de.kaiserpfalzedv.commons.users.domain.services.UserAuthenticationException;
-import jakarta.inject.Inject;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.XSlf4j;
 import org.springframework.beans.factory.annotation.Autowired;

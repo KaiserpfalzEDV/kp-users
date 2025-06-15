@@ -31,8 +31,8 @@ import java.util.UUID;
  * @since 03.05.2025
  */
 public interface UserManagementService {
-  Mono<? extends User> create(@NotNull User user) throws UserCantBeCreatedException;
-  Mono<? extends User> delete(@NotNull UUID id);
-  Mono<? extends User> undelete(@NotNull UUID id) throws UserNotFoundException;
+  Mono<User> create(@NotNull User user) throws UserCantBeCreatedException;
+  Mono<User> delete(@NotNull UUID id);
+  Mono<User> undelete(@NotNull UUID id) throws UserNotFoundException;
   Mono<Void> remove(@NotNull UUID id);
 }

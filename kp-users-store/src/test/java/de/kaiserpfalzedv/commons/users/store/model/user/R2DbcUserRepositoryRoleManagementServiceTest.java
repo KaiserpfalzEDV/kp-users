@@ -21,6 +21,7 @@ import de.kaiserpfalzedv.commons.users.domain.model.role.KpRole;
 import de.kaiserpfalzedv.commons.users.domain.model.role.RoleNotFoundException;
 import de.kaiserpfalzedv.commons.users.domain.model.role.RoleToImpl;
 import de.kaiserpfalzedv.commons.users.domain.model.user.KpUserDetails;
+import de.kaiserpfalzedv.commons.users.domain.model.user.User;
 import de.kaiserpfalzedv.commons.users.domain.model.user.UserNotFoundException;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.modification.RoleAddedToUserEvent;
 import de.kaiserpfalzedv.commons.users.domain.model.user.events.modification.RoleRemovedFromUserEvent;
@@ -34,6 +35,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
+import org.springframework.data.r2dbc.core.ReactiveDeleteOperation;
+import org.springframework.data.relational.core.query.Query;
 import reactor.core.publisher.Mono;
 
 import java.time.OffsetDateTime;
@@ -49,6 +53,7 @@ public class R2DbcUserRepositoryRoleManagementServiceTest {
   @InjectMocks private R2dbcUserRoleManagementService sut;
   @Mock private R2dbcUserRepository userRepository;
   @Mock private R2dbcRoleRepository roleRepository;
+  @Mock private R2dbcEntityTemplate template;
   @Mock private ApplicationEventPublisher bus;
   @Mock private RoleToImpl toRole;
   
@@ -62,7 +67,7 @@ public class R2DbcUserRepositoryRoleManagementServiceTest {
   
   @BeforeEach
   public void setUp() {
-    reset(bus, userRepository, roleRepository, toRole);
+    reset(bus, userRepository, roleRepository, template, toRole);
     
     user = KpUserDetails.builder()
         .id(DEFAULT_ID)
@@ -95,7 +100,7 @@ public class R2DbcUserRepositoryRoleManagementServiceTest {
   @AfterEach
   public void tearDown() {
     validateMockitoUsage();
-    verifyNoMoreInteractions(bus, userRepository, roleRepository, toRole);
+    verifyNoMoreInteractions(bus, userRepository, roleRepository, template, toRole);
   }
   
   
@@ -140,7 +145,7 @@ public class R2DbcUserRepositoryRoleManagementServiceTest {
     when(roleRepository.findById(DEFAULT_ROLE_ID)).thenReturn(Mono.error(new RoleNotFoundException(DEFAULT_ROLE_ID)));
     Exception expected = new RoleNotFoundException(DEFAULT_ROLE_ID);
     
-    Mono<KpUserDetails> result = sut.addRole(DEFAULT_ID, role);
+    Mono<User> result = sut.addRole(DEFAULT_ID, role);
 
     checkException(result, expected);
     
@@ -156,7 +161,7 @@ public class R2DbcUserRepositoryRoleManagementServiceTest {
     
     Exception expected = new UserNotFoundException(DEFAULT_ID);
     
-    Mono<KpUserDetails> result = sut.addRole(DEFAULT_ID, role);
+    Mono<User> result = sut.addRole(DEFAULT_ID, role);
     
     checkException(result, expected);
     
@@ -206,7 +211,7 @@ public class R2DbcUserRepositoryRoleManagementServiceTest {
     when(userRepository.findById(DEFAULT_ID)).thenReturn(Mono.empty());
     UserNotFoundException expected = new UserNotFoundException(DEFAULT_ID);
     
-    Mono<KpUserDetails> result = sut.removeRole(DEFAULT_ID, role);
+    Mono<User> result = sut.removeRole(DEFAULT_ID, role);
     
     checkException(result, expected);
     
@@ -220,7 +225,7 @@ public class R2DbcUserRepositoryRoleManagementServiceTest {
     when(roleRepository.findById(DEFAULT_ROLE_ID)).thenReturn(Mono.empty());
     Exception expected = new RoleNotFoundException(DEFAULT_ROLE_ID);
     
-    Mono<KpUserDetails> result = sut.removeRole(DEFAULT_ID, role);
+    Mono<User> result = sut.removeRole(DEFAULT_ID, role);
     
     
     checkException(result, expected);
@@ -229,16 +234,26 @@ public class R2DbcUserRepositoryRoleManagementServiceTest {
   }
   
   @Test
-  void shouldThrowUnsupportedWhenRemovingRoleFromAllUsers() {
+  void shouldRemoveRoleFromAllUsersWhenRemovingRoleFromAllUsers() {
     log.entry();
     
-    assertThrows(UnsupportedOperationException.class, () -> sut.revokeRoleFromAllUsers(role).block());
+    ReactiveDeleteOperation.ReactiveDelete reactiveDelete = mock(ReactiveDeleteOperation.ReactiveDelete.class);
+    ReactiveDeleteOperation.TerminatingDelete terminatingDelete = mock(ReactiveDeleteOperation.TerminatingDelete.class);
+    
+    
+    when(template.delete(any())).thenReturn(reactiveDelete);
+    when(reactiveDelete.matching(any(Query.class))).thenReturn(terminatingDelete);
+    when(terminatingDelete.all()).thenReturn(Mono.just(42L));
+
+    Long result = sut.revokeRoleFromAllUsers(role).block();
+    
+    assertEquals(42L, result);
     
     log.exit();
   }
 
   
-  private static void checkException(final Mono<KpUserDetails> result, final Exception expected) {
+  private static void checkException(final Mono<User> result, final Exception expected) {
     try {
       result.block();
       

@@ -131,16 +131,10 @@ public class R2DbcUserRepositoryEventsHandlerTest {
     UserActivatedEvent event = mock(UserActivatedEvent.class);
     when(event.getApplication()).thenReturn(EXTERNAL_SYSTEM);
     when(event.getUser()).thenReturn(user);
+    when(userManagement.undelete(USER_ID)).thenReturn(Mono.just(user));
     
     // when
     sut.event(event);
-    
-    // then
-    verify(userManagement).undelete(USER_ID);
-    verifyNoInteractions(userDataManagement);
-    verifyNoInteractions(userStateManagement);
-    verifyNoInteractions(userRoleManagement);
-    verifyNoInteractions(bus);
     
     log.exit();
   }
@@ -153,7 +147,7 @@ public class R2DbcUserRepositoryEventsHandlerTest {
     UserActivatedEvent event = mock(UserActivatedEvent.class);
     when(event.getApplication()).thenReturn(EXTERNAL_SYSTEM);
     when(event.getUser()).thenReturn(user);
-    doThrow(new UserNotFoundException(USER_ID)).when(userManagement).undelete(USER_ID);
+    when(userManagement.undelete(USER_ID)).thenReturn(Mono.error(new UserNotFoundException(USER_ID)));
     
     // when
     sut.event(event);
@@ -198,12 +192,12 @@ public class R2DbcUserRepositoryEventsHandlerTest {
     UserCreatedEvent event = mock(UserCreatedEvent.class);
     when(event.getApplication()).thenReturn(EXTERNAL_SYSTEM);
     when(event.getUser()).thenReturn(user);
+    when(userManagement.create(user)).thenReturn(Mono.just(user));
     
     // when
     sut.event(event);
     
     // then
-    verify(userManagement).create(user);
     verifyNoInteractions(userDataManagement);
     verifyNoInteractions(userStateManagement);
     verifyNoInteractions(userRoleManagement);
@@ -220,13 +214,12 @@ public class R2DbcUserRepositoryEventsHandlerTest {
     UserCreatedEvent event = mock(UserCreatedEvent.class);
     when(event.getApplication()).thenReturn(EXTERNAL_SYSTEM);
     when(event.getUser()).thenReturn(user);
-    doThrow(new UserCantBeCreatedException(ISSUER, SUBJECT, NAME, EMAIL)).when(userManagement).create(user);
+    when(userManagement.create(user)).thenReturn(Mono.error(new UserCantBeCreatedException(ISSUER, SUBJECT, NAME, EMAIL)));
     
     // when
     sut.event(event);
     
     // then
-    verify(userManagement).create(user);
     verifyNoInteractions(userDataManagement);
     verifyNoInteractions(userStateManagement);
     verifyNoInteractions(userRoleManagement);
@@ -265,12 +258,12 @@ public class R2DbcUserRepositoryEventsHandlerTest {
     UserDeletedEvent event = mock(UserDeletedEvent.class);
     when(event.getApplication()).thenReturn(EXTERNAL_SYSTEM);
     when(event.getUser()).thenReturn(user);
+    when(userManagement.delete(USER_ID)).thenReturn(Mono.empty());
     
     // when
     sut.event(event);
     
     // then
-    verify(userManagement).delete(USER_ID);
     verifyNoInteractions(userDataManagement);
     verifyNoInteractions(userStateManagement);
     verifyNoInteractions(userRoleManagement);
@@ -309,12 +302,12 @@ public class R2DbcUserRepositoryEventsHandlerTest {
     UserRemovedEvent event = mock(UserRemovedEvent.class);
     when(event.getApplication()).thenReturn(EXTERNAL_SYSTEM);
     when(event.getUser()).thenReturn(user);
+    when(userManagement.remove(USER_ID)).thenReturn(Mono.empty());
     
     // when
     sut.event(event);
     
     // then
-    verify(userManagement).remove(USER_ID);
     verifyNoInteractions(userDataManagement);
     verifyNoInteractions(userStateManagement);
     verifyNoInteractions(userRoleManagement);
@@ -346,19 +339,19 @@ public class R2DbcUserRepositoryEventsHandlerTest {
   
   
   @Test
-  void shouldBanUserWhenEventIsFromExternalSystem() throws UserNotFoundException {
+  void shouldBanUserWhenEventIsFromExternalSystem() {
     log.entry();
     
     // given
     UserBannedEvent event = mock(UserBannedEvent.class);
     when(event.getApplication()).thenReturn(EXTERNAL_SYSTEM);
     when(event.getUser()).thenReturn(user);
+    when(userStateManagement.ban(USER_ID)).thenReturn(Mono.just(user));
     
     // when
     sut.event(event);
     
     // then
-    verify(userStateManagement).ban(USER_ID);
     verifyNoInteractions(userDataManagement);
     verifyNoInteractions(userManagement);
     verifyNoInteractions(userRoleManagement);
@@ -368,24 +361,17 @@ public class R2DbcUserRepositoryEventsHandlerTest {
   }
   
   @Test
-  void shouldHandleExceptionOnBanUserWhenEventIsFromExternalSystem() throws UserNotFoundException {
+  void shouldHandleExceptionOnBanUserWhenEventIsFromExternalSystem() {
     log.entry();
     
     // given
     UserBannedEvent event = mock(UserBannedEvent.class);
     when(event.getApplication()).thenReturn(EXTERNAL_SYSTEM);
     when(event.getUser()).thenReturn(user);
-    doThrow(new UserNotFoundException(USER_ID)).when(userStateManagement).ban(USER_ID);
+    when(userStateManagement.ban(USER_ID)).thenReturn(Mono.error(new UserNotFoundException(USER_ID)));
     
     // when
     sut.event(event);
-    
-    // then
-    verify(userStateManagement).ban(USER_ID);
-    verifyNoInteractions(userDataManagement);
-    verifyNoInteractions(userManagement);
-    verifyNoInteractions(userRoleManagement);
-    verifyNoInteractions(bus);
     
     log.exit();
   }
@@ -413,7 +399,7 @@ public class R2DbcUserRepositoryEventsHandlerTest {
   
   
   @Test
-  void shouldDetainUserWhenEventIsFromExternalSystem() throws UserNotFoundException {
+  void shouldDetainUserWhenEventIsFromExternalSystem() {
     log.entry();
     
     // given
@@ -421,22 +407,16 @@ public class R2DbcUserRepositoryEventsHandlerTest {
     when(event.getApplication()).thenReturn(EXTERNAL_SYSTEM);
     when(event.getUser()).thenReturn(user);
     when(event.getDays()).thenReturn(DETAINEMENT_DAYS);
+    when(userStateManagement.detain(USER_ID, DETAINEMENT_DAYS)).thenReturn(Mono.just(user));
     
     // when
     sut.event(event);
-    
-    // then
-    verify(userStateManagement).detain(USER_ID, DETAINEMENT_DAYS);
-    verifyNoInteractions(userDataManagement);
-    verifyNoInteractions(userManagement);
-    verifyNoInteractions(userRoleManagement);
-    verifyNoInteractions(bus);
     
     log.exit();
   }
   
   @Test
-  void shouldHandleExceptionDetainingUserWhenEventIsFromExternalSystem() throws UserNotFoundException {
+  void shouldHandleExceptionDetainingUserWhenEventIsFromExternalSystem() {
     log.entry();
     
     // given
@@ -444,17 +424,10 @@ public class R2DbcUserRepositoryEventsHandlerTest {
     when(event.getApplication()).thenReturn(EXTERNAL_SYSTEM);
     when(event.getUser()).thenReturn(user);
     when(event.getDays()).thenReturn(DETAINEMENT_DAYS);
-    doThrow(new UserNotFoundException(USER_ID)).when(userStateManagement).detain(USER_ID, DETAINEMENT_DAYS);
+    when(userStateManagement.detain(USER_ID, DETAINEMENT_DAYS)).thenReturn(Mono.error(new UserNotFoundException(USER_ID)));
     
     // when
     sut.event(event);
-    
-    // then
-    verify(userStateManagement).detain(USER_ID, DETAINEMENT_DAYS);
-    verifyNoInteractions(userDataManagement);
-    verifyNoInteractions(userManagement);
-    verifyNoInteractions(userRoleManagement);
-    verifyNoInteractions(bus);
     
     log.exit();
   }
@@ -525,46 +498,33 @@ public class R2DbcUserRepositoryEventsHandlerTest {
   
   
   @Test
-  void shouldReleaseUserWhenEventIsFromExternalSystem() throws UserNotFoundException {
+  void shouldReleaseUserWhenEventIsFromExternalSystem() {
     log.entry();
     
     // given
     UserReleasedEvent event = mock(UserReleasedEvent.class);
     when(event.getApplication()).thenReturn(EXTERNAL_SYSTEM);
     when(event.getUser()).thenReturn(user);
+    when(userStateManagement.release(USER_ID)).thenReturn(Mono.just(user));
     
     // when
     sut.event(event);
-    
-    // then
-    verify(userStateManagement).release(USER_ID);
-    verifyNoInteractions(userDataManagement);
-    verifyNoInteractions(userManagement);
-    verifyNoInteractions(userRoleManagement);
-    verifyNoInteractions(bus);
     
     log.exit();
   }
   
   @Test
-  void shouldHandleExceptionReleasingUserWhenEventIsFromExternalSystem() throws UserNotFoundException {
+  void shouldHandleExceptionReleasingUserWhenEventIsFromExternalSystem() {
     log.entry();
     
     // given
     UserReleasedEvent event = mock(UserReleasedEvent.class);
     when(event.getApplication()).thenReturn(EXTERNAL_SYSTEM);
     when(event.getUser()).thenReturn(user);
-    doThrow(new UserNotFoundException(USER_ID)).when(userStateManagement).release(USER_ID);
+    when(userStateManagement.release(USER_ID)).thenReturn(Mono.error(new UserNotFoundException(USER_ID)));
     
     // when
     sut.event(event);
-    
-    // then
-    verify(userStateManagement).release(USER_ID);
-    verifyNoInteractions(userDataManagement);
-    verifyNoInteractions(userManagement);
-    verifyNoInteractions(userRoleManagement);
-    verifyNoInteractions(bus);
     
     log.exit();
   }
@@ -625,17 +585,10 @@ public class R2DbcUserRepositoryEventsHandlerTest {
     when(event.getApplication()).thenReturn(EXTERNAL_SYSTEM);
     when(event.getUser()).thenReturn(user);
     when(event.getRole()).thenReturn(role);
-    doThrow(new UserNotFoundException(USER_ID)).when(userRoleManagement).addRole(USER_ID, role);
+    when(userRoleManagement.addRole(USER_ID, role)).thenReturn(Mono.error(new UserNotFoundException(USER_ID)));
     
     // when
     sut.event(event);
-    
-    // then
-    verify(userRoleManagement).addRole(USER_ID, role);
-    verifyNoInteractions(userDataManagement);
-    verifyNoInteractions(userManagement);
-    verifyNoInteractions(userStateManagement);
-    verifyNoInteractions(bus);
     
     log.exit();
   }
@@ -649,17 +602,10 @@ public class R2DbcUserRepositoryEventsHandlerTest {
     when(event.getApplication()).thenReturn(EXTERNAL_SYSTEM);
     when(event.getUser()).thenReturn(user);
     when(event.getRole()).thenReturn(role);
-    doThrow(new RoleNotFoundException(TEST_ROLE_ID)).when(userRoleManagement).addRole(USER_ID, role);
+    when(userRoleManagement.addRole(USER_ID, role)).thenReturn(Mono.error(new RoleNotFoundException(TEST_ROLE_ID)));
     
     // when
     sut.event(event);
-    
-    // then
-    verify(userRoleManagement).addRole(USER_ID, role);
-    verifyNoInteractions(userDataManagement);
-    verifyNoInteractions(userManagement);
-    verifyNoInteractions(userStateManagement);
-    verifyNoInteractions(bus);
     
     log.exit();
   }
@@ -675,13 +621,6 @@ public class R2DbcUserRepositoryEventsHandlerTest {
     // when
     sut.event(event);
     
-    // then
-    verifyNoInteractions(userRoleManagement);
-    verifyNoInteractions(userDataManagement);
-    verifyNoInteractions(userManagement);
-    verifyNoInteractions(userStateManagement);
-    verifyNoInteractions(bus);
-    
     log.exit();
   }
   
@@ -695,16 +634,10 @@ public class R2DbcUserRepositoryEventsHandlerTest {
     when(event.getApplication()).thenReturn(EXTERNAL_SYSTEM);
     when(event.getUser()).thenReturn(user);
     when(event.getRole()).thenReturn(role);
+    when(userRoleManagement.removeRole(USER_ID, role)).thenReturn(Mono.just(user));
     
     // when
     sut.event(event);
-    
-    // then
-    verify(userRoleManagement).removeRole(USER_ID, role);
-    verifyNoInteractions(userDataManagement);
-    verifyNoInteractions(userManagement);
-    verifyNoInteractions(userStateManagement);
-    verifyNoInteractions(bus);
     
     log.exit();
   }
@@ -718,17 +651,10 @@ public class R2DbcUserRepositoryEventsHandlerTest {
     when(event.getApplication()).thenReturn(EXTERNAL_SYSTEM);
     when(event.getUser()).thenReturn(user);
     when(event.getRole()).thenReturn(role);
-    doThrow(new UserNotFoundException(USER_ID)).when(userRoleManagement).removeRole(USER_ID, role);
+    when(userRoleManagement.removeRole(USER_ID, role)).thenReturn(Mono.error(new UserNotFoundException(USER_ID)));
     
     // when
     sut.event(event);
-    
-    // then
-    verify(userRoleManagement).removeRole(USER_ID, role);
-    verifyNoInteractions(userDataManagement);
-    verifyNoInteractions(userManagement);
-    verifyNoInteractions(userStateManagement);
-    verifyNoInteractions(bus);
     
     log.exit();
   }
@@ -742,17 +668,10 @@ public class R2DbcUserRepositoryEventsHandlerTest {
     when(event.getApplication()).thenReturn(EXTERNAL_SYSTEM);
     when(event.getUser()).thenReturn(user);
     when(event.getRole()).thenReturn(role);
-    doThrow(new RoleNotFoundException(TEST_ROLE_ID)).when(userRoleManagement).removeRole(USER_ID, role);
+    when(userRoleManagement.removeRole(USER_ID, role)).thenReturn(Mono.error(new RoleNotFoundException(TEST_ROLE_ID)));
     
     // when
     sut.event(event);
-    
-    // then
-    verify(userRoleManagement).removeRole(USER_ID, role);
-    verifyNoInteractions(userDataManagement);
-    verifyNoInteractions(userManagement);
-    verifyNoInteractions(userStateManagement);
-    verifyNoInteractions(bus);
     
     log.exit();
   }
@@ -812,17 +731,11 @@ public class R2DbcUserRepositoryEventsHandlerTest {
     UserSubjectModificationEvent event = mock(UserSubjectModificationEvent.class);
     when(event.getApplication()).thenReturn(EXTERNAL_SYSTEM);
     when(event.getUser()).thenReturn(user);
-    when(userDataManagement.updateSubject(any(UUID.class), anyString(), anyString()).thenReturn(Mono.error(() -> new UserNotFoundException(USER_ID))));
+    when(userDataManagement.updateSubject(any(UUID.class), anyString(), anyString()))
+        .thenReturn(Mono.error(new UserNotFoundException(USER_ID)));
     
     // when
     sut.event(event);
-    
-    // then
-    verify(userDataManagement).updateSubject(USER_ID, ISSUER, SUBJECT);
-    verifyNoInteractions(userManagement);
-    verifyNoInteractions(userStateManagement);
-    verifyNoInteractions(userRoleManagement);
-    verifyNoInteractions(bus);
     
     log.exit();
   }
@@ -838,13 +751,6 @@ public class R2DbcUserRepositoryEventsHandlerTest {
     // when
     sut.event(event);
     
-    // then
-    verifyNoInteractions(userDataManagement);
-    verifyNoInteractions(userManagement);
-    verifyNoInteractions(userStateManagement);
-    verifyNoInteractions(userRoleManagement);
-    verifyNoInteractions(bus);
-    
     log.exit();
   }
   
@@ -857,16 +763,10 @@ public class R2DbcUserRepositoryEventsHandlerTest {
     UserNamespaceAndNameModificationEvent event = mock(UserNamespaceAndNameModificationEvent.class);
     when(event.getApplication()).thenReturn(EXTERNAL_SYSTEM);
     when(event.getUser()).thenReturn(user);
+    when(userDataManagement.updateNamespaceAndName(USER_ID, NAMESPACE, NAME)).thenReturn(Mono.just(user));
     
     // when
     sut.event(event);
-    
-    // then
-    verify(userDataManagement).updateNamespaceAndName(USER_ID, NAMESPACE, NAME);
-    verifyNoInteractions(userManagement);
-    verifyNoInteractions(userStateManagement);
-    verifyNoInteractions(userRoleManagement);
-    verifyNoInteractions(bus);
     
     log.exit();
   }
@@ -879,17 +779,10 @@ public class R2DbcUserRepositoryEventsHandlerTest {
     UserNamespaceAndNameModificationEvent event = mock(UserNamespaceAndNameModificationEvent.class);
     when(event.getApplication()).thenReturn(EXTERNAL_SYSTEM);
     when(event.getUser()).thenReturn(user);
-    doThrow(new UserNotFoundException(USER_ID)).when(userDataManagement).updateNamespaceAndName(USER_ID, NAMESPACE, NAME);
+    when(userDataManagement.updateNamespaceAndName(USER_ID, NAMESPACE, NAME)).thenReturn(Mono.error(new UserNotFoundException(USER_ID)));
     
     // when
     sut.event(event);
-    
-    // then
-    verify(userDataManagement).updateNamespaceAndName(USER_ID, NAMESPACE, NAME);
-    verifyNoInteractions(userManagement);
-    verifyNoInteractions(userStateManagement);
-    verifyNoInteractions(userRoleManagement);
-    verifyNoInteractions(bus);
     
     log.exit();
   }
@@ -905,13 +798,6 @@ public class R2DbcUserRepositoryEventsHandlerTest {
     // when
     sut.event(event);
     
-    // then
-    verifyNoInteractions(userDataManagement);
-    verifyNoInteractions(userManagement);
-    verifyNoInteractions(userStateManagement);
-    verifyNoInteractions(userRoleManagement);
-    verifyNoInteractions(bus);
-    
     log.exit();
   }
   
@@ -924,16 +810,10 @@ public class R2DbcUserRepositoryEventsHandlerTest {
     UserNamespaceModificationEvent event = mock(UserNamespaceModificationEvent.class);
     when(event.getApplication()).thenReturn(EXTERNAL_SYSTEM);
     when(event.getUser()).thenReturn(user);
+    when(userDataManagement.updateNamespace(USER_ID, NAMESPACE)).thenReturn(Mono.just(user));
     
     // when
     sut.event(event);
-    
-    // then
-    verify(userDataManagement).updateNamespace(USER_ID, NAMESPACE);
-    verifyNoInteractions(userManagement);
-    verifyNoInteractions(userStateManagement);
-    verifyNoInteractions(userRoleManagement);
-    verifyNoInteractions(bus);
     
     log.exit();
   }
@@ -946,17 +826,10 @@ public class R2DbcUserRepositoryEventsHandlerTest {
     UserNamespaceModificationEvent event = mock(UserNamespaceModificationEvent.class);
     when(event.getApplication()).thenReturn(EXTERNAL_SYSTEM);
     when(event.getUser()).thenReturn(user);
-    doThrow(new UserNotFoundException(USER_ID)).when(userDataManagement).updateNamespace(USER_ID, NAMESPACE);
+    when(userDataManagement.updateNamespace(USER_ID, NAMESPACE)).thenReturn(Mono.error(new UserNotFoundException(USER_ID)));
     
     // when
     sut.event(event);
-    
-    // then
-    verify(userDataManagement).updateNamespace(USER_ID, NAMESPACE);
-    verifyNoInteractions(userManagement);
-    verifyNoInteractions(userStateManagement);
-    verifyNoInteractions(userRoleManagement);
-    verifyNoInteractions(bus);
     
     log.exit();
   }
@@ -972,13 +845,6 @@ public class R2DbcUserRepositoryEventsHandlerTest {
     // when
     sut.event(event);
     
-    // then
-    verifyNoInteractions(userDataManagement);
-    verifyNoInteractions(userManagement);
-    verifyNoInteractions(userStateManagement);
-    verifyNoInteractions(userRoleManagement);
-    verifyNoInteractions(bus);
-    
     log.exit();
   }
   
@@ -991,16 +857,10 @@ public class R2DbcUserRepositoryEventsHandlerTest {
     UserNameModificationEvent event = mock(UserNameModificationEvent.class);
     when(event.getApplication()).thenReturn(EXTERNAL_SYSTEM);
     when(event.getUser()).thenReturn(user);
+    when(userDataManagement.updateName(USER_ID, NAME)).thenReturn(Mono.just(user));
     
     // when
     sut.event(event);
-    
-    // then
-    verify(userDataManagement).updateName(USER_ID, NAME);
-    verifyNoInteractions(userManagement);
-    verifyNoInteractions(userStateManagement);
-    verifyNoInteractions(userRoleManagement);
-    verifyNoInteractions(bus);
     
     log.exit();
   }
@@ -1013,17 +873,10 @@ public class R2DbcUserRepositoryEventsHandlerTest {
     UserNameModificationEvent event = mock(UserNameModificationEvent.class);
     when(event.getApplication()).thenReturn(EXTERNAL_SYSTEM);
     when(event.getUser()).thenReturn(user);
-    doThrow(new UserNotFoundException(USER_ID)).when(userDataManagement).updateName(USER_ID, NAME);
+    when(userDataManagement.updateName(USER_ID, NAME)).thenReturn(Mono.error(new UserNotFoundException(USER_ID)));
     
     // when
     sut.event(event);
-    
-    // then
-    verify(userDataManagement).updateName(USER_ID, NAME);
-    verifyNoInteractions(userManagement);
-    verifyNoInteractions(userStateManagement);
-    verifyNoInteractions(userRoleManagement);
-    verifyNoInteractions(bus);
     
     log.exit();
   }
@@ -1039,13 +892,6 @@ public class R2DbcUserRepositoryEventsHandlerTest {
     // when
     sut.event(event);
     
-    // then
-    verifyNoInteractions(userDataManagement);
-    verifyNoInteractions(userManagement);
-    verifyNoInteractions(userStateManagement);
-    verifyNoInteractions(userRoleManagement);
-    verifyNoInteractions(bus);
-    
     log.exit();
   }
   
@@ -1058,16 +904,10 @@ public class R2DbcUserRepositoryEventsHandlerTest {
     UserEmailModificationEvent event = mock(UserEmailModificationEvent.class);
     when(event.getApplication()).thenReturn(EXTERNAL_SYSTEM);
     when(event.getUser()).thenReturn(user);
+    when(userDataManagement.updateEmail(USER_ID, EMAIL)).thenReturn(Mono.just(user));
     
     // when
     sut.event(event);
-    
-    // then
-    verify(userDataManagement).updateEmail(USER_ID, EMAIL);
-    verifyNoInteractions(userManagement);
-    verifyNoInteractions(userStateManagement);
-    verifyNoInteractions(userRoleManagement);
-    verifyNoInteractions(bus);
     
     log.exit();
   }
@@ -1080,17 +920,10 @@ public class R2DbcUserRepositoryEventsHandlerTest {
     UserEmailModificationEvent event = mock(UserEmailModificationEvent.class);
     when(event.getApplication()).thenReturn(EXTERNAL_SYSTEM);
     when(event.getUser()).thenReturn(user);
-    doThrow(new UserNotFoundException(USER_ID)).when(userDataManagement).updateEmail(USER_ID, EMAIL);
+    when(userDataManagement.updateEmail(USER_ID, EMAIL)).thenReturn(Mono.error(new UserNotFoundException(USER_ID)));
     
     // when
     sut.event(event);
-    
-    // then
-    verify(userDataManagement).updateEmail(USER_ID, EMAIL);
-    verifyNoInteractions(userManagement);
-    verifyNoInteractions(userStateManagement);
-    verifyNoInteractions(userRoleManagement);
-    verifyNoInteractions(bus);
     
     log.exit();
   }
@@ -1106,13 +939,6 @@ public class R2DbcUserRepositoryEventsHandlerTest {
     // when
     sut.event(event);
     
-    // then
-    verifyNoInteractions(userDataManagement);
-    verifyNoInteractions(userManagement);
-    verifyNoInteractions(userStateManagement);
-    verifyNoInteractions(userRoleManagement);
-    verifyNoInteractions(bus);
-    
     log.exit();
   }
   
@@ -1125,16 +951,10 @@ public class R2DbcUserRepositoryEventsHandlerTest {
     UserDiscordModificationEvent event = mock(UserDiscordModificationEvent.class);
     when(event.getApplication()).thenReturn(EXTERNAL_SYSTEM);
     when(event.getUser()).thenReturn(user);
+    when(userDataManagement.updateDiscord(USER_ID, DISCORD)).thenReturn(Mono.just(user));
     
     // when
     sut.event(event);
-    
-    // then
-    verify(userDataManagement).updateDiscord(USER_ID, DISCORD);
-    verifyNoInteractions(userManagement);
-    verifyNoInteractions(userStateManagement);
-    verifyNoInteractions(userRoleManagement);
-    verifyNoInteractions(bus);
     
     log.exit();
   }
@@ -1147,17 +967,10 @@ public class R2DbcUserRepositoryEventsHandlerTest {
     UserDiscordModificationEvent event = mock(UserDiscordModificationEvent.class);
     when(event.getApplication()).thenReturn(EXTERNAL_SYSTEM);
     when(event.getUser()).thenReturn(user);
-    doThrow(new UserNotFoundException(USER_ID)).when(userDataManagement).updateDiscord(USER_ID, DISCORD);
+    when(userDataManagement.updateDiscord(USER_ID, DISCORD)).thenReturn(Mono.error(new UserNotFoundException(USER_ID)));
     
     // when
     sut.event(event);
-    
-    // then
-    verify(userDataManagement).updateDiscord(USER_ID, DISCORD);
-    verifyNoInteractions(userManagement);
-    verifyNoInteractions(userStateManagement);
-    verifyNoInteractions(userRoleManagement);
-    verifyNoInteractions(bus);
     
     log.exit();
   }

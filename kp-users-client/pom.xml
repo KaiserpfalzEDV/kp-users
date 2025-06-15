@@ -31,11 +31,17 @@
     <description>The model for the user management</description>
 
     <properties>
+        <kp-users.version>1.0.0-SNAPSHOT</kp-users.version>
+        <kp-commons.version>4.2.0-SNAPSHOT</kp-commons.version>
         <uml-classes>de.kaiserpfalzedv.commons.users.client</uml-classes>
-        <main.basedir>${project.basedir}/../../..</main.basedir>
+        <main.basedir>${project.basedir}/..</main.basedir>
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>de.kaiserpfalz-edv.commons.services</groupId>
+            <artifactId>kp-users-model</artifactId>
+        </dependency>
         <dependency>
             <groupId>de.kaiserpfalz-edv.commons.services</groupId>
             <artifactId>kp-users-messaging</artifactId>
@@ -44,6 +50,25 @@
             <groupId>de.kaiserpfalz-edv.commons.services</groupId>
             <artifactId>kp-users-store</artifactId>
         </dependency>
+        <!-- R2DBC PostgreSQL -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>r2dbc-postgresql</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>io.asyncer</groupId>
+            <artifactId>r2dbc-mysql</artifactId>
+            <version>1.2.0</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>io.r2dbc</groupId>
+            <artifactId>r2dbc-h2</artifactId>
+            <version>1.0.0.RELEASE</version>
+            <scope>test</scope>
+        </dependency>
+
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -52,6 +77,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-core</artifactId>
         </dependency>
 
         <dependency>

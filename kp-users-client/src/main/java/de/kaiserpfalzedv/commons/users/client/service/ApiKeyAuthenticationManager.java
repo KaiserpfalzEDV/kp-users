@@ -1,11 +1,11 @@
 package de.kaiserpfalzedv.commons.users.client.service;
 
 
-import de.kaiserpfalzedv.commons.api.events.EventBus;
 import de.kaiserpfalzedv.commons.users.domain.services.AuthenticationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.XSlf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -25,9 +25,10 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @XSlf4j
 public class ApiKeyAuthenticationManager implements AuthenticationManager {
-  private final EventBus bus;
+  private final ApplicationEventPublisher bus;
   private final AuthenticationService authenticationService;
   
+  // FIXME 2025-06-15 klenkes74 Implement the API key authentication manager.
   
   @Override
   public Authentication authenticate(final Authentication authentication) throws AuthenticationException {

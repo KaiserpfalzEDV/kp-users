@@ -19,7 +19,6 @@ package de.kaiserpfalzedv.commons.users.client.reactive;
 
 
 import de.kaiserpfalzedv.commons.users.client.service.UserAuthenticationManager;
-import jakarta.inject.Inject;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.XSlf4j;

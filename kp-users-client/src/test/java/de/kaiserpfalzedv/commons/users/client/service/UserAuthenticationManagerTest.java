@@ -19,10 +19,11 @@ package de.kaiserpfalzedv.commons.users.client.service;
 
 
 import de.kaiserpfalzedv.commons.users.client.model.KpUserAuthentication;
-import de.kaiserpfalzedv.commons.users.domain.model.user.UserCantBeCreatedException;
-import de.kaiserpfalzedv.commons.users.domain.model.user.UserIsBannedException;
+import de.kaiserpfalzedv.commons.users.domain.model.role.KpRole;
 import de.kaiserpfalzedv.commons.users.domain.model.user.KpUserDetails;
 import de.kaiserpfalzedv.commons.users.domain.model.user.User;
+import de.kaiserpfalzedv.commons.users.domain.model.user.UserCantBeCreatedException;
+import de.kaiserpfalzedv.commons.users.domain.model.user.UserIsBannedException;
 import de.kaiserpfalzedv.commons.users.domain.services.AuthenticationService;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.XSlf4j;
@@ -35,7 +36,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.ott.OneTimeTokenAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 
 import java.net.MalformedURLException;
@@ -165,8 +165,8 @@ public class UserAuthenticationManagerTest {
   private static final OffsetDateTime CREATED_AT = OffsetDateTime.now().minusMonths(6L);
   private static final OffsetDateTime MODIFIED_AT = OffsetDateTime.now().minusMonths(1L);
   
-  private static final Set<SimpleGrantedAuthority> PLAYER_AUTHORITIES = Set.of(
-      new SimpleGrantedAuthority("ROLE_PLAYER")
+  private static final Set<KpRole> PLAYER_AUTHORITIES = Set.of(
+    KpRole.builder().nameSpace("default-namespace").name("ROLE_PLAYER").build()
   );
   
   

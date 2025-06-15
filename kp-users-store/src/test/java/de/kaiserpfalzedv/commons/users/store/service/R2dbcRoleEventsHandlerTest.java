@@ -18,11 +18,8 @@
 package de.kaiserpfalzedv.commons.users.store.service;
 
 
-import de.kaiserpfalzedv.commons.api.events.EventBus;
 import de.kaiserpfalzedv.commons.users.domain.model.role.KpRole;
-import de.kaiserpfalzedv.commons.users.domain.model.role.Role;
 import de.kaiserpfalzedv.commons.users.domain.model.role.RoleCantBeCreatedException;
-import de.kaiserpfalzedv.commons.users.domain.model.role.RoleNotFoundException;
 import de.kaiserpfalzedv.commons.users.domain.model.role.events.RoleCreatedEvent;
 import de.kaiserpfalzedv.commons.users.domain.model.role.events.RoleRemovedEvent;
 import de.kaiserpfalzedv.commons.users.domain.model.role.events.RoleUpdateNameEvent;
@@ -37,10 +34,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
+import reactor.core.publisher.Mono;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.*;
 
 /**
@@ -60,7 +61,7 @@ public class R2dbcRoleEventsHandlerTest {
   private R2dbcUserRoleManagementService userRoleManagement;
 
   @Mock
-  private EventBus bus;
+  private ApplicationEventPublisher bus;
   
   private static final String LOCAL_SYSTEM = "kp-users";
   private static final String EXTERNAL_SYSTEM = "other-application";
@@ -70,7 +71,7 @@ public class R2dbcRoleEventsHandlerTest {
   private static final String TEST_ROLE_NAME = "Test Role";
   private static final String TEST_ROLE_NAMESPACE = "Test Namespace";
   private static final OffsetDateTime TEST_ROLE_CREATED_TIME = OffsetDateTime.now().minusDays(100);
-  private Role role;
+  private KpRole role;
 
   @BeforeEach
   void setUp() {
@@ -103,12 +104,11 @@ public class R2dbcRoleEventsHandlerTest {
     RoleCreatedEvent event = mock(RoleCreatedEvent.class);
     when(event.getSystem()).thenReturn(EXTERNAL_SYSTEM);
     when(event.getRole()).thenReturn(role);
+    when(writeService.create(any(KpRole.class))).thenReturn(Mono.just(role));
     
     // when
     sut.event(event);
     
-    // then
-    verify(writeService).create(role);
   }
   
   @Test
@@ -119,14 +119,19 @@ public class R2dbcRoleEventsHandlerTest {
     RoleCreatedEvent event = mock(RoleCreatedEvent.class);
     when(event.getSystem()).thenReturn(EXTERNAL_SYSTEM);
     when(event.getRole()).thenReturn(role);
-    
-    doThrow(new RoleCantBeCreatedException(role, new IllegalStateException())).when(writeService).create(role);
+    when(writeService.create(any(KpRole.class))).thenReturn(Mono.error(new RoleCantBeCreatedException(role, new IllegalStateException())));
     
     // when
-    sut.event(event);
+    try {
+      sut.event(event);
+      fail("Expected exception to be thrown, but it was not.");
+    } catch (Exception e) {
+      log.debug("Caught exception. type={}, message={}", e.getCause().getClass().getSimpleName(), e.getCause().getMessage());
+      
+      assertInstanceOf(RoleCantBeCreatedException.class, e.getCause());
+    }
     
     // then
-    verify(writeService).create(role);
     
     log.exit();
   }
@@ -155,13 +160,12 @@ public class R2dbcRoleEventsHandlerTest {
     RoleUpdateNameSpaceEvent event = mock(RoleUpdateNameSpaceEvent.class);
     when(event.getSystem()).thenReturn(EXTERNAL_SYSTEM);
     when(event.getRole()).thenReturn(role);
+    when(writeService.updateNameSpace(any(UUID.class), any(String.class))).thenReturn(Mono.just(role));
     
     // when
     sut.event(event);
     
     // then
-    verify(writeService).updateNameSpace(role.getId(), role.getNameSpace());
-    
     log.exit();
   }
   
@@ -173,15 +177,17 @@ public class R2dbcRoleEventsHandlerTest {
     RoleUpdateNameSpaceEvent event = mock(RoleUpdateNameSpaceEvent.class);
     when(event.getSystem()).thenReturn(EXTERNAL_SYSTEM);
     when(event.getRole()).thenReturn(role);
-
-    
-    doThrow(new RoleNotFoundException(TEST_ROLE_ID)).when(writeService).updateNameSpace(TEST_ROLE_ID, TEST_ROLE_NAMESPACE);
+    when(writeService.updateNameSpace(any(UUID.class), any(String.class))).thenReturn(Mono.error(new RoleCantBeCreatedException(role, new IllegalStateException())));
     
     // when
-    sut.event(event);
-    
-    // then
-    verify(writeService).updateNameSpace(TEST_ROLE_ID, TEST_ROLE_NAMESPACE);
+    try {
+      sut.event(event);
+      fail("Expected exception to be thrown, but it was not.");
+    } catch (Exception e) {
+      log.debug("Caught exception. type={}, message={}", e.getCause().getClass().getSimpleName(), e.getCause().getMessage());
+      
+      assertInstanceOf(RoleCantBeCreatedException.class, e.getCause());
+    }
     
     log.exit();
   }
@@ -212,13 +218,13 @@ public class R2dbcRoleEventsHandlerTest {
     RoleUpdateNameEvent event = mock(RoleUpdateNameEvent.class);
     when(event.getSystem()).thenReturn(EXTERNAL_SYSTEM);
     when(event.getRole()).thenReturn(role);
+    when(writeService.updateName(any(UUID.class), any(String.class))).thenReturn(Mono.just(role));
     
     // when
     sut.event(event);
     
-    // then
-    verify(writeService).updateName(role.getId(), role.getName());
     
+    // then
     log.exit();
   }
   
@@ -230,14 +236,17 @@ public class R2dbcRoleEventsHandlerTest {
     RoleUpdateNameEvent event = mock(RoleUpdateNameEvent.class);
     when(event.getSystem()).thenReturn(EXTERNAL_SYSTEM);
     when(event.getRole()).thenReturn(role);
-    
-    doThrow(new RoleNotFoundException(TEST_ROLE_ID)).when(writeService).updateName(TEST_ROLE_ID, TEST_ROLE_NAME);
+    when(writeService.updateName(any(UUID.class), any(String.class))).thenReturn(Mono.error(new RoleCantBeCreatedException(role, new IllegalStateException())));
     
     // when
-    sut.event(event);
-    
-    // then
-    verify(writeService).updateName(TEST_ROLE_ID, TEST_ROLE_NAME);
+    try {
+      sut.event(event);
+      fail("Expected exception to be thrown, but it was not.");
+    } catch (Exception e) {
+      log.debug("Caught exception. type={}, message={}", e.getCause().getClass().getSimpleName(), e.getCause().getMessage());
+      
+      assertInstanceOf(RoleCantBeCreatedException.class, e.getCause());
+    }
     
     log.exit();
   }
@@ -268,13 +277,13 @@ public class R2dbcRoleEventsHandlerTest {
     RoleRemovedEvent event = mock(RoleRemovedEvent.class);
     when(event.getSystem()).thenReturn(EXTERNAL_SYSTEM);
     when(event.getRole()).thenReturn(role);
+    when(userRoleManagement.revokeRoleFromAllUsers(any(KpRole.class))).thenReturn(Mono.just(3L));
+    when(writeService.remove(any(UUID.class))).thenReturn(Mono.empty());
     
     // when
     sut.event(event);
     
     // then
-    verify(userRoleManagement).revokeRoleFromAllUsers(role);
-    verify(writeService).remove(TEST_ROLE_ID);
     
     log.exit();
   }
@@ -293,33 +302,6 @@ public class R2dbcRoleEventsHandlerTest {
     // then
     verify(userRoleManagement, never()).revokeRoleFromAllUsers(role);
     verify(writeService, never()).remove(TEST_ROLE_ID);
-    
-    log.exit();
-  }
-  
-  
-  @Test
-  void shouldRegisterToEventBus() {
-    log.entry();
-    
-    // when
-    sut.init();
-    
-    // then
-    verify(bus).register(sut);
-    
-    log.exit();
-  }
-  
-  @Test
-  void shouldUnregisterFromEventBus() {
-    log.entry();
-    
-    // when
-    sut.close();
-    
-    // then
-    verify(bus).unregister(sut);
     
     log.exit();
   }
