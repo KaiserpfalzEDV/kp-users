@@ -39,7 +39,7 @@ But more importantly: I want to get used to it, since it is used at my place of 
 
 == Decision Drivers
 
-[cols="<.<4a,<.<16a"]
+[cols="<.<4a,<.<16a", option="header", frame="topbot", grid="rows"]
 |===
 | Driver | Description
 
