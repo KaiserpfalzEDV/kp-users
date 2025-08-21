@@ -50,9 +50,9 @@ import static org.mockito.Mockito.when;
  */
 @ExtendWith(MockitoExtension.class)
 @XSlf4j
-public class UserAuthenticationServiceTest {
+public class KpUserAuthenticationServiceTest {
   /** Service under test */
-  private UserAuthenticationService sut;
+  private KpUserAuthenticationService sut;
   
   @Mock
   private UserReadService<User> userReadService;
@@ -75,7 +75,7 @@ public class UserAuthenticationServiceTest {
   
   @BeforeEach
   public void setUpTest() {
-    sut = new UserAuthenticationService(userReadService, userWriteService);
+    sut = new KpUserAuthenticationService(userReadService, userWriteService);
   }
 
   

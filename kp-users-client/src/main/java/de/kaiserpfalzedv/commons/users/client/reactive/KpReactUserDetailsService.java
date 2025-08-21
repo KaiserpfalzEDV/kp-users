@@ -18,38 +18,47 @@
 package de.kaiserpfalzedv.commons.users.client.reactive;
 
 
-import de.kaiserpfalzedv.commons.users.client.service.UserAuthenticationManager;
+import de.kaiserpfalzedv.commons.users.client.service.KpUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.XSlf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.ReactiveAuthenticationManager;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.core.userdetails.ReactiveUserDetailsPasswordService;
+import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 /**
  * @author klenkes74 {@literal <rlichti@kaiserpfalz-edv.de>}
  * @since 2025-05-25
  */
-@Component
-@RequiredArgsConstructor(onConstructor_ = @__(@Autowired))
+@Service
+@Import({
+    KpUserDetailsService.class,
+})
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @ToString(onlyExplicitlyIncluded = true)
 @XSlf4j
-public class ReactUserAuthenticationManager implements ReactiveAuthenticationManager {
-  private final UserAuthenticationManager manager;
+public class KpReactUserDetailsService
+    implements ReactiveUserDetailsService, ReactiveUserDetailsPasswordService {
+  private final KpUserDetailsService details;
   
   @Override
-  public Mono<Authentication> authenticate(final Authentication authentication) {
-    log.entry(authentication);
+  public Mono<UserDetails> updatePassword(final UserDetails user, final String newPassword) {
+    log.entry(user, newPassword);
     
-    Authentication result;
-    try {
-      result = manager.authenticate(authentication);
-    } catch (AuthenticationException e) {
-      return log.exit(Mono.error(e));
-    }
+    log.warn("Password update is not supported in the KpReactUserDetailsService. Returning null.");
+    
+    return log.exit(Mono.just(user));
+  }
+  
+  @Override
+  public Mono<UserDetails> findByUsername(final String username) {
+    log.entry(username);
+
+    UserDetails result = details.loadUserByUsername(username);
     
     return log.exit(Mono.justOrEmpty(result));
   }

@@ -1,7 +1,7 @@
 package de.kaiserpfalzedv.commons.users.service;
 
 
-import de.kaiserpfalzedv.commons.users.client.EnableUserClient;
+import de.kaiserpfalzedv.commons.users.client.EnableKpUserClient;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
@@ -11,7 +11,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @since 2025-06-21
  */
 @SpringBootApplication
-@EnableUserClient
+@EnableKpUserClient
 public class UserServiceApplication {
   /**
    * The main method to start the application.

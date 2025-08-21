@@ -54,9 +54,9 @@ import static org.mockito.Mockito.when;
  */
 @ExtendWith(MockitoExtension.class)
 @XSlf4j
-public class UserAuthenticationManagerTest {
+public class KpUserAuthenticationManagerTest {
   /** Service under test */
-  private UserAuthenticationManager sut;
+  private KpUserAuthenticationManager sut;
   
   @Mock
   private AuthenticationService authenticationService;
@@ -71,7 +71,7 @@ public class UserAuthenticationManagerTest {
   
   @BeforeEach
   public void setUpTest() {
-    sut = new UserAuthenticationManager(authenticationService);
+    sut = new KpUserAuthenticationManager(authenticationService);
   }
 
   

@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @XSlf4j
-public class UserLoggedInStateRepository {
+public class KpUserLoggedInStateRepository {
   public static final int INACTIVITY_LIMIT_IN_SECONDS = 3600;
   
   /** The cache of logged-in user. */

@@ -29,7 +29,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @XSlf4j
-public class UserAuthenticationManager implements AuthenticationManager {
+public class KpUserAuthenticationManager implements AuthenticationManager {
   private final AuthenticationService authenticationService;
   
   

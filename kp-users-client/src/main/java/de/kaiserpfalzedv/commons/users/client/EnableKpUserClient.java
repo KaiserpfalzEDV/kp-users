@@ -16,8 +16,8 @@
  */
 package de.kaiserpfalzedv.commons.users.client;
 
-import de.kaiserpfalzedv.commons.users.client.reactive.ReactUserSecurityConfig;
-import de.kaiserpfalzedv.commons.users.client.reactive.ReactUserDetailsService;
+import de.kaiserpfalzedv.commons.users.client.reactive.KpReactUserSecurityConfig;
+import de.kaiserpfalzedv.commons.users.client.reactive.KpReactUserDetailsService;
 import de.kaiserpfalzedv.commons.users.client.service.*;
 import de.kaiserpfalzedv.commons.users.messaging.EnableUsersMessaging;
 import de.kaiserpfalzedv.commons.users.store.EnableR2dbcUsersStore;
@@ -40,12 +40,12 @@ import java.lang.annotation.*;
 @EnableUsersMessaging
 @EnableR2dbcUsersStore
 @Import({
-    ApiKeyAuthenticationManager.class,
-    UserAuthenticationManager.class,
+    KpApiKeyAuthenticationManager.class,
+    KpUserAuthenticationManager.class,
     KpUserDetailsService.class,
-    UserAuthenticationService.class,
-    UserLoggedInStateRepository.class,
-    ReactUserSecurityConfig.class,
-    ReactUserDetailsService.class,
+    KpUserAuthenticationService.class,
+    KpUserLoggedInStateRepository.class,
+    KpReactUserSecurityConfig.class,
+    KpReactUserDetailsService.class,
 })
-public @interface EnableUserClient {}
+public @interface EnableKpUserClient {}

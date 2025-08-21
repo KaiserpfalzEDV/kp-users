@@ -34,11 +34,11 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 @EnableReactiveMethodSecurity
 @EnableR2dbcUsersStore
 @Import({
-    ReactUserAuthenticationManager.class,
-    ReactUserDetailsService.class
+    KpReactUserAuthenticationManager.class,
+    KpReactUserDetailsService.class
 })
 @XSlf4j
-public class ReactUserSecurityConfig implements AutoCloseable {
+public class KpReactUserSecurityConfig implements AutoCloseable {
   @PostConstruct
   public void init() {
     log.entry();

@@ -40,7 +40,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @XSlf4j
-public class UserAuthenticationService implements AuthenticationService {
+public class KpUserAuthenticationService implements AuthenticationService {
   private final UserReadService<User> readService;
   private final UserManagementService writeService;
   

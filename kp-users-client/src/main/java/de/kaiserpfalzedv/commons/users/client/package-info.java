@@ -1,4 +1,6 @@
 /**
+ * The Userservice for the SCS-IDP on steroids.
+ *
  * @author klenkes74 {@literal <rlichti@kaiserpfalz-edv.de>}
  * @since 03.05.2025
  */

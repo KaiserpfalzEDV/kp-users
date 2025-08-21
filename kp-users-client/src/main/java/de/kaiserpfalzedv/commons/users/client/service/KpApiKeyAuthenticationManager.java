@@ -24,7 +24,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @XSlf4j
-public class ApiKeyAuthenticationManager implements AuthenticationManager {
+public class KpApiKeyAuthenticationManager implements AuthenticationManager {
   private final ApplicationEventPublisher bus;
   private final AuthenticationService authenticationService;
   

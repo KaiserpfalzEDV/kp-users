@@ -18,8 +18,8 @@
 package de.kaiserpfalzedv.commons.users.client.controller;
 
 
-import de.kaiserpfalzedv.commons.users.client.EnableUserClient;
-import de.kaiserpfalzedv.commons.users.client.reactive.ReactUserSecurityConfig;
+import de.kaiserpfalzedv.commons.users.client.EnableKpUserClient;
+import de.kaiserpfalzedv.commons.users.client.reactive.KpReactUserSecurityConfig;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -33,9 +33,9 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
  */
 @SpringBootApplication
 @EnableReactiveMethodSecurity
-@EnableUserClient
+@EnableKpUserClient
 @Import({
-    ReactUserSecurityConfig.class
+    KpReactUserSecurityConfig.class
 })
 @RequiredArgsConstructor(onConstructor_ = {@Autowired})
 public class AuthenticationITConfig {
