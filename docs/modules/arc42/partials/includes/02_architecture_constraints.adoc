@@ -1,7 +1,7 @@
-:ct001: xref:02_architecture_constraints.adoc#CT001[&uparrow;CT-001 Kubernetes]
-:ct002: xref:02_architecture_constraints.adoc#CT002[&uparrow;CT-002 Publishing Chain]
-:ct003: xref:02_architecture_constraints.adoc#CT003[&uparrow;CT-003 Programming Languages]
+:ct001: xref:arc42:02_architecture_constraints.adoc#CT001[&uparrow;CT-001 Kubernetes]
+:ct002: xref:arc42:02_architecture_constraints.adoc#CT002[&uparrow;CT-002 Publishing Chain]
+:ct003: xref:arc42:02_architecture_constraints.adoc#CT003[&uparrow;CT-003 Programming Languages]
 
-:cp001: xref:02_architecture_constraints.adoc#CP001[&uparrow;CO-001 Paladins Inn]
+:cp001: xref:arc42:02_architecture_constraints.adoc#CP001[&uparrow;CO-001 Paladins Inn]
 
-:cp001: xref:02_architecture_constraints.adoc#CP001[&uparrow;CP-001 Non Profit]
+:cp001: xref:arc42:02_architecture_constraints.adoc#CP001[&uparrow;CP-001 Non Profit]
