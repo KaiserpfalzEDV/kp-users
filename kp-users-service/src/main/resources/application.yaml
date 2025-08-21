@@ -5,11 +5,17 @@ spring:
     system: kp-commons
     admin:
       enabled: false
+  profiles:
+    active: rabbitmq
   main:
     banner-mode: off
+    allow-bean-definition-overriding: true
     
   liquibase:
     enabled: true
+    
+  aop:
+    proxy-target-class: false
   
   cloud:
     function:
@@ -70,42 +76,7 @@ spring:
         removeUser-in-0:
           destination: kp-users.state
           content-type: application/json
-      binder:
-        rabbit:
-          default:
-            broker:
-              host: localhost
-              port: 5672
-              username: guest
-              password: guest
-            adminAddresses: localhost:15672
-            connectionFactory:
-              publisher-confirms: true
-              publisher-returns: true
-      rabbit:
-        default:
-          auto-bind-dlq: true
-          dlq-ttl: 3600000
-          dlq-dead-letter-exchange: kp-users.dlq
-          producer:
-            producerType: AMQP
-            instanceCount: 1
-            instanceIndex: 0
-            auto-bind-dlq: true
-            auto-bind-headers: true
-            auto-bind-headers-dlq: true
-            auto-bind-exchange: true
-            auto-bind-queue: true
-          consumer:
-            consumerType: AMQP
-            maxAttempts: 3
-            instanceCount: 1
-            instanceIndex: 0
-            auto-bind-dlq: true
-            auto-bind-headers: true
-            auto-bind-headers-dlq: true
-            auto-bind-exchange: true
-            auto-bind-queue: true
+
 management:
   health:
     binders:
