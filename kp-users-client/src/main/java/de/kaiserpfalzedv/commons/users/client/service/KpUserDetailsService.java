@@ -3,6 +3,7 @@ package de.kaiserpfalzedv.commons.users.client.service;
 
 import de.kaiserpfalzedv.commons.users.domain.model.user.User;
 import de.kaiserpfalzedv.commons.users.store.model.user.R2dbcUserRepository;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.XSlf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,9 +12,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 /**
+ * This is the concrete service for retrieving the user by username.
+ *
  * @author klenkes74 {@literal <rlichti@kaiserpfalz-edv.de>}
  * @since 03.05.2025
  */
@@ -24,10 +25,13 @@ public class KpUserDetailsService implements UserDetailsService {
   private final R2dbcUserRepository read;
   
   /**
+   * This method loads the user by the provided username.
    *
-   * @param username the username identifying the user whose data is required. It has to be the provider joined by ":#:" with the subject of the OAuth2 token.
+   * @param username the username identifying the user whose data is required. It has to be the
+   *                 provider joined by ":#:" with the subject of the OAuth2 token.
    * @return The details for the user.
-   * @throws UsernameNotFoundException If the username can't be devided to issuer and subject or the user is not found in our database.
+   * @throws UsernameNotFoundException If the username can't be devided to issuer and subject or
+   *     the user is not found in our database.
    */
   @Override
   public UserDetails loadUserByUsername(final String username) throws UsernameNotFoundException {
@@ -57,7 +61,7 @@ public class KpUserDetailsService implements UserDetailsService {
     log.entry(username, credentials);
     
     Optional<User> user = read.findByIssuerAndSubject(credentials[0], credentials[1])
-        .blockOptional();
+                              .blockOptional();
     
     if (user.isEmpty()) {
       throw log.throwing(new UsernameNotFoundException(username));
