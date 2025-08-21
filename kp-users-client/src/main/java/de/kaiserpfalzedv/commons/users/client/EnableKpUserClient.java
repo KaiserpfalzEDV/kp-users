@@ -16,14 +16,20 @@
  */
 package de.kaiserpfalzedv.commons.users.client;
 
-import de.kaiserpfalzedv.commons.users.client.reactive.KpReactUserSecurityConfig;
 import de.kaiserpfalzedv.commons.users.client.reactive.KpReactUserDetailsService;
-import de.kaiserpfalzedv.commons.users.client.service.*;
-import de.kaiserpfalzedv.commons.users.messaging.EnableUsersMessaging;
+import de.kaiserpfalzedv.commons.users.client.reactive.KpReactUserSecurityConfig;
+import de.kaiserpfalzedv.commons.users.client.service.KpApiKeyAuthenticationManager;
+import de.kaiserpfalzedv.commons.users.client.service.KpUserAuthenticationManager;
+import de.kaiserpfalzedv.commons.users.client.service.KpUserAuthenticationService;
+import de.kaiserpfalzedv.commons.users.client.service.KpUserDetailsService;
+import de.kaiserpfalzedv.commons.users.client.service.KpUserLoggedInStateRepository;
 import de.kaiserpfalzedv.commons.users.store.EnableR2dbcUsersStore;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import org.springframework.context.annotation.Import;
-
-import java.lang.annotation.*;
 
 
 /**
@@ -37,7 +43,6 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Documented
-@EnableUsersMessaging
 @EnableR2dbcUsersStore
 @Import({
     KpApiKeyAuthenticationManager.class,

@@ -1,1 +1,2 @@
-* xref:index.adoc[kp-users manual]
+* xref:index.adoc[]
+** xref:client/index.adoc[]

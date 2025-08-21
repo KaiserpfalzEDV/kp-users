@@ -1,5 +1,5 @@
 .Overview of the usage of the kp-users by other SCS and their users.
-[plantuml, kp-users-runtime-view-overview, svg]
+[plantuml, kp-users-runtime-view-overview]
 ----
 @startuml kp-users-scs-deployment
     !include <k8s/Common>

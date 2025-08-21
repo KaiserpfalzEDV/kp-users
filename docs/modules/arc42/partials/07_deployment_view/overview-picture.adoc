@@ -1,5 +1,5 @@
 .Overview of the deployment of the kp-users SCS within a Kubernetes cluster.
-[plantuml, kp-users-runtime-view-overview, svg]
+[plantuml, kp-users-runtime-view-overview]
 ----
 @startuml kp-users-scs-deployment
 !include <k8s/Common>

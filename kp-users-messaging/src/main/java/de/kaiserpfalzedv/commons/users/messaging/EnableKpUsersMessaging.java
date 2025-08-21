@@ -39,4 +39,4 @@ import java.lang.annotation.*;
     ReceiveUserStateEventsConfig.class,
     SpringEventBus.class
 })
-public @interface EnableUsersMessaging {}
+public @interface EnableKpUsersMessaging {}

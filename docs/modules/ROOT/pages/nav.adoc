@@ -1,0 +1,2 @@
+* xref:glossary.adoc[]
+* xref:bibliography.adoc[]

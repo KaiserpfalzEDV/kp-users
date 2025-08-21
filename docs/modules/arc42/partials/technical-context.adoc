@@ -1,4 +1,4 @@
-[plantuml,building-block-overview,svg]
+[plantuml,building-block-overview]
 ----
 @startuml building-block-overview
 

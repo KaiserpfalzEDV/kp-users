@@ -1,6 +1,10 @@
-= Distributed User Management
+= Distributed User Management Manual
 Roland T. Lichti <rlichti@kaiserpfalz-edv.de>
+include::partial$config.adoc[]
 
-NOTE: This documentation is also available in link:../_export/index.pdf[PDF format].
+[NOTE]
+====
+This documentation is also available in link:../_export/index.pdf[PDF format].
+====
 
-include::kes:ROOT:partial$kes.adoc[]
+include::arc42:01_introduction_and_goals.adoc[]

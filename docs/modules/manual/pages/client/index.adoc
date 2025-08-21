@@ -1,0 +1,51 @@
+= Client Manual
+:author: Roland Thomas Lichti
+:authorinitials: rtl
+:email: rlichti@kaiserpfalz-edv.de
+include::partial$config.adoc[]
+
+== Maven Coordinates
+
+[source,xml]
+----
+<dependency>
+  <groupId>de.kaiserpfalz-edv.commons.services</groupId>
+  <artifactId>kp-users-client</artifactId>
+  <version>1.0.0-SNAPSHOT</version> # <1>
+</dependency>
+----
+<1> Replace with the current version.
+
+
+== Enable the library
+
+[source,java]
+----
+...
+import de.kaiserpfalzedv.commons.users.client.EnableKpUserClient;
+import de.kaiserpfalzedv.commons.users.messaging.EnableKpUserMessaging;
+...
+
+@EnableKpUserClient # <1>
+@EnableKpUserMessaging # <2>
+public class MyApplication extends SpringBootApplication {
+  ...
+}
+----
+<1> This is the annotation enabling the KpUserManagement.
+<2> To use the distributed user management, you will need to enable the messaging part, too.
+
+
+== Database Configuration
+
+The client will use a reactive database connection.
+
+_**TBD**_
+
+
+== Messaging Configuration
+
+Messaging will use Spring Cloud Streams.
+The default configuration is using a rabbitmq message broker.
+
+_**TBD**_

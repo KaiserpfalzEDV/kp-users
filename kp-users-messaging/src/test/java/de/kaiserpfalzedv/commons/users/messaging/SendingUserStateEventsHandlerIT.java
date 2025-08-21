@@ -205,7 +205,7 @@ public class SendingUserStateEventsHandlerIT {
   
   
   @SpringBootApplication
-  @EnableUsersMessaging
+  @EnableKpUsersMessaging
   @RequiredArgsConstructor(onConstructor_ = {@Autowired})
   public static class TestConfiguration {
     @Getter(onMethod_ = @__(@Bean))
